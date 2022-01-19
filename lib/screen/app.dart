@@ -1,8 +1,10 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/screen/puzzle.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:provider/provider.dart';
@@ -24,43 +26,57 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   bool isTopLeft = true;
 
   void _createTiles() {
+    bool isSolvable = false;
     int gridSize = 4;
     int totalTiles = pow(gridSize, 2).toInt();
-    List<TilesModel> list = List.generate(
-        totalTiles,
-        (index) => TilesModel(
-            defaultIndex: index,
-            currentIndex: index,
-            isWhite: index == totalTiles - 1));
+    List<int> numbers = List.generate(totalTiles, (index) => index);
+    List<TilesModel> list = [];
+    List<int> random = List.from(numbers);
+    while (!isSolvable) {
+      random.shuffle();
+      list = numbers
+          .map((e) => TilesModel(
+              defaultIndex: e,
+              currentIndex: random[e],
+              isWhite: e == totalTiles - 1))
+          .toList();
+      // List<TilesModel> list = List.generate(
+      //     totalTiles,
+      //     (index) => TilesModel(
+      //         defaultIndex: index,
+      //         currentIndex: index,
+      //         isWhite: index == totalTiles - 1));
+      // list.shuffle();
+      isSolvable = Service().isSolvable(list);
+    }
     TileProvider tileProvider = context.read<TileProvider>();
-    // print(tileProvider.tileList);
     tileProvider.createTiles(list);
-    // print(tileProvider.tileList);
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    var duration = const Duration(milliseconds: 500);
+    configProvider.setDuration(duration, curve: Curves.easeInOutBack);
+    Future.delayed(duration).then((value) => configProvider.resetDuration());
   }
 
-  List<Widget> buttons({bool expanded = true}) => [
+  List<Widget> buttons(double height, {bool expanded = true}) => [
         MyButton(
-          child: const AutoSizeText(
-            "Generate",
-            maxLines: 1,
-          ),
+          label: "Shuffle",
+          icon: const Icon(Icons.shuffle),
           expanded: expanded,
-          onPressed: () {},
+          height: height,
+          onPressed: _createTiles,
         ),
+        // MyButton(
+        //   label: "Reset",
+        //   icon: const Icon(Icons.cancel),
+        //   expanded: expanded,
+        //   height: height,
+        //   onPressed: () {},
+        // ),
         MyButton(
-          child: const AutoSizeText(
-            "Clear",
-            maxLines: 1,
-          ),
+          label: "Solve?",
+          icon: const Icon(Icons.stars_sharp),
           expanded: expanded,
-          onPressed: () {},
-        ),
-        MyButton(
-          child: const AutoSizeText(
-            "Solve?",
-            maxLines: 1,
-          ),
-          expanded: expanded,
+          height: height,
           onPressed: () {},
         ),
       ];
@@ -74,20 +90,24 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       _createTiles();
     });
+    final isWebMobile = kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android);
+    if (isWebMobile) area = 0.9;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          // _createTiles();
-          setState(() {
-            isTopLeft = !isTopLeft;
-          });
-        },
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   child: const Icon(Icons.add),
+      //   onPressed: () {
+      //     // _createTiles();
+      //     setState(() {
+      //       isTopLeft = !isTopLeft;
+      //     });
+      //   },
+      // ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           // final size = constraints.
@@ -190,7 +210,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                       // curve: curve,
                       child: isTall
                           ? Row(
-                              children: buttons(expanded: true),
+                              children: buttons(puzzleHeight, expanded: true),
                             )
                           : const SizedBox(
                               height: 44,
@@ -218,7 +238,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                       child: !isTall
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: buttons(expanded: false),
+                              children: buttons(puzzleHeight, expanded: false),
                             )
                           : const SizedBox(
                               height: 44,

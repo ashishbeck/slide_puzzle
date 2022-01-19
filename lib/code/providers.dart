@@ -46,17 +46,22 @@ class TweenProvider extends ChangeNotifier {
 }
 
 int defaultTime = 200;
+Curve defaultCurve = Curves.easeOutBack;
 
 class ConfigProvider extends ChangeNotifier {
   Duration _duration = Duration(milliseconds: defaultTime);
   Duration get duration => _duration;
+  Curve _curve = defaultCurve;
+  Curve get curve => _curve;
 
-  void setDuration(Duration duration) {
+  void setDuration(Duration duration, {Curve? curve}) {
     _duration = duration;
-    notifyListeners();
+    _curve = curve ?? defaultCurve;
+    // notifyListeners();
   }
 
   void resetDuration() {
     _duration = Duration(milliseconds: defaultTime);
+    _curve = defaultCurve;
   }
 }

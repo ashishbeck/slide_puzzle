@@ -34,13 +34,13 @@ class _PuzzleState extends State<Puzzle> {
 
   @override
   Widget build(BuildContext context) {
-    List<TilesModel> tileList =
-        context.watch<TileProvider>().getTileList.reversed.toList();
-    // print("tileList is $tileList");
+    List<TilesModel> tileList = context.watch<TileProvider>().getTileList;
     gridSize = sqrt(tileList.length).toInt();
     isSolved = tileList
         .every((element) => element.currentIndex == element.defaultIndex);
-    // print(isSolved);
+    if (isSolved && tileList.isNotEmpty) {
+      print("Solved!!");
+    }
     // list.forEach((e) {
     //   bool solved = true;
     //   if (e.currentIndex != e.defaultIndex) {
@@ -106,7 +106,7 @@ class _PuzzleTileState extends State<PuzzleTile> {
   // Duration defaultDuration = const Duration(milliseconds: 1200);
   // Duration duration = const Duration(milliseconds: 1200);
 
-  Curve curve = Curves.easeOutBack;
+  // Curve curve = Curves.easeOutBack;
 
   // double? tweenLeftOffset;
   // double? tweenTopOffset;
@@ -136,7 +136,6 @@ class _PuzzleTileState extends State<PuzzleTile> {
         Service().changePosition(widget.tileList, thisTile, whiteTile,
             gridSize: isSameColumn ? widget.gridSize : 1);
         tileProvider.updateNotifiers();
-        widget.onTap(1);
       }
     }
     mouseOffset = null;
@@ -229,12 +228,11 @@ class _PuzzleTileState extends State<PuzzleTile> {
             height: height,
             width: height,
             color: widget.isWhite ? Colors.white.withOpacity(0.2) : Colors.red,
-            child: Center(
-                child: Text("${widget.currentIndex} (${widget.defaultIndex})")),
+            child: Center(child: Text("(${widget.defaultIndex + 1})")),
           );
     return AnimatedPositioned(
       duration: configProvider.duration,
-      curve: curve,
+      curve: configProvider.curve,
       top: topOffset + gap / 2,
       left: leftOffset + gap / 2,
       child: MouseRegion(

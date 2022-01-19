@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 
@@ -21,6 +23,31 @@ class Service {
       int temp = replaceableTile.currentIndex;
       replaceableTile.currentIndex = whiteTile.currentIndex;
       whiteTile.currentIndex = temp;
+    }
+  }
+
+  bool isSolvable(List<TilesModel> list) {
+    int len = list.length;
+    int gridSize = sqrt(len).toInt();
+    int inversions = 0;
+    for (var i = 0; i < len; i++) {
+      if (!list[i].isWhite) {
+        for (var j = i + 1; j < len; j++) {
+          if (list[i].currentIndex > list[j].currentIndex && !list[j].isWhite) {
+            inversions++;
+          }
+        }
+      }
+    }
+    if (gridSize.isOdd) {
+      return inversions.isEven;
+    }
+    TilesModel whiteTile = list.firstWhere((element) => element.isWhite);
+    int row = (whiteTile.currentIndex / gridSize).floor();
+    if ((gridSize - row).isOdd) {
+      return inversions.isEven;
+    } else {
+      return inversions.isOdd;
     }
   }
 }

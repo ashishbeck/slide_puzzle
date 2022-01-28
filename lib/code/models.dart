@@ -4,10 +4,21 @@ class TilesModel {
   int defaultIndex;
   int currentIndex;
   bool isWhite;
+  Coordinates coordinates;
   TilesModel({
     required this.defaultIndex,
     required this.currentIndex,
     required this.isWhite,
+    required this.coordinates,
+  });
+}
+
+class Coordinates {
+  int row;
+  int column;
+  Coordinates({
+    required this.row,
+    required this.column,
   });
 }
 
@@ -23,3 +34,5 @@ class TweenModel {
     this.axis,
   });
 }
+
+enum Direction { left, right, up, down }

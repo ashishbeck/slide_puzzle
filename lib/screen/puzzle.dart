@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/models.dart';
@@ -15,11 +16,32 @@ class Puzzle extends StatefulWidget {
 }
 
 class _PuzzleState extends State<Puzzle> {
+  final FocusNode _focusNode = FocusNode();
   int gridSize = 0;
   // late List<TilesModel> tileList;
   // late List<int> mainTiles;
   // late List<int> currentTiles;
   bool isSolved = false;
+
+  void _handleKeyEvent(RawKeyEvent event, TileProvider tileProvider) {
+    if (event.runtimeType == RawKeyDownEvent) {
+      var tileList = tileProvider.getTileList;
+      var whiteTile = tileList.singleWhere((element) => element.isWhite);
+      if (event.data.logicalKey == LogicalKeyboardKey.arrowUp) {
+        Service().moveWhite(tileList, Direction.up);
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        Service().moveWhite(tileList, Direction.down);
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        Service().moveWhite(tileList, Direction.left);
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        Service().moveWhite(tileList, Direction.right);
+      }
+      tileProvider.updateNotifiers();
+    }
+  }
 
   @override
   void initState() {
@@ -34,10 +56,10 @@ class _PuzzleState extends State<Puzzle> {
 
   @override
   Widget build(BuildContext context) {
+    TileProvider tileProvider = context.watch<TileProvider>();
     List<TilesModel> tileList = context.watch<TileProvider>().getTileList;
     gridSize = sqrt(tileList.length).toInt();
-    isSolved = tileList
-        .every((element) => element.currentIndex == element.defaultIndex);
+    isSolved = Service().isSolved(tileList);
     if (isSolved && tileList.isNotEmpty) {
       print("Solved!!");
     }
@@ -48,34 +70,48 @@ class _PuzzleState extends State<Puzzle> {
     //   }
     // });
     // list.reversed;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          children: [
-            for (var i = 0; i < tileList.length; i++) ...{
-              PuzzleTile(
-                tileList: tileList,
-                constraints: constraints,
-                gridSize: gridSize,
-                currentIndex: tileList[i].currentIndex,
-                defaultIndex: tileList[i].defaultIndex,
-                isWhite: tileList[i].isWhite,
-                onTap: (int newPos) {
-                  // list.shuffle();
-                  // setState(() {
-                  //   currentTiles.shuffle();
-                  // });
-                  // final temp = list[0].currentIndex;
-                  // list[0].currentIndex = list[1].currentIndex;
-                  // list[1].currentIndex = temp;
-                  // setState(() {});
-                },
-              )
-            },
-          ],
-        );
+    _focusNode.requestFocus();
+    return RawKeyboardListener(
+      autofocus: true,
+      focusNode: _focusNode,
+      onKey: (RawKeyEvent event) {
+        _handleKeyEvent(event, tileProvider);
       },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              for (var i = 0; i < tileList.length; i++) ...{
+                PuzzleTile(
+                  tileList: tileList,
+                  constraints: constraints,
+                  gridSize: gridSize,
+                  currentIndex: tileList[i].currentIndex,
+                  defaultIndex: tileList[i].defaultIndex,
+                  isWhite: tileList[i].isWhite,
+                  onTap: (int newPos) {
+                    // list.shuffle();
+                    // setState(() {
+                    //   currentTiles.shuffle();
+                    // });
+                    // final temp = list[0].currentIndex;
+                    // list[0].currentIndex = list[1].currentIndex;
+                    // list[1].currentIndex = temp;
+                    // setState(() {});
+                  },
+                )
+              },
+            ],
+          );
+        },
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
   }
 }
 
@@ -183,13 +219,13 @@ class _PuzzleTileState extends State<PuzzleTile> {
         .firstWhere((element) => element.currentIndex == widget.currentIndex);
     TilesModel whiteTile =
         widget.tileList.firstWhere((element) => element.isWhite);
-    int row = (widget.currentIndex / widget.gridSize).floor();
-    int column = widget.currentIndex %
-        widget.gridSize; //(currentIndex.remainder(gridSize));
+    int row = thisTile.coordinates.row;
+    int column =
+        thisTile.coordinates.column; //(currentIndex.remainder(gridSize));
     int whiteIndex = whiteTile.currentIndex;
-    int whiteRow = (whiteIndex / widget.gridSize).floor();
+    int whiteRow = whiteTile.coordinates.row;
     int whiteColumn =
-        whiteIndex % widget.gridSize; //(whiteIndex.remainder(gridSize));
+        whiteTile.coordinates.column; //(whiteIndex.remainder(gridSize));
     bool isSameRow = row == whiteRow;
     bool isSameColumn = column == whiteColumn;
     bool isWhiteOnRightBelow = widget.currentIndex - whiteIndex < 0;

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -8,7 +10,6 @@ import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/screen/puzzle.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:provider/provider.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 
 class LayoutPage extends StatefulWidget {
   const LayoutPage({Key? key}) : super(key: key);
@@ -19,27 +20,32 @@ class LayoutPage extends StatefulWidget {
 
 class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   late AnimationController controller;
+  int gridSize = 4;
   Duration duration = const Duration(milliseconds: 200);
   Curve curve = Curves.easeOut;
   double area = 0.75;
   double offsetFromCenter = 0.5;
   bool isTopLeft = true;
+  List<Direction> solvingMoves = [];
 
   void _createTiles() {
     bool isSolvable = false;
-    int gridSize = 4;
+    bool isAlreadySolved = false;
     int totalTiles = pow(gridSize, 2).toInt();
     List<int> numbers = List.generate(totalTiles, (index) => index);
     List<TilesModel> list = [];
     List<int> random = List.from(numbers);
-    while (!isSolvable) {
+    while (!isSolvable && !isAlreadySolved) {
       random.shuffle();
-      list = numbers
-          .map((e) => TilesModel(
-              defaultIndex: e,
-              currentIndex: random[e],
-              isWhite: e == totalTiles - 1))
-          .toList();
+      list = numbers.map((e) {
+        Coordinates coordinates = Coordinates(
+            row: (random[e] / gridSize).floor(), column: random[e] % gridSize);
+        return TilesModel(
+            defaultIndex: e,
+            currentIndex: random[e],
+            coordinates: coordinates,
+            isWhite: e == totalTiles - 1);
+      }).toList();
       // List<TilesModel> list = List.generate(
       //     totalTiles,
       //     (index) => TilesModel(
@@ -48,6 +54,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
       //         isWhite: index == totalTiles - 1));
       // list.shuffle();
       isSolvable = Service().isSolvable(list);
+      isAlreadySolved = Service().isSolved(list);
     }
     TileProvider tileProvider = context.read<TileProvider>();
     tileProvider.createTiles(list);
@@ -55,6 +62,60 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     var duration = const Duration(milliseconds: 500);
     configProvider.setDuration(duration, curve: Curves.easeInOutBack);
     Future.delayed(duration).then((value) => configProvider.resetDuration());
+  }
+
+  void _solve() async {
+    TileProvider tileProvider = context.read<TileProvider>();
+    List<TilesModel> tileList = tileProvider.getTileList;
+    bool isSolved = Service().isSolved(tileList);
+    if (isSolved) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          content: Text("The puzzle is already solved!"),
+        ));
+      return;
+    }
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return const AlertDialog(
+            content: ListTile(
+              title: Text("Trying to solve the puzzle"),
+              leading: CircularProgressIndicator(),
+            ),
+          );
+        });
+    List<String> result = await Service().getSolution(tileList);
+    Navigator.pop(context);
+    var i = 0;
+    // print("result is $result ${result.first.runtimeType} ${result.isNotEmpty}");
+    if (result.isNotEmpty && result.first != "") {
+      Timer.periodic(duration, (timer) {
+        Direction? direction;
+        switch (result[i]) {
+          case "Left":
+            direction = Direction.left;
+            break;
+          case "Right":
+            direction = Direction.right;
+            break;
+          case "Down":
+            direction = Direction.down;
+            break;
+          case "Up":
+            direction = Direction.up;
+            break;
+          default:
+            return;
+        }
+        Service().moveWhite(tileList, direction);
+        tileProvider.updateNotifiers();
+        i++;
+        if (i == result.length) timer.cancel();
+      });
+    }
   }
 
   List<Widget> buttons(double height, {bool expanded = true}) => [
@@ -77,7 +138,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           icon: const Icon(Icons.stars_sharp),
           expanded: expanded,
           height: height,
-          onPressed: () {},
+          onPressed: _solve,
         ),
       ];
 
@@ -98,16 +159,25 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    TileProvider tileProvider = context.read<TileProvider>();
+    List<TilesModel> tileList = tileProvider.getTileList;
     return Scaffold(
-      // floatingActionButton: FloatingActionButton(
-      //   child: const Icon(Icons.add),
-      //   onPressed: () {
-      //     // _createTiles();
-      //     setState(() {
-      //       isTopLeft = !isTopLeft;
-      //     });
-      //   },
-      // ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () {
+          // _createTiles();
+          var i = 0;
+          Timer timer = Timer.periodic(duration, (timer) {
+            Service().moveWhite(tileList, solvingMoves[i]);
+            tileProvider.updateNotifiers();
+            i++;
+            if (i == solvingMoves.length) timer.cancel();
+          });
+          // solvingMoves.forEach((element) async {
+          //   await Future.delayed(duration);
+          // });
+        },
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           // final size = constraints.
@@ -327,3 +397,200 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     );
   }
 }
+  // void _solve() {
+  //   TileProvider tileProvider = context.read<TileProvider>();
+  //   List<TilesModel> tileList = tileProvider.getTileList;
+  //   bool isSolved = false;
+  //   int startedAt = DateTime.now().millisecondsSinceEpoch;
+  //   int now = startedAt;
+  //   List<Direction> moves = [];
+  //   List<Direction> interMoves = [];
+  //   Direction? previousMove;
+  //   List<TilesModel> visitedNode = tileList
+  //       .map((e) => TilesModel(
+  //           defaultIndex: e.defaultIndex,
+  //           currentIndex: e.currentIndex,
+  //           isWhite: e.isWhite,
+  //           coordinates: e.coordinates))
+  //       .toList(); //List.from(tileList);
+  //   Map<int, List<TilesModel>> previousNodes = {0: visitedNode};
+  //   Map<int, int> h = {};
+
+  //   // int h = -1;
+  //   // tileList.forEach((e) {
+  //   //   if (e.currentIndex != e.defaultIndex) h++;
+  //   // });
+  //   // for (var k = 0; k < 5; k++) {
+  //   while (!isSolved && now - startedAt < 1000) {
+  //     now = DateTime.now().millisecondsSinceEpoch;
+  //     List<TilesModel> copyOfList = previousNodes[0]!
+  //         .map((e) => TilesModel(
+  //             defaultIndex: e.defaultIndex,
+  //             currentIndex: e.currentIndex,
+  //             isWhite: e.isWhite,
+  //             coordinates: e.coordinates))
+  //         .toList();
+  //     // print("copy of list is");
+  //     // copyOfList.forEach((element) {
+  //     //   print(element.currentIndex + 1);
+  //     // });
+  //     previousNodes.clear();
+  //     for (var i = 0; i < Direction.values.length; i++) {
+  //       Direction thisMove = Direction.values[i];
+  //       bool isParent = Service().checkIfParent(thisMove, previousMove);
+  //       if (isParent) continue;
+  //       List<TilesModel> copyOfCopyOfList = copyOfList
+  //           .map((e) => TilesModel(
+  //               defaultIndex: e.defaultIndex,
+  //               currentIndex: e.currentIndex,
+  //               isWhite: e.isWhite,
+  //               coordinates: e.coordinates))
+  //           .toList();
+  //       List<TilesModel>? newList =
+  //           Service().moveWhite(copyOfCopyOfList, Direction.values[i]);
+  //       if (newList != null) {
+  //         print("adding new list with a move of ${Direction.values[i]}");
+  //         newList.forEach((element) {
+  //           print(element.currentIndex + 1);
+  //         });
+  //         previousNodes.addAll({i: newList});
+  //       }
+  //     }
+  //     // print(previousNodes.values.toList().first.first.coordinates);
+  //     previousNodes.forEach((key, value) {
+  //       h[key] = 0;
+  //       value.forEach((e) {
+  //         if (e.currentIndex != e.defaultIndex) {
+  //           h[key] = (h[key] ?? 0) + 1;
+  //         }
+  //       });
+  //     });
+  //     var sortedKeys = h.keys.toList(growable: false)
+  //       ..sort((k1, k2) => h[k1]!.compareTo(h[k2]!));
+  //     LinkedHashMap sortedMap = LinkedHashMap.fromIterable(sortedKeys,
+  //         key: (k) => k, value: (k) => h[k]);
+  //     // print(sortedMap.keys.toList());
+  //     // print(sortedMap.values.toList());
+  //     int minH = sortedMap.keys.toList()[0];
+  //     List<TilesModel> winningNode =
+  //         previousNodes[minH] ?? previousNodes[previousNodes.keys.first]!;
+  //     moves.add(Direction.values[minH]);
+  //     previousMove = Direction.values[minH];
+  //     previousNodes.clear();
+  //     previousNodes = {0: winningNode};
+  //     h.clear();
+  //     isSolved = winningNode
+  //         .every((element) => element.currentIndex == element.defaultIndex);
+  //     // if (isSolved) {
+  //     //   print("solved!!!!!!!!!!!!!!!!!!!!");
+  //     //   isSolved = true;
+  //     // }
+  //   }
+  //   print("done");
+  //   print(isSolved);
+  //   print(moves.toString());
+  //   solvingMoves = List.from(moves);
+  //   // solvingMoves.addAll(moves);
+  //   tileProvider.updateNotifiers();
+  // }
+
+  // void _solve() {
+  //   int level = 0;
+  //   TileProvider tileProvider = context.read<TileProvider>();
+  //   List<TilesModel> tileList = tileProvider.getTileList;
+  //   bool isSolved = false;
+  //   int startedAt = DateTime.now().millisecondsSinceEpoch;
+  //   int now = startedAt;
+  //   List<Direction> moves = [];
+  //   List<Direction> interMoves = [];
+  //   Direction? previousMove;
+  //   List<TilesModel> visitedNode = tileList
+  //       .map((e) => TilesModel(
+  //           defaultIndex: e.defaultIndex,
+  //           currentIndex: e.currentIndex,
+  //           isWhite: e.isWhite,
+  //           coordinates: e.coordinates))
+  //       .toList(); //List.from(tileList);
+  //   List<List<TilesModel>> nodes = [visitedNode];
+  //   Map<int, List<TilesModel>> previousNodes = {0: visitedNode};
+  //   Map<int, int> h = {};
+
+  //   // int h = -1;
+  //   // tileList.forEach((e) {
+  //   //   if (e.currentIndex != e.defaultIndex) h++;
+  //   // });
+  //   // for (var k = 0; k < 5; k++) {
+  //   while (!isSolved && now - startedAt < 1000) {
+  //     now = DateTime.now().millisecondsSinceEpoch;
+  //     List<TilesModel> copyOfList = previousNodes[0]!
+  //         .map((e) => TilesModel(
+  //             defaultIndex: e.defaultIndex,
+  //             currentIndex: e.currentIndex,
+  //             isWhite: e.isWhite,
+  //             coordinates: e.coordinates))
+  //         .toList();
+  //     // print("copy of list is");
+  //     // copyOfList.forEach((element) {
+  //     //   print(element.currentIndex + 1);
+  //     // });
+  //     previousNodes.clear();
+  //     level++;
+  //     for (var i = 0; i < Direction.values.length; i++) {
+  //       Direction thisMove = Direction.values[i];
+  //       bool isParent = Service().checkIfParent(thisMove, previousMove);
+  //       if (isParent) continue;
+  //       List<TilesModel> copyOfCopyOfList = copyOfList
+  //           .map((e) => TilesModel(
+  //               defaultIndex: e.defaultIndex,
+  //               currentIndex: e.currentIndex,
+  //               isWhite: e.isWhite,
+  //               coordinates: e.coordinates))
+  //           .toList();
+  //       List<TilesModel>? newList =
+  //           Service().moveWhite(copyOfCopyOfList, Direction.values[i]);
+  //       if (newList != null) {
+  //         print("adding new list with a move of ${Direction.values[i]}");
+  //         newList.forEach((element) {
+  //           print(element.currentIndex + 1);
+  //         });
+  //         previousNodes.addAll({i: newList});
+  //         nodes[level] = newList;
+  //       }
+  //     }
+  //     // print(previousNodes.values.toList().first.first.coordinates);
+  //     previousNodes.forEach((key, value) {
+  //       h[key] = 0;
+  //       value.forEach((e) {
+  //         if (e.currentIndex != e.defaultIndex) {
+  //           h[key] = (h[key] ?? 0) + 1;
+  //         }
+  //       });
+  //     });
+  //     var sortedKeys = h.keys.toList(growable: false)
+  //       ..sort((k1, k2) => h[k1]!.compareTo(h[k2]!));
+  //     LinkedHashMap sortedMap = LinkedHashMap.fromIterable(sortedKeys,
+  //         key: (k) => k, value: (k) => h[k]);
+  //     // print(sortedMap.keys.toList());
+  //     // print(sortedMap.values.toList());
+  //     int minH = sortedMap.keys.toList()[0];
+  //     List<TilesModel> winningNode =
+  //         previousNodes[minH] ?? previousNodes[previousNodes.keys.first]!;
+  //     moves.add(Direction.values[minH]);
+  //     previousMove = Direction.values[minH];
+  //     previousNodes.clear();
+  //     previousNodes = {0: winningNode};
+  //     h.clear();
+  //     isSolved = winningNode
+  //         .every((element) => element.currentIndex == element.defaultIndex);
+  //     // if (isSolved) {
+  //     //   print("solved!!!!!!!!!!!!!!!!!!!!");
+  //     //   isSolved = true;
+  //     // }
+  //   }
+  //   print("done");
+  //   print(isSolved);
+  //   print(moves.toString());
+  //   solvingMoves = List.from(moves);
+  //   // solvingMoves.addAll(moves);
+  //   tileProvider.updateNotifiers();
+  // }

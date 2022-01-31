@@ -1,6 +1,9 @@
 import 'dart:math';
 import 'package:http/http.dart' as http;
+import 'package:slide_puzzle/code/audio.dart';
+import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
+import 'package:vibration/vibration.dart';
 
 class Service {
   List<TilesModel> changePosition(
@@ -26,6 +29,8 @@ class Service {
       whiteTile.currentIndex = temp;
       whiteTile.coordinates = tempCoords;
     }
+    AudioService.instance.slide(Duration(milliseconds: defaultTime * 1));
+    vibrate();
     return tileList;
   }
 
@@ -45,7 +50,6 @@ class Service {
             element.coordinates.row == row &&
             element.coordinates.column == column + 1);
         return changePosition(tileList, replaceableTile, whiteTile);
-        break;
       case Direction.down:
         if (top) break;
         var replaceableTile = tileList.singleWhere((element) =>
@@ -53,14 +57,12 @@ class Service {
             element.coordinates.column == column);
         return changePosition(tileList, replaceableTile, whiteTile,
             gridSize: gridSize);
-        break;
       case Direction.right:
         if (left) break;
         var replaceableTile = tileList.singleWhere((element) =>
             element.coordinates.row == row &&
             element.coordinates.column == column - 1);
         return changePosition(tileList, replaceableTile, whiteTile);
-        break;
       case Direction.up:
         if (bottom) break;
         var replaceableTile = tileList.singleWhere((element) =>
@@ -68,7 +70,6 @@ class Service {
             element.coordinates.column == column);
         return changePosition(tileList, replaceableTile, whiteTile,
             gridSize: gridSize);
-        break;
     }
   }
 
@@ -151,5 +152,16 @@ class Service {
         break;
     }
     return !allowed;
+  }
+
+  vibrate() async {
+    if (await Vibration.hasVibrator() ?? false) {
+      if ((await Vibration.hasAmplitudeControl() ?? false) &&
+          (await Vibration.hasCustomVibrationsSupport() ?? false)) {
+        Vibration.vibrate(duration: 128, amplitude: 50);
+      } else {
+        Vibration.vibrate();
+      }
+    }
   }
 }

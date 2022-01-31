@@ -4,6 +4,8 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:slide_puzzle/code/audio.dart';
+import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
@@ -21,7 +23,7 @@ class LayoutPage extends StatefulWidget {
 class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   late AnimationController controller;
   int gridSize = 4;
-  Duration duration = const Duration(milliseconds: 200);
+  Duration duration = Duration(milliseconds: defaultTime);
   Curve curve = Curves.easeOut;
   double area = 0.75;
   double offsetFromCenter = 0.5;
@@ -57,6 +59,10 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
       isAlreadySolved = Service().isSolved(list);
     }
     TileProvider tileProvider = context.read<TileProvider>();
+    if (tileProvider.getTileList.isNotEmpty) {
+      AudioService.instance.shuffle();
+      Service().vibrate();
+    }
     tileProvider.createTiles(list);
     ConfigProvider configProvider = context.read<ConfigProvider>();
     var duration = const Duration(milliseconds: 500);
@@ -92,7 +98,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     var i = 0;
     // print("result is $result ${result.first.runtimeType} ${result.isNotEmpty}");
     if (result.isNotEmpty && result.first != "") {
-      Timer.periodic(duration, (timer) {
+      Timer.periodic(duration * 1, (timer) {
         Direction? direction;
         switch (result[i]) {
           case "Left":
@@ -145,6 +151,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    AudioService.instance.init();
     controller = AnimationController(
         vsync: this, lowerBound: 0, upperBound: 1, duration: duration);
     controller.value = 1;
@@ -162,22 +169,22 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     TileProvider tileProvider = context.read<TileProvider>();
     List<TilesModel> tileList = tileProvider.getTileList;
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          // _createTiles();
-          var i = 0;
-          Timer timer = Timer.periodic(duration, (timer) {
-            Service().moveWhite(tileList, solvingMoves[i]);
-            tileProvider.updateNotifiers();
-            i++;
-            if (i == solvingMoves.length) timer.cancel();
-          });
-          // solvingMoves.forEach((element) async {
-          //   await Future.delayed(duration);
-          // });
-        },
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   child: const Icon(Icons.add),
+      //   onPressed: () {
+      //     // _createTiles();
+      //     var i = 0;
+      //     Timer timer = Timer.periodic(duration, (timer) {
+      //       Service().moveWhite(tileList, solvingMoves[i]);
+      //       tileProvider.updateNotifiers();
+      //       i++;
+      //       if (i == solvingMoves.length) timer.cancel();
+      //     });
+      //     // solvingMoves.forEach((element) async {
+      //     //   await Future.delayed(duration);
+      //     // });
+      //   },
+      // ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           // final size = constraints.

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 
 class TileProvider extends ChangeNotifier {
@@ -44,9 +45,6 @@ class TweenProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-
-int defaultTime = 200;
-Curve defaultCurve = Curves.easeOutBack;
 
 class ConfigProvider extends ChangeNotifier {
   Duration _duration = Duration(milliseconds: defaultTime);

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
+import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
@@ -173,11 +174,15 @@ class _PuzzleTileState extends State<PuzzleTile> {
             gridSize: isSameColumn ? widget.gridSize : 1);
         tileProvider.updateNotifiers();
       }
+    } else {
+      AudioService.instance.drag(failed: true);
+      Service().vibrate();
     }
     mouseOffset = null;
     tweenProvider.setData();
     configProvider.resetDuration();
     setState(() {});
+    AudioService.instance.drag(starting: false);
   }
 
   _onPanUpdate(
@@ -287,8 +292,11 @@ class _PuzzleTileState extends State<PuzzleTile> {
                     ? details.localPosition.dy
                     : null);
           },
-          onPanStart: (_) =>
-              configProvider.setDuration(const Duration(milliseconds: 0)),
+          onPanStart: (_) {
+            configProvider.setDuration(const Duration(milliseconds: 0));
+            AudioService.instance.drag();
+            Service().vibrate();
+          },
           onPanEnd: (details) {
             _onPanEnd(
                 details,

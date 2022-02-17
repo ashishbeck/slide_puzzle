@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -10,15 +9,20 @@ import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/screen/puzzle.dart';
+import 'package:slide_puzzle/ui/Image_list.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:provider/provider.dart';
+import 'package:rive/rive.dart';
+import 'package:slide_puzzle/ui/toolbar.dart';
 
 class LayoutPage extends StatefulWidget {
-  const LayoutPage({Key? key}) : super(key: key);
+  LayoutPage({Key? homekey}) : super(key: homeKey);
 
   @override
   _LayoutPageState createState() => _LayoutPageState();
 }
+
+final homeKey = GlobalKey<_LayoutPageState>();
 
 class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   late AnimationController controller;
@@ -28,9 +32,8 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   double area = 0.75;
   double offsetFromCenter = 0.5;
   bool isTopLeft = true;
-  List<Direction> solvingMoves = [];
 
-  void _createTiles() {
+  void createTiles({int gridSize = 4, bool isChangingGrid = false}) {
     bool isSolvable = false;
     bool isAlreadySolved = false;
     int totalTiles = pow(gridSize, 2).toInt();
@@ -65,7 +68,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     }
     tileProvider.createTiles(list);
     ConfigProvider configProvider = context.read<ConfigProvider>();
-    var duration = const Duration(milliseconds: 500);
+    var duration = Duration(milliseconds: isChangingGrid ? 10 : 500);
     configProvider.setDuration(duration, curve: Curves.easeInOutBack);
     Future.delayed(duration).then((value) => configProvider.resetDuration());
   }
@@ -127,10 +130,13 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   List<Widget> buttons(double height, {bool expanded = true}) => [
         MyButton(
           label: "Shuffle",
-          icon: const Icon(Icons.shuffle),
+          icon: const RiveAnimation.asset(
+            'assets/rive/icons.riv',
+            animations: ["shuffle"],
+          ),
           expanded: expanded,
           height: height,
-          onPressed: _createTiles,
+          onPressed: createTiles,
         ),
         // MyButton(
         //   label: "Reset",
@@ -140,8 +146,11 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
         //   onPressed: () {},
         // ),
         MyButton(
-          label: "Solve?",
-          icon: const Icon(Icons.stars_sharp),
+          label: "Solve",
+          icon: const RiveAnimation.asset(
+            'assets/rive/icons.riv',
+            animations: ["solve"],
+          ),
           expanded: expanded,
           height: height,
           onPressed: _solve,
@@ -156,7 +165,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
         vsync: this, lowerBound: 0, upperBound: 1, duration: duration);
     controller.value = 1;
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      _createTiles();
+      createTiles();
     });
     final isWebMobile = kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.iOS ||
@@ -166,8 +175,12 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    TileProvider tileProvider = context.read<TileProvider>();
-    List<TilesModel> tileList = tileProvider.getTileList;
+    int newGridSize = context.select<TileProvider, int>((_) => _.gridSize);
+    // if (newGridSize != gridSize) {
+    //   gridSize = newGridSize;
+    //   _createTiles();
+    // }
+    // List<TilesModel> tileList = tileProvider.getTileList;
     return Scaffold(
       // floatingActionButton: FloatingActionButton(
       //   child: const Icon(Icons.add),
@@ -195,6 +208,9 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           double absoluteHeight = maxHeight * area;
           double puzzleHeight = isTall ? absoluteWidth : absoluteHeight;
           double puzzleWidth = isTall ? absoluteWidth : absoluteHeight;
+
+          double imageListMainGap = 64;
+          double imageListCrossGap = 0;
 
           // head scratcher below for a solid hour and still not perfect :(
           double bottomButtonOffset =
@@ -235,11 +251,11 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                   child: AnimatedContainer(
                     duration: duration,
                     curve: curve,
-                    padding: EdgeInsets.all(4),
-                    color: Colors.green.withOpacity(isTall ? 0.4 : 1),
+                    padding: const EdgeInsets.all(4),
+                    color: Colors.blueGrey, //.withOpacity(isTall ? 0.4 : 1),
                     height: puzzleHeight,
                     width: puzzleWidth,
-                    child: Puzzle(),
+                    child: const Puzzle(),
                     // height: constraints.biggest.height,
                     // width: constraints.maxWidth,
                   ),
@@ -322,6 +338,22 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                             ),
                     ),
                   ),
+                ),
+
+                AnimatedPositioned(
+                  duration: duration,
+                  right: isTall ? imageListMainGap : imageListCrossGap,
+                  top: isTall ? null : imageListMainGap,
+                  left: isTall ? imageListMainGap : null,
+                  bottom: isTall ? imageListCrossGap : imageListMainGap,
+                  child: ImageList(constraints: constraints, isTall: isTall),
+                ),
+
+                AnimatedPositioned(
+                  duration: duration,
+                  right: 16,
+                  top: 4,
+                  child: const ToolBar(),
                 ),
 
                 // legacy column second child

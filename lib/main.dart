@@ -49,6 +49,7 @@ class MyApp extends StatelessWidget {
         title: 'Slide Puzzle',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          fontFamily: "Glacial",
           primarySwatch: Colors.blue,
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(

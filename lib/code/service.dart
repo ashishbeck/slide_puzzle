@@ -1,9 +1,12 @@
 import 'dart:math';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
-import 'package:vibration/vibration.dart';
+// import 'package:vibration/vibration.dart';
 
 class Service {
   List<TilesModel> changePosition(
@@ -155,13 +158,24 @@ class Service {
   }
 
   vibrate() async {
-    if (await Vibration.hasVibrator() ?? false) {
-      if ((await Vibration.hasAmplitudeControl() ?? false) &&
-          (await Vibration.hasCustomVibrationsSupport() ?? false)) {
-        Vibration.vibrate(duration: 128, amplitude: 50);
-      } else {
-        Vibration.vibrate();
-      }
-    }
+    HapticFeedback.lightImpact();
+    // if (await Vibration.hasVibrator() ?? false) {
+    //   if ((await Vibration.hasAmplitudeControl() ?? false) &&
+    //       (await Vibration.hasCustomVibrationsSupport() ?? false)) {
+    //     Vibration.vibrate(duration: 128, amplitude: 50);
+    //   } else {
+    //     Vibration.vibrate();
+    //   }
+    // }
   }
+}
+
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  // Override behavior methods and getters like dragDevices
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        // etc.
+      };
 }

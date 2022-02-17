@@ -8,6 +8,8 @@ import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/ui/custom_positioned.dart';
+import 'package:rive/rive.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class Puzzle extends StatefulWidget {
   const Puzzle({Key? key}) : super(key: key);
@@ -23,6 +25,8 @@ class _PuzzleState extends State<Puzzle> {
   // late List<int> mainTiles;
   // late List<int> currentTiles;
   bool isSolved = false;
+  List<int> images = List.generate(6, (index) => index + 1);
+  int currentImage = 1;
 
   void _handleKeyEvent(RawKeyEvent event, TileProvider tileProvider) {
     if (event.runtimeType == RawKeyDownEvent) {
@@ -58,7 +62,7 @@ class _PuzzleState extends State<Puzzle> {
   @override
   Widget build(BuildContext context) {
     TileProvider tileProvider = context.watch<TileProvider>();
-    List<TilesModel> tileList = context.watch<TileProvider>().getTileList;
+    List<TilesModel> tileList = tileProvider.getTileList;
     gridSize = sqrt(tileList.length).toInt();
     isSolved = Service().isSolved(tileList);
     if (isSolved && tileList.isNotEmpty) {
@@ -72,6 +76,19 @@ class _PuzzleState extends State<Puzzle> {
     // });
     // list.reversed;
     _focusNode.requestFocus();
+    AssetImage assetImage =
+        AssetImage("images/pexels_${tileProvider.currentImage}.jpg");
+    Image image = Image(
+      image: assetImage,
+      // "images/simple_dash_large.png",
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.high,
+      height: double.minPositive, //double.minPositive,
+      width: double.minPositive, //double.minPositive,
+    );
+    // AssetImage assetImage =
+    //     const AssetImage("images/simple_dash_large_opaque.png");
+
     return RawKeyboardListener(
       autofocus: true,
       focusNode: _focusNode,
@@ -90,6 +107,7 @@ class _PuzzleState extends State<Puzzle> {
                   currentIndex: tileList[i].currentIndex,
                   defaultIndex: tileList[i].defaultIndex,
                   isWhite: tileList[i].isWhite,
+                  image: image,
                   onTap: (int newPos) {
                     // list.shuffle();
                     // setState(() {
@@ -102,6 +120,11 @@ class _PuzzleState extends State<Puzzle> {
                   },
                 )
               },
+              // ElevatedButton(
+              //     onPressed: () {
+              //       tileProvider.changeImage(Random().nextInt(6) + 1);
+              //     },
+              //     child: const Text("change image"))
             ],
           );
         },
@@ -124,16 +147,18 @@ class PuzzleTile extends StatefulWidget {
   final BoxConstraints constraints;
   final bool isWhite;
   final Function(int newPos) onTap;
-  PuzzleTile({
-    Key? key,
-    required this.tileList,
-    required this.gridSize,
-    required this.currentIndex,
-    required this.constraints,
-    required this.defaultIndex,
-    required this.isWhite,
-    required this.onTap,
-  }) : super(key: key);
+  final Image image;
+  PuzzleTile(
+      {Key? key,
+      required this.tileList,
+      required this.gridSize,
+      required this.currentIndex,
+      required this.constraints,
+      required this.defaultIndex,
+      required this.isWhite,
+      required this.onTap,
+      required this.image})
+      : super(key: key);
 
   @override
   State<PuzzleTile> createState() => _PuzzleTileState();
@@ -220,8 +245,14 @@ class _PuzzleTileState extends State<PuzzleTile> {
     TweenProvider tweenProvider = context.watch<TweenProvider>();
     ConfigProvider configProvider = context.watch<ConfigProvider>();
     double maxHeight = widget.constraints.maxHeight;
-    TilesModel thisTile = widget.tileList
-        .firstWhere((element) => element.currentIndex == widget.currentIndex);
+    TilesModel thisTile = widget.tileList.firstWhere(
+      (element) => element.currentIndex == widget.currentIndex,
+      orElse: () => TilesModel(
+          defaultIndex: 0,
+          currentIndex: 0,
+          isWhite: true,
+          coordinates: Coordinates(row: 0, column: 0)),
+    );
     TilesModel whiteTile =
         widget.tileList.firstWhere((element) => element.isWhite);
     int row = thisTile.coordinates.row;
@@ -234,11 +265,11 @@ class _PuzzleTileState extends State<PuzzleTile> {
     bool isSameRow = row == whiteRow;
     bool isSameColumn = column == whiteColumn;
     bool isWhiteOnRightBelow = widget.currentIndex - whiteIndex < 0;
-    // bool isTop = row == 0;
-    // bool isLeft = column == 0;
-    // bool isBottom = row == gridSize - 1;
-    // bool isRight = column == gridSize - 1;
-    double gap = 2;
+    bool isTop = row == 0;
+    bool isLeft = column == 0;
+    bool isBottom = row == widget.gridSize - 1;
+    bool isRight = column == widget.gridSize - 1;
+    double gap = 1;
     double totalGap = ((widget.gridSize + 1) * gap);
     double height = (maxHeight - totalGap) / widget.gridSize;
 
@@ -263,13 +294,73 @@ class _PuzzleTileState extends State<PuzzleTile> {
     double topOffset = (maxHeight * row) / widget.gridSize + topMousePos;
     double leftOffset = (maxHeight * column) / widget.gridSize + leftMousePos;
     double tileSize = height + gap;
+    //row: (random[e] / gridSize).floor(), column: random[e] % gridSize
+    int defaultRow = (thisTile.defaultIndex / widget.gridSize).floor();
+    int defaultColumn = thisTile.defaultIndex % widget.gridSize;
+    double imageTop = -0.5 +
+        (1 *
+            defaultRow /
+            (widget.gridSize -
+                1)); // replace with -1 + (2 * ...) for alignment calculations
+    // print(
+    //     "default coords of ${thisTile.defaultIndex} is $defaultRow, $defaultColumn");
+    // print(2 * defaultRow / (widget.gridSize - 1));
+    // print(imageTop);
+    double imageLeft = -0.5 + (1 * defaultColumn / (widget.gridSize - 1));
+    Offset finalImageOffset = (isTop || isBottom || isLeft || isRight)
+        ? Offset(height * imageLeft, height * imageTop)
+        : Offset(
+            height * imageLeft,
+            height *
+                imageTop); //Offset(height * imageLeft - gap, height * imageTop - gap);
     Widget container = widget.isWhite
         ? Container()
-        : Container(
-            height: height,
-            width: height,
-            color: widget.isWhite ? Colors.white.withOpacity(0.2) : Colors.red,
-            child: Center(child: Text("(${widget.defaultIndex + 1})")),
+        : Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                height: height,
+                width: height,
+                // decoration: BoxDecoration(
+                //   // borderRadius: const BorderRadius.all(
+                //   //   Radius.circular(15),
+                //   // ),
+                //   color: widget.isWhite
+                //       ? Colors.white.withOpacity(0.2)
+                //       : Colors.red,
+                // ),
+                // child: Center(child: Text("(${widget.defaultIndex + 1})")),
+                // child: const RiveAnimation.asset(
+                //   'assets/rive/icons.riv',
+                //   animations: ["shuffle"],
+                // ),
+                child: ClipRect(
+                  child: OverflowBox(
+                    maxWidth: double.infinity,
+                    maxHeight: double.infinity,
+                    // alignment: Alignment.topLeft,
+                    child: Transform.scale(
+                      scale: widget.gridSize.toDouble().toDouble(),
+                      origin: finalImageOffset,
+                      // alignment: Alignment(imageLeft, imageTop),
+                      child: widget.image,
+                    ),
+                  ),
+                ),
+              ),
+              configProvider.showNumbers
+                  ? Center(
+                      child: AutoSizeText(
+                      "${widget.defaultIndex + 1}",
+                      style: const TextStyle(
+                          fontSize: 32,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(color: Colors.black, blurRadius: 1)
+                          ]),
+                    ))
+                  : Container()
+            ],
           );
     return AnimatedPositioned(
       duration: configProvider.duration,

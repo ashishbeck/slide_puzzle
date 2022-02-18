@@ -32,6 +32,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   double area = 0.75;
   double offsetFromCenter = 0.5;
   bool isTopLeft = true;
+  bool imageListVisibile = true;
 
   void createTiles({int gridSize = 4, bool isChangingGrid = false}) {
     bool isSolvable = false;
@@ -68,13 +69,19 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     }
     tileProvider.createTiles(list);
     ConfigProvider configProvider = context.read<ConfigProvider>();
-    var duration = Duration(milliseconds: isChangingGrid ? 10 : 500);
+    ScoreProvider scoreProvider = context.read<ScoreProvider>();
+    // scoreProvider.stopTimer();
+    // scoreProvider.resetScores();
+    scoreProvider.restart();
+    var duration = Duration(milliseconds: isChangingGrid ? 0 : 500);
     configProvider.setDuration(duration, curve: Curves.easeInOutBack);
-    Future.delayed(duration).then((value) => configProvider.resetDuration());
+    Future.delayed(isChangingGrid ? Duration(milliseconds: 10) : duration)
+        .then((value) => configProvider.resetDuration());
   }
 
   void _solve() async {
     TileProvider tileProvider = context.read<TileProvider>();
+    ScoreProvider scoreProvider = context.read<ScoreProvider>();
     List<TilesModel> tileList = tileProvider.getTileList;
     bool isSolved = Service().isSolved(tileList);
     if (isSolved) {
@@ -119,7 +126,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           default:
             return;
         }
-        Service().moveWhite(tileList, direction);
+        Service().moveWhite(tileList, direction, scoreProvider);
         tileProvider.updateNotifiers();
         i++;
         if (i == result.length) timer.cancel();
@@ -209,8 +216,9 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           double puzzleHeight = isTall ? absoluteWidth : absoluteHeight;
           double puzzleWidth = isTall ? absoluteWidth : absoluteHeight;
 
+          // double imageListHeight = 100;
           double imageListMainGap = 64;
-          double imageListCrossGap = 0;
+          double imageListCrossGap = (imageListVisibile ? 0 : -90);
 
           // head scratcher below for a solid hour and still not perfect :(
           double bottomButtonOffset =
@@ -260,33 +268,6 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                     // width: constraints.maxWidth,
                   ),
                 ),
-                // if (kDebugMode)
-                //   for (var i = 0; i < 10; i++) ...{
-                //     ...[
-                //       Positioned(
-                //         top: maxHeight * i * 0.1,
-                //         child: Text((i / 10).toString()),
-                //       ),
-                //       Positioned(
-                //         left: maxWidth * i * 0.1,
-                //         child: Text((i / 10).toString()),
-                //       ),
-                //     ]
-                //   },
-                //   Positioned(
-                //     top: maxHeight * 0.25,
-                //     child: Text((maxHeight * 0.25).toString()),
-                //   ),
-                // Positioned(
-                //   top: maxHeight * 0.5,
-                //   child: Text((maxHeight * 0.5).toString()),
-                // ),
-                // Positioned(
-                //   top: maxHeight * 0.75,
-                //   child: Text((maxHeight * 0.75).toString()),
-                // ),
-
-                // bottom buttons
                 AnimatedAlign(
                   duration: duration,
                   curve: curve,
@@ -340,94 +321,31 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                   ),
                 ),
 
+                // image list
                 AnimatedPositioned(
                   duration: duration,
+                  curve: curve,
                   right: isTall ? imageListMainGap : imageListCrossGap,
                   top: isTall ? null : imageListMainGap,
                   left: isTall ? imageListMainGap : null,
                   bottom: isTall ? imageListCrossGap : imageListMainGap,
-                  child: ImageList(constraints: constraints, isTall: isTall),
+                  child: ImageList(
+                    constraints: constraints,
+                    isTall: isTall,
+                    isVisible: imageListVisibile,
+                    toggleImageList: (bool visibility) =>
+                        setState(() => imageListVisibile = visibility),
+                  ),
                 ),
 
+                // toolbar
                 AnimatedPositioned(
                   duration: duration,
+                  curve: curve,
                   right: 16,
                   top: 4,
                   child: const ToolBar(),
                 ),
-
-                // legacy column second child
-                // --------------------------
-                // AnimatedSwitcher(
-                //         // opacity: controller.value,
-                //         duration: duration,
-                //         // curve: curve,
-                //         child: isTall
-                //             ? Container(
-                //                 width: isTall ? width : height,
-                //                 // alignment: Alignment.bottomCenter,
-                //                 child: Row(
-                //                   children: buttons(expanded: true),
-                //                 ),
-                //               )
-                //             : const SizedBox(
-                //                 height: 44,
-                //               ),
-                //       )
-
-                // legacy row second child
-                // -----------------------
-                // AnimatedSwitcher(
-                //         // opacity: controller.value,
-                //         duration: duration,
-                //         // curve: curve,
-                //         child: !isTall
-                //             ? Container(
-                //                 height: !isTall ? width : height,
-                //                 // alignment: Alignment.bottomCenter,
-                //                 child: Column(
-                //                   crossAxisAlignment: CrossAxisAlignment.start,
-                //                   children: buttons(expanded: false),
-                //                 ),
-                //               )
-                //             : const SizedBox(
-                //                 width: 44,
-                //               ),
-                //       )
-
-                // AnimatedAlign(
-                //   alignment: isTall
-                //       ? Alignment(-offsetFromCenter * 0.5, offsetFromCenter)
-                //       : Alignment(offsetFromCenter, -offsetFromCenter * 0.2),
-                //   duration: duration,
-                //   curve: curve,
-                //   child: MyButton(
-                //     child: const Text("Generate"),
-                //     onPressed: () {},
-                //   ),
-                // ),
-                // AnimatedAlign(
-                //   alignment: isTall
-                //       ? Alignment(0, offsetFromCenter)
-                //       : Alignment(offsetFromCenter, 0),
-                //   duration: duration,
-                //   curve: curve,
-                //   child: MyButton(
-                //     child: const Text("Clear"),
-                //     onPressed: () {},
-                //   ),
-                // ),
-                // AnimatedAlign(
-                //   alignment: isTall
-                //       ? Alignment(offsetFromCenter * 0.5, offsetFromCenter)
-                //       : Alignment(offsetFromCenter, offsetFromCenter * 0.2),
-                //   duration: duration,
-                //   curve: curve,
-                //   child: MyButton(
-                //     child: const Text("Solve?"),
-                //     onPressed: () {},
-                //   ),
-                // ),
               ]),
             ),
           );
@@ -436,200 +354,3 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     );
   }
 }
-  // void _solve() {
-  //   TileProvider tileProvider = context.read<TileProvider>();
-  //   List<TilesModel> tileList = tileProvider.getTileList;
-  //   bool isSolved = false;
-  //   int startedAt = DateTime.now().millisecondsSinceEpoch;
-  //   int now = startedAt;
-  //   List<Direction> moves = [];
-  //   List<Direction> interMoves = [];
-  //   Direction? previousMove;
-  //   List<TilesModel> visitedNode = tileList
-  //       .map((e) => TilesModel(
-  //           defaultIndex: e.defaultIndex,
-  //           currentIndex: e.currentIndex,
-  //           isWhite: e.isWhite,
-  //           coordinates: e.coordinates))
-  //       .toList(); //List.from(tileList);
-  //   Map<int, List<TilesModel>> previousNodes = {0: visitedNode};
-  //   Map<int, int> h = {};
-
-  //   // int h = -1;
-  //   // tileList.forEach((e) {
-  //   //   if (e.currentIndex != e.defaultIndex) h++;
-  //   // });
-  //   // for (var k = 0; k < 5; k++) {
-  //   while (!isSolved && now - startedAt < 1000) {
-  //     now = DateTime.now().millisecondsSinceEpoch;
-  //     List<TilesModel> copyOfList = previousNodes[0]!
-  //         .map((e) => TilesModel(
-  //             defaultIndex: e.defaultIndex,
-  //             currentIndex: e.currentIndex,
-  //             isWhite: e.isWhite,
-  //             coordinates: e.coordinates))
-  //         .toList();
-  //     // print("copy of list is");
-  //     // copyOfList.forEach((element) {
-  //     //   print(element.currentIndex + 1);
-  //     // });
-  //     previousNodes.clear();
-  //     for (var i = 0; i < Direction.values.length; i++) {
-  //       Direction thisMove = Direction.values[i];
-  //       bool isParent = Service().checkIfParent(thisMove, previousMove);
-  //       if (isParent) continue;
-  //       List<TilesModel> copyOfCopyOfList = copyOfList
-  //           .map((e) => TilesModel(
-  //               defaultIndex: e.defaultIndex,
-  //               currentIndex: e.currentIndex,
-  //               isWhite: e.isWhite,
-  //               coordinates: e.coordinates))
-  //           .toList();
-  //       List<TilesModel>? newList =
-  //           Service().moveWhite(copyOfCopyOfList, Direction.values[i]);
-  //       if (newList != null) {
-  //         print("adding new list with a move of ${Direction.values[i]}");
-  //         newList.forEach((element) {
-  //           print(element.currentIndex + 1);
-  //         });
-  //         previousNodes.addAll({i: newList});
-  //       }
-  //     }
-  //     // print(previousNodes.values.toList().first.first.coordinates);
-  //     previousNodes.forEach((key, value) {
-  //       h[key] = 0;
-  //       value.forEach((e) {
-  //         if (e.currentIndex != e.defaultIndex) {
-  //           h[key] = (h[key] ?? 0) + 1;
-  //         }
-  //       });
-  //     });
-  //     var sortedKeys = h.keys.toList(growable: false)
-  //       ..sort((k1, k2) => h[k1]!.compareTo(h[k2]!));
-  //     LinkedHashMap sortedMap = LinkedHashMap.fromIterable(sortedKeys,
-  //         key: (k) => k, value: (k) => h[k]);
-  //     // print(sortedMap.keys.toList());
-  //     // print(sortedMap.values.toList());
-  //     int minH = sortedMap.keys.toList()[0];
-  //     List<TilesModel> winningNode =
-  //         previousNodes[minH] ?? previousNodes[previousNodes.keys.first]!;
-  //     moves.add(Direction.values[minH]);
-  //     previousMove = Direction.values[minH];
-  //     previousNodes.clear();
-  //     previousNodes = {0: winningNode};
-  //     h.clear();
-  //     isSolved = winningNode
-  //         .every((element) => element.currentIndex == element.defaultIndex);
-  //     // if (isSolved) {
-  //     //   print("solved!!!!!!!!!!!!!!!!!!!!");
-  //     //   isSolved = true;
-  //     // }
-  //   }
-  //   print("done");
-  //   print(isSolved);
-  //   print(moves.toString());
-  //   solvingMoves = List.from(moves);
-  //   // solvingMoves.addAll(moves);
-  //   tileProvider.updateNotifiers();
-  // }
-
-  // void _solve() {
-  //   int level = 0;
-  //   TileProvider tileProvider = context.read<TileProvider>();
-  //   List<TilesModel> tileList = tileProvider.getTileList;
-  //   bool isSolved = false;
-  //   int startedAt = DateTime.now().millisecondsSinceEpoch;
-  //   int now = startedAt;
-  //   List<Direction> moves = [];
-  //   List<Direction> interMoves = [];
-  //   Direction? previousMove;
-  //   List<TilesModel> visitedNode = tileList
-  //       .map((e) => TilesModel(
-  //           defaultIndex: e.defaultIndex,
-  //           currentIndex: e.currentIndex,
-  //           isWhite: e.isWhite,
-  //           coordinates: e.coordinates))
-  //       .toList(); //List.from(tileList);
-  //   List<List<TilesModel>> nodes = [visitedNode];
-  //   Map<int, List<TilesModel>> previousNodes = {0: visitedNode};
-  //   Map<int, int> h = {};
-
-  //   // int h = -1;
-  //   // tileList.forEach((e) {
-  //   //   if (e.currentIndex != e.defaultIndex) h++;
-  //   // });
-  //   // for (var k = 0; k < 5; k++) {
-  //   while (!isSolved && now - startedAt < 1000) {
-  //     now = DateTime.now().millisecondsSinceEpoch;
-  //     List<TilesModel> copyOfList = previousNodes[0]!
-  //         .map((e) => TilesModel(
-  //             defaultIndex: e.defaultIndex,
-  //             currentIndex: e.currentIndex,
-  //             isWhite: e.isWhite,
-  //             coordinates: e.coordinates))
-  //         .toList();
-  //     // print("copy of list is");
-  //     // copyOfList.forEach((element) {
-  //     //   print(element.currentIndex + 1);
-  //     // });
-  //     previousNodes.clear();
-  //     level++;
-  //     for (var i = 0; i < Direction.values.length; i++) {
-  //       Direction thisMove = Direction.values[i];
-  //       bool isParent = Service().checkIfParent(thisMove, previousMove);
-  //       if (isParent) continue;
-  //       List<TilesModel> copyOfCopyOfList = copyOfList
-  //           .map((e) => TilesModel(
-  //               defaultIndex: e.defaultIndex,
-  //               currentIndex: e.currentIndex,
-  //               isWhite: e.isWhite,
-  //               coordinates: e.coordinates))
-  //           .toList();
-  //       List<TilesModel>? newList =
-  //           Service().moveWhite(copyOfCopyOfList, Direction.values[i]);
-  //       if (newList != null) {
-  //         print("adding new list with a move of ${Direction.values[i]}");
-  //         newList.forEach((element) {
-  //           print(element.currentIndex + 1);
-  //         });
-  //         previousNodes.addAll({i: newList});
-  //         nodes[level] = newList;
-  //       }
-  //     }
-  //     // print(previousNodes.values.toList().first.first.coordinates);
-  //     previousNodes.forEach((key, value) {
-  //       h[key] = 0;
-  //       value.forEach((e) {
-  //         if (e.currentIndex != e.defaultIndex) {
-  //           h[key] = (h[key] ?? 0) + 1;
-  //         }
-  //       });
-  //     });
-  //     var sortedKeys = h.keys.toList(growable: false)
-  //       ..sort((k1, k2) => h[k1]!.compareTo(h[k2]!));
-  //     LinkedHashMap sortedMap = LinkedHashMap.fromIterable(sortedKeys,
-  //         key: (k) => k, value: (k) => h[k]);
-  //     // print(sortedMap.keys.toList());
-  //     // print(sortedMap.values.toList());
-  //     int minH = sortedMap.keys.toList()[0];
-  //     List<TilesModel> winningNode =
-  //         previousNodes[minH] ?? previousNodes[previousNodes.keys.first]!;
-  //     moves.add(Direction.values[minH]);
-  //     previousMove = Direction.values[minH];
-  //     previousNodes.clear();
-  //     previousNodes = {0: winningNode};
-  //     h.clear();
-  //     isSolved = winningNode
-  //         .every((element) => element.currentIndex == element.defaultIndex);
-  //     // if (isSolved) {
-  //     //   print("solved!!!!!!!!!!!!!!!!!!!!");
-  //     //   isSolved = true;
-  //     // }
-  //   }
-  //   print("done");
-  //   print(isSolved);
-  //   print(moves.toString());
-  //   solvingMoves = List.from(moves);
-  //   // solvingMoves.addAll(moves);
-  //   tileProvider.updateNotifiers();
-  // }

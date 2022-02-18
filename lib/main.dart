@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => TileProvider()),
         ChangeNotifierProvider(create: (context) => TweenProvider()),
         ChangeNotifierProvider(create: (context) => ConfigProvider()),
+        ChangeNotifierProvider(create: (context) => ScoreProvider()),
         Provider<TweenModel>(
           create: (_) => TweenModel(
               // tweenTopOffset: 0,

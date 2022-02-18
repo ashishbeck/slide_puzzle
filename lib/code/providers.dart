@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
@@ -89,6 +91,57 @@ class ConfigProvider extends ChangeNotifier {
 
   void toggleNumbersVisibility() {
     _showNumbers = !_showNumbers;
+    notifyListeners();
+  }
+}
+
+class ScoreProvider extends ChangeNotifier {
+  int _moves = 0;
+  int get moves => _moves;
+  int _seconds = 0;
+  int get seconds => _seconds;
+  bool _isRunning = false;
+  bool get isRunning => _isRunning;
+  bool _beginState = true;
+  bool get beginState => _beginState;
+
+  void beginTimer() {
+    _isRunning = true;
+    _beginState = false;
+    resetScores();
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!_isRunning) {
+        timer.cancel();
+      } else {
+        incrementSeconds();
+      }
+    });
+  }
+
+  void restart() {
+    _beginState = true;
+    stopTimer();
+    resetScores();
+    notifyListeners();
+  }
+
+  void stopTimer() {
+    _isRunning = false;
+  }
+
+  void incrementMoves() {
+    _moves += 1;
+    notifyListeners();
+  }
+
+  void incrementSeconds() {
+    _seconds += 1;
+    notifyListeners();
+  }
+
+  void resetScores() {
+    _moves = 0;
+    _seconds = 0;
     notifyListeners();
   }
 }

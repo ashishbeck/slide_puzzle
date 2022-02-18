@@ -6,11 +6,12 @@ import 'package:http/http.dart' as http;
 import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
+import 'package:slide_puzzle/code/providers.dart';
 // import 'package:vibration/vibration.dart';
 
 class Service {
-  List<TilesModel> changePosition(
-      List<TilesModel> tileList, TilesModel thisTile, TilesModel whiteTile,
+  List<TilesModel> changePosition(List<TilesModel> tileList,
+      TilesModel thisTile, TilesModel whiteTile, ScoreProvider scoreProvider,
       {int gridSize = 1}) {
     int distance =
         ((thisTile.currentIndex - whiteTile.currentIndex) ~/ gridSize);
@@ -34,10 +35,15 @@ class Service {
     }
     AudioService.instance.slide(Duration(milliseconds: defaultTime * 1));
     vibrate();
+    if (!scoreProvider.isRunning && scoreProvider.beginState) {
+      scoreProvider.beginTimer();
+    }
+    scoreProvider.incrementMoves();
     return tileList;
   }
 
-  List<TilesModel>? moveWhite(List<TilesModel> tileList, Direction direction) {
+  List<TilesModel>? moveWhite(List<TilesModel> tileList, Direction direction,
+      ScoreProvider scoreProvider) {
     int gridSize = sqrt(tileList.length).toInt();
     TilesModel whiteTile = tileList.singleWhere((element) => element.isWhite);
     int row = whiteTile.coordinates.row;
@@ -52,26 +58,42 @@ class Service {
         var replaceableTile = tileList.singleWhere((element) =>
             element.coordinates.row == row &&
             element.coordinates.column == column + 1);
-        return changePosition(tileList, replaceableTile, whiteTile);
+        return changePosition(
+          tileList,
+          replaceableTile,
+          whiteTile,
+          scoreProvider,
+        );
       case Direction.down:
         if (top) break;
         var replaceableTile = tileList.singleWhere((element) =>
             element.coordinates.row == row - 1 &&
             element.coordinates.column == column);
-        return changePosition(tileList, replaceableTile, whiteTile,
-            gridSize: gridSize);
+        return changePosition(
+          tileList,
+          replaceableTile,
+          whiteTile,
+          scoreProvider,
+          gridSize: gridSize,
+        );
       case Direction.right:
         if (left) break;
         var replaceableTile = tileList.singleWhere((element) =>
             element.coordinates.row == row &&
             element.coordinates.column == column - 1);
-        return changePosition(tileList, replaceableTile, whiteTile);
+        return changePosition(
+          tileList,
+          replaceableTile,
+          whiteTile,
+          scoreProvider,
+        );
       case Direction.up:
         if (bottom) break;
         var replaceableTile = tileList.singleWhere((element) =>
             element.coordinates.row == row + 1 &&
             element.coordinates.column == column);
-        return changePosition(tileList, replaceableTile, whiteTile,
+        return changePosition(
+            tileList, replaceableTile, whiteTile, scoreProvider,
             gridSize: gridSize);
     }
   }
@@ -167,6 +189,21 @@ class Service {
     //     Vibration.vibrate();
     //   }
     // }
+  }
+
+  String intToTimeLeft(int value) {
+    int h, m, s;
+    h = value ~/ 3600;
+    m = ((value - h * 3600)) ~/ 60;
+    s = value - (h * 3600) - (m * 60);
+    String hourLeft =
+        h.toString().length < 2 ? "0" + h.toString() : h.toString();
+    String minuteLeft =
+        m.toString().length < 2 ? "0" + m.toString() : m.toString();
+    String secondsLeft =
+        s.toString().length < 2 ? "0" + s.toString() : s.toString();
+    String result = "$minuteLeft:$secondsLeft";
+    return result;
   }
 }
 

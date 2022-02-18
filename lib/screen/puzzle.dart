@@ -28,21 +28,25 @@ class _PuzzleState extends State<Puzzle> {
   List<int> images = List.generate(6, (index) => index + 1);
   int currentImage = 1;
 
-  void _handleKeyEvent(RawKeyEvent event, TileProvider tileProvider) {
+  void _handleKeyEvent(
+    RawKeyEvent event,
+    TileProvider tileProvider,
+    ScoreProvider scoreProvider,
+  ) {
     if (event.runtimeType == RawKeyDownEvent) {
       var tileList = tileProvider.getTileList;
       var whiteTile = tileList.singleWhere((element) => element.isWhite);
       if (event.data.logicalKey == LogicalKeyboardKey.arrowUp) {
-        Service().moveWhite(tileList, Direction.up);
+        Service().moveWhite(tileList, Direction.up, scoreProvider);
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        Service().moveWhite(tileList, Direction.down);
+        Service().moveWhite(tileList, Direction.down, scoreProvider);
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-        Service().moveWhite(tileList, Direction.left);
+        Service().moveWhite(tileList, Direction.left, scoreProvider);
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-        Service().moveWhite(tileList, Direction.right);
+        Service().moveWhite(tileList, Direction.right, scoreProvider);
       }
       tileProvider.updateNotifiers();
     }
@@ -62,11 +66,13 @@ class _PuzzleState extends State<Puzzle> {
   @override
   Widget build(BuildContext context) {
     TileProvider tileProvider = context.watch<TileProvider>();
+    ScoreProvider scoreProvider = context.read<ScoreProvider>();
     List<TilesModel> tileList = tileProvider.getTileList;
     gridSize = sqrt(tileList.length).toInt();
     isSolved = Service().isSolved(tileList);
     if (isSolved && tileList.isNotEmpty) {
       print("Solved!!");
+      scoreProvider.stopTimer();
     }
     // list.forEach((e) {
     //   bool solved = true;
@@ -86,6 +92,13 @@ class _PuzzleState extends State<Puzzle> {
       height: double.minPositive, //double.minPositive,
       width: double.minPositive, //double.minPositive,
     );
+    // Widget rive = Container(
+    //     height: double.minPositive, //double.minPositive,
+    //     width: double.minPositive, //double.minPositive,
+    //     child: const RiveAnimation.asset(
+    //       'assets/rive/icons.riv',
+    //       animations: ["shuffle"],
+    //     ));
     // AssetImage assetImage =
     //     const AssetImage("images/simple_dash_large_opaque.png");
 
@@ -93,7 +106,7 @@ class _PuzzleState extends State<Puzzle> {
       autofocus: true,
       focusNode: _focusNode,
       onKey: (RawKeyEvent event) {
-        _handleKeyEvent(event, tileProvider);
+        _handleKeyEvent(event, tileProvider, scoreProvider);
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -147,7 +160,7 @@ class PuzzleTile extends StatefulWidget {
   final BoxConstraints constraints;
   final bool isWhite;
   final Function(int newPos) onTap;
-  final Image image;
+  final Widget image;
   PuzzleTile(
       {Key? key,
       required this.tileList,
@@ -182,6 +195,7 @@ class _PuzzleTileState extends State<PuzzleTile> {
     TweenProvider tweenProvider,
     TileProvider tileProvider,
     ConfigProvider configProvider,
+    ScoreProvider scoreProvider,
     TilesModel thisTile,
     TilesModel whiteTile,
     double tileSize,
@@ -195,7 +209,8 @@ class _PuzzleTileState extends State<PuzzleTile> {
         ((velocity > 0 && isWhiteOnRightBelow) ||
             (tweenProvider.tweenTopOffset ?? 0).abs() > tileSize / 2)) {
       if (isSameRow || isSameColumn) {
-        Service().changePosition(widget.tileList, thisTile, whiteTile,
+        Service().changePosition(
+            widget.tileList, thisTile, whiteTile, scoreProvider,
             gridSize: isSameColumn ? widget.gridSize : 1);
         tileProvider.updateNotifiers();
       }
@@ -244,6 +259,7 @@ class _PuzzleTileState extends State<PuzzleTile> {
     TileProvider tileProvider = context.watch<TileProvider>();
     TweenProvider tweenProvider = context.watch<TweenProvider>();
     ConfigProvider configProvider = context.watch<ConfigProvider>();
+    ScoreProvider scoreProvider = context.read<ScoreProvider>();
     double maxHeight = widget.constraints.maxHeight;
     TilesModel thisTile = widget.tileList.firstWhere(
       (element) => element.currentIndex == widget.currentIndex,
@@ -307,12 +323,12 @@ class _PuzzleTileState extends State<PuzzleTile> {
     // print(2 * defaultRow / (widget.gridSize - 1));
     // print(imageTop);
     double imageLeft = -0.5 + (1 * defaultColumn / (widget.gridSize - 1));
-    Offset finalImageOffset = (isTop || isBottom || isLeft || isRight)
-        ? Offset(height * imageLeft, height * imageTop)
-        : Offset(
-            height * imageLeft,
-            height *
-                imageTop); //Offset(height * imageLeft - gap, height * imageTop - gap);
+    Offset finalImageOffset = //(isTop || isBottom || isLeft || isRight)
+        Offset(height * imageLeft, height * imageTop);
+    // : Offset(
+    //     height * imageLeft,
+    //     height *
+    //         imageTop); //Offset(height * imageLeft - gap, height * imageTop - gap);
     Widget container = widget.isWhite
         ? Container()
         : Stack(
@@ -397,6 +413,7 @@ class _PuzzleTileState extends State<PuzzleTile> {
                 tweenProvider,
                 tileProvider,
                 configProvider,
+                scoreProvider,
                 thisTile,
                 whiteTile,
                 tileSize);
@@ -413,6 +430,7 @@ class _PuzzleTileState extends State<PuzzleTile> {
                       widget.tileList,
                       thisTile,
                       whiteTile,
+                      scoreProvider,
                       gridSize: isSameColumn ? widget.gridSize : 1,
                     );
                     tileProvider.updateNotifiers();

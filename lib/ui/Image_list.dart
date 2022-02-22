@@ -4,6 +4,7 @@ import 'package:slide_puzzle/code/constants.dart';
 
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
+import 'package:slide_puzzle/ui/bordered_container.dart';
 
 class ImageList extends StatefulWidget {
   final BoxConstraints constraints;
@@ -50,104 +51,125 @@ class _ImageListState extends State<ImageList>
     }
     print(animation.value);
     TileProvider tileProvider = context.read<TileProvider>();
+    double buttonSize = 25;
     double size = 100;
+    double height = widget.isTall ? size : widget.constraints.maxHeight;
+    double width = widget.isTall ? widget.constraints.maxWidth : size;
     double padding = 8;
-    return Container(
-      width: size + 20,
-      height: size + 20,
-      child: Stack(
-        alignment:
-            widget.isTall ? Alignment.bottomCenter : Alignment.centerRight,
-        children: [
-          Container(
-            height: widget.isTall ? size : widget.constraints.maxHeight,
-            width: widget.isTall ? widget.constraints.maxWidth : size,
-            padding: EdgeInsets.all(padding),
-            decoration: BoxDecoration(
-              color: Colors.blueGrey,
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(10),
-                bottomLeft:
-                    widget.isTall ? Radius.zero : const Radius.circular(10),
-                topRight:
-                    widget.isTall ? const Radius.circular(10) : Radius.zero,
-                bottomRight: Radius.zero,
+    return Stack(
+      alignment: widget.isTall ? Alignment.bottomCenter : Alignment.centerRight,
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          height: height + buttonSize,
+          width: width + buttonSize,
+          color: Colors.transparent,
+        ),
+        Container(
+          height: height,
+          width: width,
+          child: BorderedContainer(
+            isBottom: !widget.isTall,
+            isRight: widget.isTall,
+            child: Container(
+              padding: EdgeInsets.all(padding),
+              decoration: BoxDecoration(
+                color: secondaryColor,
+                // borderRadius: BorderRadius.only(
+                //   topLeft: const Radius.circular(0),
+                //   bottomLeft:
+                //       widget.isTall ? Radius.zero : const Radius.circular(0),
+                //   topRight:
+                //       widget.isTall ? const Radius.circular(0) : Radius.zero,
+                //   bottomRight: Radius.zero,
+                // ),
+                // border: Border.all(
+                //   color: Colors.red,
+                // ),
               ),
-              // border: Border.all(
-              //   color: Colors.red,
-              // ),
-            ),
-            child: ScrollConfiguration(
-              behavior: MyCustomScrollBehavior(),
-              child: Scrollbar(
-                controller: scrollController,
-                child: ListView.separated(
-                    controller: scrollController,
-                    itemCount: tileProvider.images.length,
-                    scrollDirection:
-                        widget.isTall ? Axis.horizontal : Axis.vertical,
-                    physics: const BouncingScrollPhysics(),
-                    separatorBuilder: (context, index) => Container(
-                          padding: const EdgeInsets.all(2),
-                        ),
-                    itemBuilder: (context, index) {
-                      return MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () => tileProvider.changeImage(index + 1),
-                          child: Container(
-                            width: widget.isTall ? size - padding * 2 : size,
-                            height: widget.isTall ? size : size - padding * 2,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage(
-                                      "images/pexels_${index + 1}.jpg"),
-                                  fit: BoxFit.cover),
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                            // child: Image(
-                            //   image: AssetImage("images/pexels_${index + 1}.jpg"),
-                            // ),
+              child: ScrollConfiguration(
+                behavior: MyCustomScrollBehavior(),
+                child: Scrollbar(
+                  controller: scrollController,
+                  child: ListView.separated(
+                      controller: scrollController,
+                      itemCount: tileProvider.images.length,
+                      scrollDirection:
+                          widget.isTall ? Axis.horizontal : Axis.vertical,
+                      physics: const BouncingScrollPhysics(),
+                      separatorBuilder: (context, index) => Container(
+                            padding: const EdgeInsets.all(2),
                           ),
-                        ),
-                      );
-                    }),
+                      itemBuilder: (context, index) {
+                        return MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () => tileProvider.changeImage(index + 1),
+                            child: Container(
+                              width: widget.isTall ? size - padding * 2 : size,
+                              height: widget.isTall ? size : size - padding * 2,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                    image: AssetImage(
+                                        "images/pexels_${index + 1}.jpg"),
+                                    fit: BoxFit.cover),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                              // child: Image(
+                              //   image: AssetImage("images/pexels_${index + 1}.jpg"),
+                              // ),
+                            ),
+                          ),
+                        );
+                      }),
+                ),
               ),
             ),
           ),
-          Positioned(
-            left: widget.isTall ? null : 8,
-            right: null,
-            top: widget.isTall ? 8 : null,
-            bottom: null,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () => widget.toggleImageList(!widget.isVisible),
-                child: Container(
-                  // constraints: BoxConstraints(maxHeight: ),
-                  decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(30),
+        ),
+        Positioned(
+          left: widget.isTall ? null : -0,
+          right: null,
+          top: widget.isTall ? -0 : null,
+          bottom: null,
+          child: Container(
+            height: buttonSize,
+            width: buttonSize,
+            child: BorderedContainer(
+              spacing: 4,
+              isBottom: !widget.isTall,
+              isRight: widget.isTall,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => widget.toggleImageList(!widget.isVisible),
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    // height: buttonSize,
+                    // width: buttonSize,
+                    decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(0),
+                        ),
+                        color: secondaryColor),
+                    child: RotationTransition(
+                      turns: animation,
+                      child: Icon(
+                        widget.isTall
+                            ? Icons.keyboard_arrow_down
+                            : Icons.keyboard_arrow_right,
+                        color: Colors.white,
                       ),
-                      color: Colors.blueGrey),
-                  child: RotationTransition(
-                    turns: animation,
-                    child: Icon(
-                      widget.isTall
-                          ? Icons.keyboard_arrow_down
-                          : Icons.keyboard_arrow_right,
-                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
             ),
-          )
-        ],
-      ),
+          ),
+        )
+      ],
     );
   }
 }

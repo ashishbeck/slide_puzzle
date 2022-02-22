@@ -10,6 +10,8 @@ import 'package:slide_puzzle/code/providers.dart';
 // import 'package:vibration/vibration.dart';
 
 class Service {
+  bool shouldVibrate = true;
+
   List<TilesModel> changePosition(List<TilesModel> tileList,
       TilesModel thisTile, TilesModel whiteTile, ScoreProvider scoreProvider,
       {int gridSize = 1}) {
@@ -34,7 +36,7 @@ class Service {
       whiteTile.coordinates = tempCoords;
     }
     AudioService.instance.slide(Duration(milliseconds: defaultTime * 1));
-    vibrate();
+    AudioService.instance.vibrate();
     if (!scoreProvider.isRunning && scoreProvider.beginState) {
       scoreProvider.beginTimer();
     }
@@ -137,13 +139,13 @@ class Service {
     }
     // why the code below does not work I have no idea
     // list.map((e) => tiles = tiles + (e.defaultIndex + 1).toString());
-    print(tiles);
+    // print(tiles);
     String val = tiles
         .substring(0, tiles.length - 1)
         .replaceAll(",", "")
         .replaceAll(tileList.length.toString(), "0");
     // .replaceAll(" ", "%20");
-    print(val);
+    // print(val);
     var url =
         Uri.parse("https://npuzzlesolver-ajp37iulda-ez.a.run.app/?tiles=$val");
     try {
@@ -177,18 +179,6 @@ class Service {
         break;
     }
     return !allowed;
-  }
-
-  vibrate() async {
-    HapticFeedback.lightImpact();
-    // if (await Vibration.hasVibrator() ?? false) {
-    //   if ((await Vibration.hasAmplitudeControl() ?? false) &&
-    //       (await Vibration.hasCustomVibrationsSupport() ?? false)) {
-    //     Vibration.vibrate(duration: 128, amplitude: 50);
-    //   } else {
-    //     Vibration.vibrate();
-    //   }
-    // }
   }
 
   String intToTimeLeft(int value) {

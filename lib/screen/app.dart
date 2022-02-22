@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/painting/gradient.dart' as grad;
 import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
@@ -10,6 +11,7 @@ import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/screen/puzzle.dart';
 import 'package:slide_puzzle/ui/Image_list.dart';
+import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
@@ -34,7 +36,8 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   bool isTopLeft = true;
   bool imageListVisibile = true;
 
-  void createTiles({int gridSize = 4, bool isChangingGrid = false}) {
+  void createTiles(
+      {int gridSize = 4, bool isChangingGrid = false, bool shuffle = true}) {
     bool isSolvable = false;
     bool isAlreadySolved = false;
     int totalTiles = pow(gridSize, 2).toInt();
@@ -42,7 +45,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     List<TilesModel> list = [];
     List<int> random = List.from(numbers);
     while (!isSolvable && !isAlreadySolved) {
-      random.shuffle();
+      if (shuffle) random.shuffle();
       list = numbers.map((e) {
         Coordinates coordinates = Coordinates(
             row: (random[e] / gridSize).floor(), column: random[e] % gridSize);
@@ -61,11 +64,12 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
       // list.shuffle();
       isSolvable = Service().isSolvable(list);
       isAlreadySolved = Service().isSolved(list);
+      if (!shuffle) break;
     }
     TileProvider tileProvider = context.read<TileProvider>();
-    if (tileProvider.getTileList.isNotEmpty) {
+    if (tileProvider.getTileList.isNotEmpty && shuffle) {
       AudioService.instance.shuffle();
-      Service().vibrate();
+      AudioService.instance.vibrate();
     }
     tileProvider.createTiles(list);
     ConfigProvider configProvider = context.read<ConfigProvider>();
@@ -73,13 +77,15 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     // scoreProvider.stopTimer();
     // scoreProvider.resetScores();
     scoreProvider.restart();
+    if (shuffle) scoreProvider.beginTimer();
     var duration = Duration(milliseconds: isChangingGrid ? 0 : 500);
     configProvider.setDuration(duration, curve: Curves.easeInOutBack);
+    if (shuffle) configProvider.start();
     Future.delayed(isChangingGrid ? Duration(milliseconds: 10) : duration)
         .then((value) => configProvider.resetDuration());
   }
 
-  void _solve() async {
+  void solve() async {
     TileProvider tileProvider = context.read<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
     List<TilesModel> tileList = tileProvider.getTileList;
@@ -134,7 +140,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
     }
   }
 
-  List<Widget> buttons(double height, {bool expanded = true}) => [
+  List<Widget> buttons({bool expanded = true}) => [
         MyButton(
           label: "Shuffle",
           icon: const RiveAnimation.asset(
@@ -142,8 +148,12 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
             animations: ["shuffle"],
           ),
           expanded: expanded,
-          height: height,
-          onPressed: createTiles,
+          // height: height,
+          onPressed: () {
+            TileProvider tileProvider = context.read<TileProvider>();
+            int gridSize = tileProvider.gridSize;
+            createTiles(gridSize: gridSize);
+          },
         ),
         // MyButton(
         //   label: "Reset",
@@ -159,8 +169,8 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
             animations: ["solve"],
           ),
           expanded: expanded,
-          height: height,
-          onPressed: _solve,
+          // height: height,
+          onPressed: solve,
         ),
       ];
 
@@ -172,7 +182,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
         vsync: this, lowerBound: 0, upperBound: 1, duration: duration);
     controller.value = 1;
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      createTiles();
+      createTiles(shuffle: false);
     });
     final isWebMobile = kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.iOS ||
@@ -217,8 +227,9 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           double puzzleWidth = isTall ? absoluteWidth : absoluteHeight;
 
           // double imageListHeight = 100;
-          double imageListMainGap = 64;
+          double imageListMainGap = isTall ? 24 : 64;
           double imageListCrossGap = (imageListVisibile ? 0 : -90);
+          double toolbarGap = isTall ? 24 : 120;
 
           // head scratcher below for a solid hour and still not perfect :(
           double bottomButtonOffset =
@@ -244,82 +255,92 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           double padding = 32;
           return Center(
             child: Container(
-              color: Colors.amber.withOpacity(0.2),
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                    image: AssetImage("images/stripes_bg.jpg"),
+                    fit: BoxFit.cover),
+                // gradient: grad.LinearGradient(colors: [
+                //   primaryColor[400]!.withOpacity(0.5),
+                //   primaryColor[100]!.withOpacity(0.5),
+                // ]),
+              ),
+              // color: primaryColor.withOpacity(0.2),
               child: Stack(children: [
                 AnimatedAlign(
                   duration: duration,
                   curve: curve,
-                  alignment: isTall
-                      ? Alignment(0, -offsetFromCenter)
-                      : Alignment(-offsetFromCenter, 0),
+                  alignment: isTall ? Alignment(0, 0) : Alignment(0, 0),
                   // left: isTopLeft ? 20 : 0,
                   // right: !isTopLeft ? 23 : 0,
                   // top: isTopLeft ? 23 : 0,
                   // bottom: !isTopLeft ? 23 : 0,
-                  child: AnimatedContainer(
-                    duration: duration,
-                    curve: curve,
-                    padding: const EdgeInsets.all(4),
-                    color: Colors.blueGrey, //.withOpacity(isTall ? 0.4 : 1),
-                    height: puzzleHeight,
+                  child: Container(
+                    height: puzzleHeight + buttonHeight,
                     width: puzzleWidth,
-                    child: const Puzzle(),
-                    // height: constraints.biggest.height,
-                    // width: constraints.maxWidth,
-                  ),
-                ),
-                AnimatedAlign(
-                  duration: duration,
-                  curve: curve,
-                  alignment: isTall
-                      ? Alignment(0, bottomButtonOffset)
-                      : Alignment(-bottomButtonOffset, bottomButtonOffset),
-                  child: AnimatedContainer(
-                    duration: duration,
-                    curve: curve,
-                    width: isTall ? puzzleWidth : puzzleWidth,
-                    child: AnimatedSwitcher(
-                      // opacity: controller.value,
-                      duration: duration,
-                      // curve: curve,
-                      child: isTall
-                          ? Row(
-                              children: buttons(puzzleHeight, expanded: true),
-                            )
-                          : const SizedBox(
-                              height: 44,
-                            ),
+                    child: BorderedContainer(
+                      child: AnimatedContainer(
+                        duration: duration,
+                        curve: curve,
+                        padding: const EdgeInsets.all(4),
+                        color: secondaryColor,
+                        child: const Puzzle(),
+                      ),
                     ),
                   ),
                 ),
+                // AnimatedAlign(
+                //   duration: duration,
+                //   curve: curve,
+                //   alignment: isTall
+                //       ? Alignment(0, bottomButtonOffset)
+                //       : Alignment(-bottomButtonOffset, bottomButtonOffset),
+                //   child: AnimatedContainer(
+                //     duration: duration,
+                //     curve: curve,
+                //     width: isTall ? puzzleWidth : puzzleWidth,
+                //     child: AnimatedSwitcher(
+                //       // opacity: controller.value,
+                //       duration: duration,
+                //       // curve: curve,
+                //       child: isTall
+                //           ? Row(
+                //               children: buttons(expanded: true),
+                //             )
+                //           : const SizedBox(
+                //               height: 44,
+                //             ),
+                //     ),
+                //   ),
+                // ),
 
                 // right buttons
-                AnimatedAlign(
-                  duration: duration,
-                  curve: curve,
-                  alignment: isTall
-                      ? Alignment(rightButtonOffset, -rightButtonOffset)
-                      : Alignment(rightButtonOffset, 0),
-                  child: AnimatedContainer(
-                    duration: duration,
-                    curve: curve,
-                    // width: 200,
-                    // height: isTall ? puzzleWidth : puzzleHeight,
-                    child: AnimatedSwitcher(
-                      // opacity: controller.value,
-                      duration: duration,
-                      // curve: curve,
-                      child: !isTall
-                          ? Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: buttons(puzzleHeight, expanded: false),
-                            )
-                          : const SizedBox(
-                              height: 44,
-                            ),
-                    ),
-                  ),
-                ),
+                // AnimatedAlign(
+                //   duration: duration,
+                //   curve: curve,
+                //   alignment: isTall
+                //       ? Alignment(rightButtonOffset, -rightButtonOffset)
+                //       : Alignment(rightButtonOffset, 0),
+                //   child: AnimatedContainer(
+                //     duration: duration,
+                //     curve: curve,
+                //     // width: 200,
+                //     // height: isTall ? puzzleWidth : puzzleHeight,
+                //     child: AnimatedSwitcher(
+                //       // opacity: controller.value,
+                //       duration: duration,
+                //       // curve: curve,
+                //       child: !isTall
+                //           ? Column(
+                //               mainAxisAlignment: MainAxisAlignment.center,
+                //               children: buttons(expanded: false),
+                //               // children: buttons(puzzleHeight, expanded: false),
+                //             )
+                //           : const SizedBox(
+                //               height: 44,
+                //             ),
+                //     ),
+                //   ),
+                // ),
 
                 // image list
                 AnimatedPositioned(
@@ -342,9 +363,14 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                 AnimatedPositioned(
                   duration: duration,
                   curve: curve,
-                  right: 16,
-                  top: 4,
-                  child: const ToolBar(),
+                  left: isTall ? toolbarGap : 0,
+                  top: isTall ? 0 : toolbarGap,
+                  right: isTall ? toolbarGap : null,
+                  bottom: isTall ? null : toolbarGap,
+                  child: ToolBar(
+                    constraints: constraints,
+                    isTall: isTall,
+                  ),
                 ),
               ]),
             ),

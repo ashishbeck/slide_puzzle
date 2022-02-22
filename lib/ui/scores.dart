@@ -1,10 +1,16 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
 
 class Scores extends StatefulWidget {
-  const Scores({Key? key}) : super(key: key);
+  final bool isTall;
+  const Scores({
+    Key? key,
+    required this.isTall,
+  }) : super(key: key);
 
   @override
   _ScoresState createState() => _ScoresState();
@@ -15,13 +21,37 @@ class _ScoresState extends State<Scores> {
   Widget build(BuildContext context) {
     ScoreProvider scoreProvider = context.watch<ScoreProvider>();
     return Container(
-      child: Row(children: [
-        Text(scoreProvider.moves.toString()),
-        const SizedBox(
-          width: 8,
-        ),
-        Text(Service().intToTimeLeft(scoreProvider.seconds)),
-      ]),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AutoSizeText(
+            "${scoreProvider.moves} moves",
+            maxLines: 1,
+            minFontSize: 8,
+            textAlign: TextAlign.center,
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              widget.isTall
+                  ? AutoSizeText(
+                      Service().intToTimeLeft(scoreProvider.seconds),
+                      maxLines: 1,
+                      minFontSize: 8,
+                    )
+                  : Expanded(
+                      child: AutoSizeText(
+                        Service().intToTimeLeft(scoreProvider.seconds),
+                        maxLines: 1,
+                        minFontSize: 8,
+                      ),
+                    ),
+              Icon(Icons.timer),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

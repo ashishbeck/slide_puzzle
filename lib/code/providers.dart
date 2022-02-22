@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
+import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/screen/app.dart';
 
 class TileProvider extends ChangeNotifier {
@@ -37,7 +39,8 @@ class TileProvider extends ChangeNotifier {
 
   void changeGridSize(int index) {
     _gridSize = index;
-    homeKey.currentState!.createTiles(gridSize: index, isChangingGrid: true);
+    homeKey.currentState!
+        .createTiles(gridSize: index, isChangingGrid: true, shuffle: false);
     notifyListeners();
   }
 }
@@ -75,6 +78,14 @@ class ConfigProvider extends ChangeNotifier {
   bool get previewedButtons => _previewedButtons;
   bool _showNumbers = false;
   bool get showNumbers => _showNumbers;
+  bool _hasStarted = false;
+  bool get hasStarted => _hasStarted;
+  GameState _gameState = GameState.starting;
+  GameState get gamestate => _gameState;
+  bool _muted = false;
+  bool get muted => _muted;
+  bool _vibrationsOff = false;
+  bool get vibrationsOff => _vibrationsOff;
 
   void setDuration(Duration duration, {Curve? curve}) {
     _duration = duration;
@@ -93,6 +104,33 @@ class ConfigProvider extends ChangeNotifier {
     _showNumbers = !_showNumbers;
     notifyListeners();
   }
+
+  void start() {
+    _gameState = GameState.started;
+    notifyListeners();
+  }
+
+  void finish() {
+    _gameState = GameState.finished;
+    // notifyListeners();
+  }
+
+  void wait() {
+    _gameState = GameState.waiting;
+    notifyListeners();
+  }
+
+  void toggleSound() {
+    _muted = !_muted;
+    AudioService.instance.isMuted = _muted;
+    notifyListeners();
+  }
+
+  void toggleVibration() {
+    _vibrationsOff = !_vibrationsOff;
+    AudioService.instance.shouldVibrate = _vibrationsOff;
+    notifyListeners();
+  }
 }
 
 class ScoreProvider extends ChangeNotifier {
@@ -104,12 +142,13 @@ class ScoreProvider extends ChangeNotifier {
   bool get isRunning => _isRunning;
   bool _beginState = true;
   bool get beginState => _beginState;
+  Timer? thisTimer;
 
   void beginTimer() {
     _isRunning = true;
     _beginState = false;
     resetScores();
-    Timer.periodic(const Duration(seconds: 1), (timer) {
+    thisTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!_isRunning) {
         timer.cancel();
       } else {
@@ -127,6 +166,7 @@ class ScoreProvider extends ChangeNotifier {
 
   void stopTimer() {
     _isRunning = false;
+    if (thisTimer != null) thisTimer!.cancel();
   }
 
   void incrementMoves() {
@@ -145,3 +185,5 @@ class ScoreProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+enum GameState { starting, waiting, started, finished }

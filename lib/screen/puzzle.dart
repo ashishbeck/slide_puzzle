@@ -4,12 +4,14 @@ import 'package:flutter/services.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/audio.dart';
+import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
-import 'package:slide_puzzle/ui/custom_positioned.dart';
 import 'package:rive/rive.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:slide_puzzle/screen/app.dart';
+import 'package:slide_puzzle/ui/button.dart';
 
 class Puzzle extends StatefulWidget {
   const Puzzle({Key? key}) : super(key: key);
@@ -52,6 +54,38 @@ class _PuzzleState extends State<Puzzle> {
     }
   }
 
+  List<Widget> buttons({bool expanded = true}) => [
+        MyButton(
+          label: "Shuffle",
+          icon: const RiveAnimation.asset(
+            'assets/rive/icons.riv',
+            animations: ["shuffle"],
+          ),
+          expanded: expanded,
+          onPressed: () {
+            TileProvider tileProvider = context.read<TileProvider>();
+            int gridSize = tileProvider.gridSize;
+            homeKey.currentState!.createTiles(gridSize: gridSize);
+          },
+        ),
+        // MyButton(
+        //   label: "Reset",
+        //   icon: const Icon(Icons.cancel),
+        //   expanded: expanded,
+        //   height: height,
+        //   onPressed: () {},
+        // ),
+        MyButton(
+          label: "Solve",
+          icon: const RiveAnimation.asset(
+            'assets/rive/icons.riv',
+            animations: ["solve"],
+          ),
+          expanded: expanded,
+          onPressed: homeKey.currentState!.solve,
+        ),
+      ];
+
   @override
   void initState() {
     super.initState();
@@ -67,12 +101,16 @@ class _PuzzleState extends State<Puzzle> {
   Widget build(BuildContext context) {
     TileProvider tileProvider = context.watch<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
+    ConfigProvider configProvider = context.read<ConfigProvider>();
     List<TilesModel> tileList = tileProvider.getTileList;
     gridSize = sqrt(tileList.length).toInt();
     isSolved = Service().isSolved(tileList);
-    if (isSolved && tileList.isNotEmpty) {
+    if (isSolved &&
+        tileList.isNotEmpty &&
+        configProvider.gamestate == GameState.started) {
       print("Solved!!");
       scoreProvider.stopTimer();
+      configProvider.finish();
     }
     // list.forEach((e) {
     //   bool solved = true;
@@ -110,12 +148,15 @@ class _PuzzleState extends State<Puzzle> {
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
+          var thisConstraints = BoxConstraints(
+              maxHeight: constraints.maxHeight - buttonHeight,
+              maxWidth: constraints.maxWidth);
           return Stack(
             children: [
               for (var i = 0; i < tileList.length; i++) ...{
                 PuzzleTile(
                   tileList: tileList,
-                  constraints: constraints,
+                  constraints: thisConstraints,
                   gridSize: gridSize,
                   currentIndex: tileList[i].currentIndex,
                   defaultIndex: tileList[i].defaultIndex,
@@ -131,8 +172,14 @@ class _PuzzleState extends State<Puzzle> {
                     // list[1].currentIndex = temp;
                     // setState(() {});
                   },
-                )
+                ),
               },
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Row(
+                  children: buttons(expanded: true),
+                ),
+              )
               // ElevatedButton(
               //     onPressed: () {
               //       tileProvider.changeImage(Random().nextInt(6) + 1);
@@ -216,7 +263,7 @@ class _PuzzleTileState extends State<PuzzleTile> {
       }
     } else {
       AudioService.instance.drag(failed: true);
-      Service().vibrate();
+      AudioService.instance.vibrate();
     }
     mouseOffset = null;
     tweenProvider.setData();
@@ -337,19 +384,6 @@ class _PuzzleTileState extends State<PuzzleTile> {
               Container(
                 height: height,
                 width: height,
-                // decoration: BoxDecoration(
-                //   // borderRadius: const BorderRadius.all(
-                //   //   Radius.circular(15),
-                //   // ),
-                //   color: widget.isWhite
-                //       ? Colors.white.withOpacity(0.2)
-                //       : Colors.red,
-                // ),
-                // child: Center(child: Text("(${widget.defaultIndex + 1})")),
-                // child: const RiveAnimation.asset(
-                //   'assets/rive/icons.riv',
-                //   animations: ["shuffle"],
-                // ),
                 child: ClipRect(
                   child: OverflowBox(
                     maxWidth: double.infinity,
@@ -384,13 +418,17 @@ class _PuzzleTileState extends State<PuzzleTile> {
       top: topOffset + gap / 2,
       left: leftOffset + gap / 2,
       child: MouseRegion(
-        cursor: thisTile.isWhite
-            ? SystemMouseCursors.basic
-            : SystemMouseCursors.click,
+        cursor: configProvider.gamestate == GameState.started
+            ? thisTile.isWhite
+                ? SystemMouseCursors.basic
+                : SystemMouseCursors.click
+            : SystemMouseCursors.forbidden,
         child: GestureDetector(
           onPanUpdate: (details) {
-            _onPanUpdate(details, isSameRow, isSameColumn, tileSize,
-                isWhiteOnRightBelow, tweenProvider, row, column);
+            if (configProvider.gamestate == GameState.started) {
+              _onPanUpdate(details, isSameRow, isSameColumn, tileSize,
+                  isWhiteOnRightBelow, tweenProvider, row, column);
+            }
           },
           onPanDown: (details) {
             mouseOffset = (isSameRow
@@ -402,40 +440,43 @@ class _PuzzleTileState extends State<PuzzleTile> {
           onPanStart: (_) {
             configProvider.setDuration(const Duration(milliseconds: 0));
             AudioService.instance.drag();
-            Service().vibrate();
+            AudioService.instance.vibrate();
           },
           onPanEnd: (details) {
-            _onPanEnd(
-                details,
-                isSameRow,
-                isSameColumn,
-                isWhiteOnRightBelow,
-                tweenProvider,
-                tileProvider,
-                configProvider,
-                scoreProvider,
-                thisTile,
-                whiteTile,
-                tileSize);
+            if (configProvider.gamestate == GameState.started) {
+              _onPanEnd(
+                  details,
+                  isSameRow,
+                  isSameColumn,
+                  isWhiteOnRightBelow,
+                  tweenProvider,
+                  tileProvider,
+                  configProvider,
+                  scoreProvider,
+                  thisTile,
+                  whiteTile,
+                  tileSize);
+            }
           },
           // onPanCancel: () {
           // print("pan cancel");
           // mouseOffset = null;
           // },
-          onTap: thisTile.isWhite
-              ? null
-              : () {
-                  if (isSameRow || isSameColumn) {
-                    Service().changePosition(
-                      widget.tileList,
-                      thisTile,
-                      whiteTile,
-                      scoreProvider,
-                      gridSize: isSameColumn ? widget.gridSize : 1,
-                    );
-                    tileProvider.updateNotifiers();
-                  }
-                },
+          onTap:
+              thisTile.isWhite || configProvider.gamestate != GameState.started
+                  ? null
+                  : () {
+                      if (isSameRow || isSameColumn) {
+                        Service().changePosition(
+                          widget.tileList,
+                          thisTile,
+                          whiteTile,
+                          scoreProvider,
+                          gridSize: isSameColumn ? widget.gridSize : 1,
+                        );
+                        tileProvider.updateNotifiers();
+                      }
+                    },
           child: container,
         ),
       ),

@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.1.0+1
+version: 0.3.0+1
 
 environment:
   sdk: ">=2.15.1 <3.0.0"
@@ -34,10 +34,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  flutter_svg: ^1.0.3
   image: any
   provider: any
   auto_size_text: any
@@ -47,6 +44,10 @@ dev_dependencies:
   soundpool: ^2.2.0
   # vibration: ^1.7.4-nullsafety.0
   rive: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -90,6 +91,9 @@ flutter:
         - asset: assets/fonts/glacial-indifference.regular.otf
         - asset: assets/fonts/glacial-indifference.bold.otf
           weight: 700
+    - family: Arcade
+      fonts:
+        - asset: assets/fonts/ARCADE_N.TTF
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

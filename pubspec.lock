@@ -23,7 +23,7 @@ packages:
     source: hosted
     version: "0.1.6+1"
   auto_size_text:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: auto_size_text
       url: "https://pub.dartlang.org"
@@ -111,6 +111,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.4"
+  flutter_svg:
+    dependency: "direct main"
+    description:
+      name: flutter_svg
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.3"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -129,7 +136,7 @@ packages:
     source: hosted
     version: "2.1.0"
   http:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -143,7 +150,7 @@ packages:
     source: hosted
     version: "4.0.0"
   image:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: image
       url: "https://pub.dartlang.org"
@@ -157,14 +164,14 @@ packages:
     source: hosted
     version: "0.6.3"
   just_audio:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: just_audio
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.9.18"
   just_audio_libwinmedia:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: just_audio_libwinmedia
       url: "https://pub.dartlang.org"
@@ -233,6 +240,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
+  path_drawing:
+    dependency: transitive
+    description:
+      name: path_drawing
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
+  path_parsing:
+    dependency: transitive
+    description:
+      name: path_parsing
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   path_provider:
     dependency: transitive
     description:
@@ -311,14 +332,14 @@ packages:
     source: hosted
     version: "4.2.4"
   provider:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: provider
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.0.2"
   rive:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: rive
       url: "https://pub.dartlang.org"
@@ -337,7 +358,7 @@ packages:
     source: sdk
     version: "0.0.99"
   soundpool:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: soundpool
       url: "https://pub.dartlang.org"

@@ -16,6 +16,8 @@ class AudioService {
   int dragFailId = 0;
   int sweepId = 0;
   AudioStreamControl? dragStream;
+  bool isMuted = false;
+  bool shouldVibrate = true;
 
   init() async {
     for (var i = 0; i < slideAudio.length; i++) {
@@ -43,6 +45,7 @@ class AudioService {
   }
 
   slide(Duration? duration) async {
+    if (isMuted) return;
     var rand = Random();
     int id = rand.nextInt(slideAudio.length);
     pool.play(slideIds[id]);
@@ -53,6 +56,7 @@ class AudioService {
   }
 
   drag({starting = true, failed = false}) async {
+    if (isMuted) return;
     if (failed) {
       var stream = await pool.playWithControls(dragFailId);
       stream.setVolume(volume: 0.1);
@@ -66,9 +70,14 @@ class AudioService {
   }
 
   shuffle() async {
+    if (isMuted) return;
     var stream = await pool.playWithControls(sweepId);
     stream.setVolume(volume: 0.2);
     await Future.delayed(Duration(milliseconds: defaultTime * 3));
     stream.stop();
+  }
+
+  vibrate() async {
+    if (shouldVibrate) HapticFeedback.lightImpact();
   }
 }

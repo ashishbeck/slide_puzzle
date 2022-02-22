@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/screen/app.dart';
@@ -50,13 +51,9 @@ class MyApp extends StatelessWidget {
         title: 'Slide Puzzle',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          fontFamily: "Glacial",
-          primarySwatch: Colors.blue,
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(30)))),
-          ),
+          fontFamily: "Arcade",
+          primarySwatch: primaryColor,
+          brightness: Brightness.dark,
         ),
         home: LayoutPage(),
       ),

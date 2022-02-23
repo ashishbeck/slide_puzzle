@@ -83,9 +83,9 @@ class _BorderedContainerState extends State<BorderedContainer>
 
   @override
   void dispose() {
-    super.dispose();
     controller.dispose();
     buttonController.dispose();
+    super.dispose();
   }
 
   @override

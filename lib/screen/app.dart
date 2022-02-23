@@ -230,7 +230,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           // double imageListHeight = 100;
           double imageListMainGap = isTall ? 24 : 64;
           double imageListCrossGap = (imageListVisibile ? 0 : -90);
-          double toolbarGap = isTall ? 24 : 120;
+          double toolbarGap = isTall ? 24 : 64;
 
           // head scratcher below for a solid hour and still not perfect :(
           double bottomButtonOffset =
@@ -367,7 +367,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                   duration: duration,
                   curve: curve,
                   left: isTall ? toolbarGap : 0,
-                  top: isTall ? 0 : toolbarGap,
+                  top: isTall ? MediaQuery.of(context).padding.top : toolbarGap,
                   right: isTall ? toolbarGap : null,
                   bottom: isTall ? null : toolbarGap,
                   child: ToolBar(

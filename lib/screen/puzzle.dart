@@ -122,7 +122,7 @@ class _PuzzleState extends State<Puzzle> {
     // list.reversed;
     _focusNode.requestFocus();
     AssetImage assetImage =
-        AssetImage("images/pexels_${tileProvider.currentImage}.jpg");
+        AssetImage("assets/images/pexels_${tileProvider.currentImage}.jpg");
     Image image = Image(
       image: assetImage,
       // "images/simple_dash_large.png",
@@ -345,8 +345,8 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    super.dispose();
     animationController.dispose();
+    super.dispose();
   }
 
   @override

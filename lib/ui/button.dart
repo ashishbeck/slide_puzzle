@@ -193,13 +193,17 @@ class _MyButtonState extends State<MyButton> {
     if (configProvider.previewedButtons[widget.label] == null ||
         !configProvider.previewedButtons[widget.label]!) {
       await Future.delayed(Duration(milliseconds: 1000 + defaultEntryTime));
-      setState(() {
-        isHovering = true;
-      });
+      if (this.mounted) {
+        setState(() {
+          isHovering = true;
+        });
+      }
       await Future.delayed(const Duration(milliseconds: 1500));
-      setState(() {
-        isHovering = false;
-      });
+      if (this.mounted) {
+        setState(() {
+          isHovering = false;
+        });
+      }
       configProvider.seenButton(widget.label);
     }
   }

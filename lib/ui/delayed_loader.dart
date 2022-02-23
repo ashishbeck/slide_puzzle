@@ -24,6 +24,7 @@ class DelayedLoader extends StatefulWidget {
 class _DelayedLoaderState extends State<DelayedLoader> {
   bool _ifAnimated() {
     String name = widget.label;
+    print(widget.configProvider.entryAnimationDone);
     if (widget.configProvider.entryAnimationDone[name] != null &&
         widget.configProvider.entryAnimationDone[name]!) {
       return true;

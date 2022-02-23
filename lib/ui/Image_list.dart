@@ -45,6 +45,12 @@ class _ImageListState extends State<ImageList>
   }
 
   @override
+  void dispose() {
+    animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.isVisible) {
       animationController.reverse();

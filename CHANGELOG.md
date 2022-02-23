@@ -1,3 +1,8 @@
+## 0.4.2
+
+ - Bug fixes
+ - Android project compatibility issues resolved
+
 ## 0.4.1
 
  - More animations added

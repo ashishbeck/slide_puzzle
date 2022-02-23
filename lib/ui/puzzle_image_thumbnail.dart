@@ -31,11 +31,15 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
         widget.configProvider.entryAnimationDone[name]!) {
       return true;
     }
+    widget.configProvider.seenEntryAnimation(name);
     return false;
   }
 
   _animateEntry() async {
-    if (_ifAnimated()) return;
+    if (_ifAnimated()) {
+      animationController.value = 1;
+      return;
+    }
     Future.delayed(Duration(milliseconds: defaultEntryTime + widget.index * 50))
         .then((value) => animationController.forward());
   }
@@ -50,8 +54,8 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
 
   @override
   void dispose() {
-    super.dispose();
     animationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -64,7 +68,7 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
         height: widget.isTall ? widget.size : widget.size - widget.padding * 2,
         decoration: BoxDecoration(
           image: DecorationImage(
-              image: AssetImage("images/pexels_${widget.index + 1}.jpg"),
+              image: AssetImage("assets/images/pexels_${widget.index + 1}.jpg"),
               fit: BoxFit.cover),
           borderRadius: const BorderRadius.all(
             Radius.circular(10),

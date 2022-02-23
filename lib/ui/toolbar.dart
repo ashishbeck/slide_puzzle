@@ -39,17 +39,18 @@ class _ToolBarState extends State<ToolBar> {
     List<Widget> children = [
       Scores(isTall: widget.isTall),
       MyButton(
-          label: "${gridSize}x$gridSize",
-          onPressed: () {
-            tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
-          },
-          expanded: widget.isTall,
-          icon: AutoSizeText(
-            gridSize == 3 ? "4x4" : "3x3",
-            // style: TextStyle(color: secondaryColor),
-            maxLines: 1,
-            minFontSize: 8,
-          )),
+        label: "${gridSize}x$gridSize",
+        onPressed: () {
+          tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
+        },
+        expanded: widget.isTall,
+        // icon: AutoSizeText(
+        //   gridSize == 3 ? "4x4" : "3x3",
+        //   // style: TextStyle(color: secondaryColor),
+        //   maxLines: 1,
+        //   minFontSize: 8,
+        // ),
+      ),
       IconButton(
         onPressed: () => configProvider.toggleNumbersVisibility(),
         icon:
@@ -62,7 +63,7 @@ class _ToolBarState extends State<ToolBar> {
     return DelayedLoader(
       configProvider: configProvider,
       duration: Duration(milliseconds: defaultSidebarTime),
-      label: "imageListMain",
+      label: "toolbarMain",
       child: Container(
         height: height,
         width: width,

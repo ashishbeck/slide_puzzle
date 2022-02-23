@@ -14,16 +14,20 @@ class SoundsVibrationsTool extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [
-      IconButton(
-        icon: Icon(configProvider.muted ? Icons.volume_off : Icons.volume_up),
-        onPressed: configProvider.toggleSound,
+      Expanded(
+        child: IconButton(
+          icon: Icon(configProvider.muted ? Icons.volume_off : Icons.volume_up),
+          onPressed: configProvider.toggleSound,
+        ),
       ),
       // isTall ? Divider() : VerticalDivider(),
-      IconButton(
-        icon: Icon(configProvider.vibrationsOff
-            ? Icons.disabled_by_default
-            : Icons.vibration),
-        onPressed: configProvider.toggleVibration,
+      Expanded(
+        child: IconButton(
+          icon: Icon(configProvider.vibrationsOff
+              ? Icons.disabled_by_default
+              : Icons.vibration),
+          onPressed: configProvider.toggleVibration,
+        ),
       ),
     ];
 

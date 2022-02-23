@@ -1,3 +1,8 @@
+## 0.4.3
+
+ - Bug fixes
+ - Image list excess content indicator added
+
 ## 0.4.2
 
  - Bug fixes

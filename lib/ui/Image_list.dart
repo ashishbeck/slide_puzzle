@@ -30,6 +30,71 @@ class _ImageListState extends State<ImageList>
   ScrollController scrollController = ScrollController();
   late Animation<double> animation;
   late AnimationController animationController;
+  bool isScrollControllerAttached = false;
+
+  Widget excessScrollIndicator(double size, {required bool isLeft}) {
+    double max = scrollController.hasClients
+        ? scrollController.position.maxScrollExtent
+        : 100;
+    double offset = scrollController.hasClients ? scrollController.offset : 0;
+    double area = 60;
+    return Align(
+      alignment: widget.isTall
+          ? isLeft
+              ? Alignment.centerLeft
+              : Alignment.centerRight
+          : isLeft
+              ? Alignment.topCenter
+              : Alignment.bottomCenter,
+      child: Container(
+        height: widget.isTall
+            ? size
+            : isLeft
+                ? offset < 0
+                    ? 0
+                    : offset > area
+                        ? area
+                        : offset
+                : offset > max
+                    ? 0
+                    : offset < max - area
+                        ? area
+                        : max - offset,
+        width: widget.isTall
+            ? isLeft
+                ? offset < 0
+                    ? 0
+                    : offset > area
+                        ? area
+                        : offset
+                : offset > max
+                    ? 0
+                    : offset < max - area
+                        ? area
+                        : max - offset
+            : size,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              secondaryColor.withOpacity(isLeft ? 1 : 0),
+              secondaryColor.withOpacity(isLeft ? 0 : 1),
+            ],
+            begin: widget.isTall ? Alignment.centerLeft : Alignment.topCenter,
+            end: widget.isTall ? Alignment.centerRight : Alignment.bottomCenter,
+          ),
+        ),
+      ),
+    );
+  }
+
+  _scrollListener() {
+    if (scrollController.hasClients && !isScrollControllerAttached) {
+      print("Attached");
+      isScrollControllerAttached = true;
+      scrollController.jumpTo(1);
+    }
+    setState(() {});
+  }
 
   @override
   void initState() {
@@ -42,11 +107,14 @@ class _ImageListState extends State<ImageList>
         upperBound: 0.5);
     animation =
         CurvedAnimation(parent: animationController, curve: Curves.easeInOut);
+
+    scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
     animationController.dispose();
+    scrollController.removeListener(_scrollListener);
     super.dispose();
   }
 
@@ -106,37 +174,48 @@ class _ImageListState extends State<ImageList>
                   behavior: MyCustomScrollBehavior(),
                   child: Scrollbar(
                     controller: scrollController,
-                    child: ListView.separated(
-                        controller: scrollController,
-                        itemCount: tileProvider.images.length,
-                        scrollDirection:
-                            widget.isTall ? Axis.horizontal : Axis.vertical,
-                        physics: const BouncingScrollPhysics(),
-                        separatorBuilder: (context, index) => Container(
-                              padding: const EdgeInsets.all(2),
-                            ),
-                        itemBuilder: (context, index) {
-                          return DelayedLoader(
-                            duration: Duration(
-                                milliseconds: defaultEntryTime + index * 50),
-                            configProvider: configProvider,
-                            label: "image$index",
-                            preload: true,
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: GestureDetector(
-                                onTap: () =>
-                                    tileProvider.changeImage(index + 1),
-                                child: PuzzleImageThumbnail(
-                                    isTall: widget.isTall,
-                                    size: size,
-                                    padding: padding,
-                                    index: index,
-                                    configProvider: configProvider),
+                    child: Stack(
+                      children: [
+                        ListView.separated(
+                          controller: scrollController,
+                          itemCount: tileProvider.images.length,
+                          scrollDirection:
+                              widget.isTall ? Axis.horizontal : Axis.vertical,
+                          physics: const BouncingScrollPhysics(),
+                          separatorBuilder: (context, index) => Container(
+                            padding: const EdgeInsets.all(2),
+                          ),
+                          itemBuilder: (context, index) {
+                            return DelayedLoader(
+                              duration: Duration(
+                                  milliseconds: defaultEntryTime + index * 50),
+                              configProvider: configProvider,
+                              label: "image$index",
+                              preload: true,
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      tileProvider.changeImage(index + 1),
+                                  child: PuzzleImageThumbnail(
+                                      isTall: widget.isTall,
+                                      size: size,
+                                      padding: padding,
+                                      index: index,
+                                      configProvider: configProvider),
+                                ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          },
+                        ),
+                        scrollController.hasClients
+                            ? excessScrollIndicator(size, isLeft: true)
+                            : Container(),
+                        // scrollController.hasClients
+                        excessScrollIndicator(size, isLeft: false),
+                        // : Container(),
+                      ],
+                    ),
                   ),
                 ),
               ),

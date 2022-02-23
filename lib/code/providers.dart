@@ -132,7 +132,7 @@ class ConfigProvider extends ChangeNotifier {
 
   void toggleVibration() {
     _vibrationsOff = !_vibrationsOff;
-    AudioService.instance.shouldVibrate = _vibrationsOff;
+    AudioService.instance.shouldVibrate = !_vibrationsOff;
     notifyListeners();
   }
 }

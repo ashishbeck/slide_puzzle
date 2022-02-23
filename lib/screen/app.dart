@@ -27,8 +27,7 @@ class LayoutPage extends StatefulWidget {
 
 final homeKey = GlobalKey<_LayoutPageState>();
 
-class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
-  late AnimationController controller;
+class _LayoutPageState extends State<LayoutPage> {
   int gridSize = 4;
   Duration duration = Duration(milliseconds: defaultTime);
   Curve curve = Curves.easeOut;
@@ -36,6 +35,11 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   double offsetFromCenter = 0.5;
   bool isTopLeft = true;
   bool imageListVisibile = true;
+  final isWebMobile = kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android);
+  final isMobile = (defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.android);
 
   void createTiles(
       {int gridSize = 4, bool isChangingGrid = false, bool shuffle = true}) {
@@ -179,15 +183,9 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     AudioService.instance.init();
-    controller = AnimationController(
-        vsync: this, lowerBound: 0, upperBound: 1, duration: duration);
-    controller.value = 1;
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       createTiles(shuffle: false);
     });
-    final isWebMobile = kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.android);
     if (isWebMobile) area = 0.9;
   }
 
@@ -224,12 +222,16 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           bool isTall = maxWidth * 0.85 < maxHeight;
           double absoluteWidth = maxWidth * area;
           double absoluteHeight = maxHeight * area;
+          double topPad = MediaQuery.of(context).padding.top;
           double puzzleHeight = isTall ? absoluteWidth : absoluteHeight;
-          double puzzleWidth = isTall ? absoluteWidth : absoluteHeight;
+          if (!isTall && isMobile) puzzleHeight -= topPad;
+          double puzzleWidth = puzzleHeight;
 
           // double imageListHeight = 100;
           double imageListMainGap = isTall ? 24 : 64;
-          double imageListCrossGap = (imageListVisibile ? 0 : -90);
+          // double imageListCrossGap = (imageListVisibile ? 0 : -90);
+          double imageListCrossOffset =
+              1 + (2 * 95 / (isTall ? maxHeight : maxWidth));
           double toolbarGap = isTall ? 24 : 64;
 
           // head scratcher below for a solid hour and still not perfect :(
@@ -246,13 +248,6 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
 
           // print("$maxWidth and $maxHeight");
           // bool isTall = (width / height) < (6 / 5);
-          if (isTall) {
-            // if (controller.value == 1 && !controller.isAnimating) {
-            controller.forward();
-            // }
-          } else {
-            controller.reverse();
-          }
           double padding = 32;
           return Center(
             child: Container(
@@ -271,7 +266,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                 AnimatedAlign(
                   duration: duration,
                   curve: curve,
-                  alignment: isTall ? Alignment(0, 0) : Alignment(0, 0),
+                  alignment: const Alignment(0, 0),
                   // left: isTopLeft ? 20 : 0,
                   // right: !isTopLeft ? 23 : 0,
                   // top: isTopLeft ? 23 : 0,
@@ -291,88 +286,54 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                // AnimatedAlign(
-                //   duration: duration,
-                //   curve: curve,
-                //   alignment: isTall
-                //       ? Alignment(0, bottomButtonOffset)
-                //       : Alignment(-bottomButtonOffset, bottomButtonOffset),
-                //   child: AnimatedContainer(
-                //     duration: duration,
-                //     curve: curve,
-                //     width: isTall ? puzzleWidth : puzzleWidth,
-                //     child: AnimatedSwitcher(
-                //       // opacity: controller.value,
-                //       duration: duration,
-                //       // curve: curve,
-                //       child: isTall
-                //           ? Row(
-                //               children: buttons(expanded: true),
-                //             )
-                //           : const SizedBox(
-                //               height: 44,
-                //             ),
-                //     ),
-                //   ),
-                // ),
-
-                // right buttons
-                // AnimatedAlign(
-                //   duration: duration,
-                //   curve: curve,
-                //   alignment: isTall
-                //       ? Alignment(rightButtonOffset, -rightButtonOffset)
-                //       : Alignment(rightButtonOffset, 0),
-                //   child: AnimatedContainer(
-                //     duration: duration,
-                //     curve: curve,
-                //     // width: 200,
-                //     // height: isTall ? puzzleWidth : puzzleHeight,
-                //     child: AnimatedSwitcher(
-                //       // opacity: controller.value,
-                //       duration: duration,
-                //       // curve: curve,
-                //       child: !isTall
-                //           ? Column(
-                //               mainAxisAlignment: MainAxisAlignment.center,
-                //               children: buttons(expanded: false),
-                //               // children: buttons(puzzleHeight, expanded: false),
-                //             )
-                //           : const SizedBox(
-                //               height: 44,
-                //             ),
-                //     ),
-                //   ),
-                // ),
 
                 // image list
-                AnimatedPositioned(
+                AnimatedAlign(
                   duration: duration,
                   curve: curve,
-                  right: isTall ? imageListMainGap : imageListCrossGap,
-                  top: isTall ? null : imageListMainGap,
-                  left: isTall ? imageListMainGap : null,
-                  bottom: isTall ? imageListCrossGap : imageListMainGap,
-                  child: ImageList(
-                    constraints: constraints,
-                    isTall: isTall,
-                    isVisible: imageListVisibile,
-                    toggleImageList: (bool visibility) =>
-                        setState(() => imageListVisibile = visibility),
+                  alignment: isTall
+                      ? imageListVisibile
+                          ? Alignment.bottomCenter
+                          : Alignment(0, imageListCrossOffset)
+                      : imageListVisibile
+                          ? Alignment.centerRight
+                          : Alignment(imageListCrossOffset, 0),
+                  // right: isTall ? imageListMainGap : imageListCrossGap,
+                  // top: isTall ? null : imageListMainGap,
+                  // left: isTall ? imageListMainGap : null,
+                  // bottom: isTall ? imageListCrossGap : imageListMainGap,
+                  child: Container(
+                    height: isTall ? null : maxHeight - 2 * imageListMainGap,
+                    width: isTall ? maxWidth - 2 * imageListMainGap : null,
+                    child: ImageList(
+                      constraints: constraints,
+                      isTall: isTall,
+                      isVisible: imageListVisibile,
+                      toggleImageList: (bool visibility) =>
+                          setState(() => imageListVisibile = visibility),
+                    ),
                   ),
                 ),
 
                 // toolbar
-                AnimatedPositioned(
+                AnimatedAlign(
                   duration: duration,
                   curve: curve,
-                  left: isTall ? toolbarGap : 0,
-                  top: isTall ? MediaQuery.of(context).padding.top : toolbarGap,
-                  right: isTall ? toolbarGap : null,
-                  bottom: isTall ? null : toolbarGap,
-                  child: ToolBar(
-                    constraints: constraints,
-                    isTall: isTall,
+                  alignment:
+                      isTall ? Alignment.topCenter : Alignment.centerLeft,
+                  // left: isTall ? toolbarGap : 0,
+                  // top: isTall ? topPad : toolbarGap,
+                  // right: isTall ? toolbarGap : null,
+                  // bottom: isTall ? null : toolbarGap,
+                  child: SafeArea(
+                    child: Container(
+                      height: isTall ? null : maxHeight - 2 * toolbarGap,
+                      width: isTall ? maxWidth - 2 * toolbarGap : null,
+                      child: ToolBar(
+                        constraints: constraints,
+                        isTall: isTall,
+                      ),
+                    ),
                   ),
                 ),
               ]),

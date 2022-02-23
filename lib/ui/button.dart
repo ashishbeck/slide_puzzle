@@ -192,7 +192,7 @@ class _MyButtonState extends State<MyButton> {
     final configProvider = context.read<ConfigProvider>();
     if (configProvider.previewedButtons[widget.label] == null ||
         !configProvider.previewedButtons[widget.label]!) {
-      await Future.delayed(Duration(milliseconds: 1000 + defaultEntryTime));
+      await Future.delayed(Duration(milliseconds: 2000 + defaultEntryTime));
       if (this.mounted) {
         setState(() {
           isHovering = true;

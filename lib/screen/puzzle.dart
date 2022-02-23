@@ -12,6 +12,7 @@ import 'package:rive/rive.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:slide_puzzle/ui/button.dart';
+import 'package:slide_puzzle/ui/delayed_loader.dart';
 
 class Puzzle extends StatefulWidget {
   const Puzzle({Key? key}) : super(key: key);
@@ -174,12 +175,17 @@ class _PuzzleState extends State<Puzzle> {
                   },
                 ),
               },
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Row(
-                  children: buttons(expanded: true),
+              DelayedLoader(
+                configProvider: configProvider,
+                label: "Buttons",
+                duration: Duration(milliseconds: 2000),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Row(
+                    children: buttons(expanded: true),
+                  ),
                 ),
-              )
+              ),
               // ElevatedButton(
               //     onPressed: () {
               //       tileProvider.changeImage(Random().nextInt(6) + 1);
@@ -224,7 +230,8 @@ class PuzzleTile extends StatefulWidget {
   State<PuzzleTile> createState() => _PuzzleTileState();
 }
 
-class _PuzzleTileState extends State<PuzzleTile> {
+class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
+  late AnimationController animationController;
   // Duration defaultDuration = const Duration(milliseconds: 1200);
   // Duration duration = const Duration(milliseconds: 1200);
 
@@ -233,6 +240,7 @@ class _PuzzleTileState extends State<PuzzleTile> {
   // double? tweenLeftOffset;
   // double? tweenTopOffset;
   double? mouseOffset;
+  bool isAnimating = true;
 
   _onPanEnd(
     DragEndDetails details,
@@ -299,6 +307,46 @@ class _PuzzleTileState extends State<PuzzleTile> {
         });
       }
     }
+  }
+
+  _animateEntry() {
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    String name = "puzzleTile${widget.defaultIndex}";
+    // if (configProvider.entryAnimationDone[name] != null &&
+    //     configProvider.entryAnimationDone[name]!) {
+    //   isAnimating = false;
+    //   return;
+    // }
+    if (!_ifAnimated()) {
+      configProvider.seenEntryAnimation(name);
+      animationController.forward().then((value) => isAnimating = false);
+    }
+  }
+
+  bool _ifAnimated() {
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    String name = "puzzleTile${widget.defaultIndex}";
+    if (configProvider.entryAnimationDone[name] != null &&
+        configProvider.entryAnimationDone[name]!) {
+      isAnimating = false;
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    animationController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    // _animateEntry();
+    _ifAnimated();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    animationController.dispose();
   }
 
   @override
@@ -477,7 +525,27 @@ class _PuzzleTileState extends State<PuzzleTile> {
                         tileProvider.updateNotifiers();
                       }
                     },
-          child: container,
+          child: isAnimating
+              ? FutureBuilder(
+                  future: Future.delayed(Duration(
+                      milliseconds:
+                          defaultEntryTime + widget.defaultIndex * 50)),
+                  builder: (context, snapshot) {
+                    bool isDone =
+                        snapshot.connectionState == ConnectionState.done;
+                    if (isDone) {
+                      _animateEntry();
+                    }
+                    return Opacity(
+                      opacity: isDone ? 1 : 0.01,
+                      child: ScaleTransition(
+                          scale: CurvedAnimation(
+                              parent: animationController,
+                              curve: Curves.easeOutBack),
+                          child: container),
+                    );
+                  })
+              : container,
         ),
       ),
     );

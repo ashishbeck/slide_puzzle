@@ -7,6 +7,7 @@ import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/button.dart';
+import 'package:slide_puzzle/ui/delayed_loader.dart';
 import 'package:slide_puzzle/ui/scores.dart';
 import 'package:slide_puzzle/ui/sound_vibration.dart';
 
@@ -58,29 +59,34 @@ class _ToolBarState extends State<ToolBar> {
           isTall: widget.isTall, configProvider: configProvider),
     ];
 
-    return Container(
-      height: height,
-      width: width,
-      // color: secondaryColor,
-      child: BorderedContainer(
-        label: "toolbar",
-        child: Container(
-          height: height,
-          width: width,
-          padding: EdgeInsets.all(padding),
-          color: secondaryColor,
-          child: widget.isTall
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: children,
-                )
-              : Column(
-                  // mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: children,
-                ),
+    return DelayedLoader(
+      configProvider: configProvider,
+      duration: Duration(milliseconds: defaultSidebarTime),
+      label: "imageListMain",
+      child: Container(
+        height: height,
+        width: width,
+        // color: secondaryColor,
+        child: BorderedContainer(
+          label: "toolbar",
+          child: Container(
+            height: height,
+            width: width,
+            padding: EdgeInsets.all(padding),
+            color: secondaryColor,
+            child: widget.isTall
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: children,
+                  )
+                : Column(
+                    // mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: children,
+                  ),
+          ),
         ),
       ),
     );

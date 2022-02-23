@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 int defaultTime = 200;
 int defaultEntryTime = 1000;
+int defaultSidebarTime = 4000;
 Curve defaultCurve = Curves.easeOutBack;
 double buttonHeight = 60;
 

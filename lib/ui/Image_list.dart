@@ -5,6 +5,8 @@ import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
+import 'package:slide_puzzle/ui/delayed_loader.dart';
+import 'package:slide_puzzle/ui/puzzle_image_thumbnail.dart';
 
 class ImageList extends StatefulWidget {
   final BoxConstraints constraints;
@@ -49,129 +51,134 @@ class _ImageListState extends State<ImageList>
     } else {
       animationController.forward();
     }
-    print(animation.value);
+    // print(animation.value);
     TileProvider tileProvider = context.read<TileProvider>();
+    ConfigProvider configProvider = context.read<ConfigProvider>();
     double buttonSize = 25;
     double size = 100;
     double height = widget.isTall ? size : widget.constraints.maxHeight;
     double width = widget.isTall ? widget.constraints.maxWidth : size;
     double padding = 8;
-    return Stack(
-      alignment: widget.isTall ? Alignment.bottomCenter : Alignment.centerRight,
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          height: height + buttonSize,
-          width: width + buttonSize,
-          color: Colors.transparent,
-        ),
-        Container(
-          height: height,
-          width: width,
-          child: BorderedContainer(
-            isBottom: !widget.isTall,
-            isRight: widget.isTall,
-            label: "imageList",
-            child: Container(
-              padding: EdgeInsets.all(padding),
-              decoration: BoxDecoration(
-                color: secondaryColor,
-                // borderRadius: BorderRadius.only(
-                //   topLeft: const Radius.circular(0),
-                //   bottomLeft:
-                //       widget.isTall ? Radius.zero : const Radius.circular(0),
-                //   topRight:
-                //       widget.isTall ? const Radius.circular(0) : Radius.zero,
-                //   bottomRight: Radius.zero,
-                // ),
-                // border: Border.all(
-                //   color: Colors.red,
-                // ),
-              ),
-              child: ScrollConfiguration(
-                behavior: MyCustomScrollBehavior(),
-                child: Scrollbar(
-                  controller: scrollController,
-                  child: ListView.separated(
-                      controller: scrollController,
-                      itemCount: tileProvider.images.length,
-                      scrollDirection:
-                          widget.isTall ? Axis.horizontal : Axis.vertical,
-                      physics: const BouncingScrollPhysics(),
-                      separatorBuilder: (context, index) => Container(
-                            padding: const EdgeInsets.all(2),
-                          ),
-                      itemBuilder: (context, index) {
-                        return MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () => tileProvider.changeImage(index + 1),
-                            child: Container(
-                              width: widget.isTall ? size - padding * 2 : size,
-                              height: widget.isTall ? size : size - padding * 2,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                    image: AssetImage(
-                                        "images/pexels_${index + 1}.jpg"),
-                                    fit: BoxFit.cover),
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                              // child: Image(
-                              //   image: AssetImage("images/pexels_${index + 1}.jpg"),
-                              // ),
+    return DelayedLoader(
+      configProvider: configProvider,
+      duration: Duration(milliseconds: defaultSidebarTime),
+      label: "imageListMain",
+      child: Stack(
+        alignment:
+            widget.isTall ? Alignment.bottomCenter : Alignment.centerRight,
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            height: height + buttonSize,
+            width: width + buttonSize,
+            color: Colors.transparent,
+          ),
+          Container(
+            height: height,
+            width: width,
+            child: BorderedContainer(
+              isBottom: !widget.isTall,
+              isRight: widget.isTall,
+              label: "imageList",
+              child: Container(
+                padding: EdgeInsets.all(padding),
+                decoration: BoxDecoration(
+                  color: secondaryColor,
+                  // borderRadius: BorderRadius.only(
+                  //   topLeft: const Radius.circular(0),
+                  //   bottomLeft:
+                  //       widget.isTall ? Radius.zero : const Radius.circular(0),
+                  //   topRight:
+                  //       widget.isTall ? const Radius.circular(0) : Radius.zero,
+                  //   bottomRight: Radius.zero,
+                  // ),
+                  // border: Border.all(
+                  //   color: Colors.red,
+                  // ),
+                ),
+                child: ScrollConfiguration(
+                  behavior: MyCustomScrollBehavior(),
+                  child: Scrollbar(
+                    controller: scrollController,
+                    child: ListView.separated(
+                        controller: scrollController,
+                        itemCount: tileProvider.images.length,
+                        scrollDirection:
+                            widget.isTall ? Axis.horizontal : Axis.vertical,
+                        physics: const BouncingScrollPhysics(),
+                        separatorBuilder: (context, index) => Container(
+                              padding: const EdgeInsets.all(2),
                             ),
-                          ),
-                        );
-                      }),
+                        itemBuilder: (context, index) {
+                          return DelayedLoader(
+                            duration: Duration(
+                                milliseconds: defaultEntryTime + index * 50),
+                            configProvider: configProvider,
+                            label: "image$index",
+                            preload: true,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () =>
+                                    tileProvider.changeImage(index + 1),
+                                child: PuzzleImageThumbnail(
+                                    isTall: widget.isTall,
+                                    size: size,
+                                    padding: padding,
+                                    index: index,
+                                    configProvider: configProvider),
+                              ),
+                            ),
+                          );
+                        }),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        Positioned(
-          left: widget.isTall ? null : -0,
-          right: null,
-          top: widget.isTall ? -0 : null,
-          bottom: null,
-          child: Container(
-            height: buttonSize,
-            width: buttonSize,
-            child: BorderedContainer(
-              label: "collapseButton",
-              spacing: 4,
-              isBottom: !widget.isTall,
-              isRight: widget.isTall,
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () => widget.toggleImageList(!widget.isVisible),
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    // height: buttonSize,
-                    // width: buttonSize,
-                    decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(0),
+          Positioned(
+            left: widget.isTall ? null : -0,
+            right: null,
+            top: widget.isTall ? -0 : null,
+            bottom: null,
+            child: Container(
+              height: buttonSize,
+              width: buttonSize,
+              child: BorderedContainer(
+                label: "collapseButton",
+                spacing: 4,
+                isBottom: !widget.isTall,
+                isRight: widget.isTall,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => widget.toggleImageList(!widget.isVisible),
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      // height: buttonSize,
+                      // width: buttonSize,
+                      decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(0),
+                          ),
+                          color: secondaryColor),
+                      child: RotationTransition(
+                        turns: animation,
+                        child: Icon(
+                          widget.isTall
+                              ? Icons.keyboard_arrow_down
+                              : Icons.keyboard_arrow_right,
+                          color: Colors.white,
                         ),
-                        color: secondaryColor),
-                    child: RotationTransition(
-                      turns: animation,
-                      child: Icon(
-                        widget.isTall
-                            ? Icons.keyboard_arrow_down
-                            : Icons.keyboard_arrow_right,
-                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 }

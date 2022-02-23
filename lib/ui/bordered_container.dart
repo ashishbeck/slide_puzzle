@@ -40,7 +40,7 @@ class _BorderedContainerState extends State<BorderedContainer>
   bool isAnimatingBase = true;
   Duration buttonDuration = Duration(milliseconds: 100);
 
-  _animateBase() async {
+  _animateEntry() async {
     ConfigProvider configProvider = context.read<ConfigProvider>();
     if (configProvider.entryAnimationDone[widget.label] != null &&
         configProvider.entryAnimationDone[widget.label]!) {
@@ -55,7 +55,7 @@ class _BorderedContainerState extends State<BorderedContainer>
     configProvider.seenEntryAnimation(widget.label);
     controller.forward().then((value) => setState(() {
           isAnimatingBase = false;
-          buttonController.duration = Duration(milliseconds: 200);
+          buttonController.duration = Duration(milliseconds: 500);
           buttonController
               .reverse()
               .then((value) => buttonController.duration = buttonDuration);
@@ -73,7 +73,7 @@ class _BorderedContainerState extends State<BorderedContainer>
     controller = AnimationController(
         vsync: this, duration: Duration(milliseconds: defaultEntryTime));
     if (widget.shouldAnimateEntry) {
-      _animateBase();
+      _animateEntry();
     } else {
       // setState(() {
       isAnimatingBase = false;

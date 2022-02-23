@@ -1,4 +1,8 @@
-## 0.4.0
+## 0.4.1
+
+ - More animations added
+ 
+ ## 0.4.0
 
  - Landing page added
  - Animations added for entry into puzzle

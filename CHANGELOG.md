@@ -1,3 +1,9 @@
+## 0.4.0
+
+ - Landing page added
+ - Animations added for entry into puzzle
+ - Package name, app name and manifests are consistent across platforms
+
 ## 0.3.0
 
  - Retro theme implemented

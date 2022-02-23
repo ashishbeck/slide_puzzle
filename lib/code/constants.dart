@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 int defaultTime = 200;
+int defaultEntryTime = 1000;
 Curve defaultCurve = Curves.easeOutBack;
 double buttonHeight = 60;
 
-MaterialColor primaryColor = Colors.blue;
-MaterialColor secondaryColor = Colors.pink;
+Color primaryColor = const Color(0xffFFD459);
+Color secondaryColor = const Color(0xffB6083D);
+Color buttonShadowColor = const Color(0xff856712);
 
 List<String> slideAudio = [
   "amb_electricarc_small_b_01.wav",

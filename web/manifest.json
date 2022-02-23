@@ -1,11 +1,11 @@
 {
-    "name": "slide_test",
-    "short_name": "slide_test",
+    "name": "Slide Puzzle",
+    "short_name": "Slide Puzzle",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "A slide puzzle made for flutter puzzle hack challenge",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

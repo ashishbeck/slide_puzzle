@@ -6,6 +6,7 @@ import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:provider/provider.dart';
+import 'package:slide_puzzle/screen/landing.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,10 +53,11 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: "Arcade",
-          primarySwatch: primaryColor,
+          colorSchemeSeed: primaryColor,
+          // primarySwatch: primaryColor,
           brightness: Brightness.dark,
         ),
-        home: LayoutPage(),
+        home: LandingPage(),
       ),
     );
   }

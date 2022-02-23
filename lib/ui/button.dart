@@ -1,31 +1,34 @@
-import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/providers.dart';
-import 'package:provider/provider.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 
 class MyButton extends StatefulWidget {
   final String label;
-  final Widget icon;
+  final TextStyle? labelStyle;
+  final Widget? icon;
   final Function() onPressed;
   final bool expanded;
+  final bool shouldAnimateEntry;
   // final double height;
   const MyButton({
     Key? key,
     required this.label,
+    this.labelStyle,
+    this.icon,
     required this.onPressed,
     required this.expanded,
-    required this.icon,
-    // required this.height,
+    this.shouldAnimateEntry = true,
   }) : super(key: key);
 
   @override
   State<MyButton> createState() => _MyButtonState();
 }
 
-class _MyButtonState extends State<MyButton>
-    with SingleTickerProviderStateMixin {
+class _MyButtonState extends State<MyButton> {
   final GlobalKey _buttonKey = GlobalKey();
   late AnimationController animationController;
   final duration = const Duration(milliseconds: 250);
@@ -44,7 +47,7 @@ class _MyButtonState extends State<MyButton>
       // margin: EdgeInsets.symmetric(
       //     horizontal: 8, vertical: widget.expanded ? 8 : (widget.height / 18)),
       child: ElevatedButton.icon(
-        icon: widget.icon,
+        icon: widget.icon ?? Container(),
         label: AutoSizeText(
           widget.label,
           maxLines: 1,
@@ -86,6 +89,12 @@ class _MyButtonState extends State<MyButton>
   }
 
   Widget customButton() {
+    Widget text() => AutoSizeText(
+          widget.label,
+          style: widget.labelStyle ?? TextStyle(color: Colors.white),
+          maxLines: 1,
+          minFontSize: 8,
+        );
     return Container(
       // height: 32,
       constraints: const BoxConstraints(maxHeight: 40, maxWidth: 96),
@@ -128,9 +137,16 @@ class _MyButtonState extends State<MyButton>
         },
         child: BorderedContainer(
           key: _buttonKey,
+          label: widget.label,
           spacing: 5,
-          color: secondaryColor[700],
-          animationController: animationController,
+          color: buttonShadowColor,
+          // isBottom: false,
+          // isRight: true,
+          // animationController: animationController,
+          shouldAnimateEntry: widget.shouldAnimateEntry,
+          buttonController: (controller) {
+            animationController = controller;
+          },
           child: Container(
             decoration: BoxDecoration(
                 borderRadius: borderRadius,
@@ -145,26 +161,23 @@ class _MyButtonState extends State<MyButton>
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    animatedSwitcher(
-                      child: isHovering
-                          ? Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: widget.icon,
-                            )
-                          : Container(),
-                      offset: const Offset(0, -2),
-                    ),
-                    animatedSwitcher(
-                      child: isHovering
-                          ? Container()
-                          : AutoSizeText(
-                              widget.label,
-                              style: const TextStyle(color: Colors.white),
-                              maxLines: 1,
-                              minFontSize: 8,
-                            ),
-                      offset: const Offset(0, 2),
-                    ),
+                    widget.icon != null
+                        ? animatedSwitcher(
+                            child: isHovering
+                                ? Padding(
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: widget.icon,
+                                  )
+                                : Container(),
+                            offset: const Offset(0, -2),
+                          )
+                        : text(),
+                    widget.icon != null
+                        ? animatedSwitcher(
+                            child: isHovering ? Container() : text(),
+                            offset: const Offset(0, 2),
+                          )
+                        : Container(),
                   ],
                 ),
               ),
@@ -177,7 +190,8 @@ class _MyButtonState extends State<MyButton>
 
   _preview() async {
     final configProvider = context.read<ConfigProvider>();
-    if (!configProvider.previewedButtons) {
+    if (configProvider.previewedButtons[widget.label] == null ||
+        !configProvider.previewedButtons[widget.label]!) {
       await Future.delayed(const Duration(milliseconds: 1000));
       setState(() {
         isHovering = true;
@@ -186,7 +200,7 @@ class _MyButtonState extends State<MyButton>
       setState(() {
         isHovering = false;
       });
-      configProvider.seenButton();
+      configProvider.seenButton(widget.label);
     }
   }
 
@@ -202,12 +216,12 @@ class _MyButtonState extends State<MyButton>
     WidgetsBinding.instance!.addPostFrameCallback((_) => getSizeAndPosition());
     _preview();
 
-    animationController = AnimationController(
-        duration: Duration(milliseconds: 100),
-        vsync: this,
-        value: 0,
-        lowerBound: 0,
-        upperBound: 1);
+    // animationController = AnimationController(
+    //     duration: Duration(milliseconds: 100),
+    //     vsync: this,
+    //     value: 0,
+    //     lowerBound: 0,
+    //     upperBound: 1);
   }
 
   @override

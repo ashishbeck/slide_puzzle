@@ -1,8 +1,10 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/constants.dart';
 
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:slide_puzzle/ui/scores.dart';
@@ -26,6 +28,7 @@ class _ToolBarState extends State<ToolBar> {
   Widget build(BuildContext context) {
     TileProvider tileProvider = context.watch<TileProvider>();
     ConfigProvider configProvider = context.watch<ConfigProvider>();
+    ScoreProvider scoreProvider = context.watch<ScoreProvider>();
     int gridSize = tileProvider.gridSize;
     double size = 100;
     double padding = 4;
@@ -34,36 +37,18 @@ class _ToolBarState extends State<ToolBar> {
 
     List<Widget> children = [
       Scores(isTall: widget.isTall),
-      // Container(
-      //   constraints: const BoxConstraints(maxHeight: 40, maxWidth: 75),
-      //   alignment: Alignment.center,
-      //   child: BorderedContainer(
-      //     spacing: 5,
-      //     child: Container(
-      //       constraints:
-      //           const BoxConstraints(minHeight: 40, minWidth: 75),
-      //       child: TextButton(
-      //         style: TextButton.styleFrom(
-      //             backgroundColor: secondaryColor[700],
-      //             shape: RoundedRectangleBorder()),
-      //         onPressed: () {
-      //           tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
-      //         },
-      //         child: Text(
-      //           "${gridSize}x$gridSize",
-      //           style: TextStyle(color: Colors.white),
-      //         ),
-      //       ),
-      //     ),
-      //   ),
-      // ),
       MyButton(
           label: "${gridSize}x$gridSize",
           onPressed: () {
             tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
           },
-          expanded: false,
-          icon: Text(gridSize == 3 ? "4x4" : "3x3")),
+          expanded: widget.isTall,
+          icon: AutoSizeText(
+            gridSize == 3 ? "4x4" : "3x3",
+            // style: TextStyle(color: secondaryColor),
+            maxLines: 1,
+            minFontSize: 8,
+          )),
       IconButton(
         onPressed: () => configProvider.toggleNumbersVisibility(),
         icon:
@@ -78,6 +63,7 @@ class _ToolBarState extends State<ToolBar> {
       width: width,
       // color: secondaryColor,
       child: BorderedContainer(
+        label: "toolbar",
         child: Container(
           height: height,
           width: width,

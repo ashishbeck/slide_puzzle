@@ -74,8 +74,10 @@ class ConfigProvider extends ChangeNotifier {
   Duration get duration => _duration;
   Curve _curve = defaultCurve;
   Curve get curve => _curve;
-  bool _previewedButtons = false;
-  bool get previewedButtons => _previewedButtons;
+  Map<String, bool> _previewedButtons = {};
+  Map<String, bool> get previewedButtons => _previewedButtons;
+  Map<String, bool> _entryAnimationDone = {};
+  Map<String, bool> get entryAnimationDone => _entryAnimationDone;
   bool _showNumbers = false;
   bool get showNumbers => _showNumbers;
   bool _hasStarted = false;
@@ -98,7 +100,9 @@ class ConfigProvider extends ChangeNotifier {
     _curve = defaultCurve;
   }
 
-  void seenButton() => _previewedButtons = true;
+  void seenButton(String name) => _previewedButtons[name] = true;
+
+  void seenEntryAnimation(String name) => _entryAnimationDone[name] = true;
 
   void toggleNumbersVisibility() {
     _showNumbers = !_showNumbers;

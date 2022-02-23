@@ -9,6 +9,7 @@ import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
+import 'package:slide_puzzle/screen/landing.dart';
 import 'package:slide_puzzle/screen/puzzle.dart';
 import 'package:slide_puzzle/ui/Image_list.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
@@ -256,12 +257,13 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
           return Center(
             child: Container(
               decoration: const BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage("images/stripes_bg.jpg"),
-                    fit: BoxFit.cover),
+                color: Colors.white,
+                // image: DecorationImage(
+                //     image: AssetImage("images/stripes_bg.jpg"),
+                //     fit: BoxFit.cover),
                 // gradient: grad.LinearGradient(colors: [
-                //   primaryColor[400]!.withOpacity(0.5),
-                //   primaryColor[100]!.withOpacity(0.5),
+                //   primaryColor.withOpacity(0.5),
+                //   primaryColor.withOpacity(0.2),
                 // ]),
               ),
               // color: primaryColor.withOpacity(0.2),
@@ -278,6 +280,7 @@ class _LayoutPageState extends State<LayoutPage> with TickerProviderStateMixin {
                     height: puzzleHeight + buttonHeight,
                     width: puzzleWidth,
                     child: BorderedContainer(
+                      label: "puzzle",
                       child: AnimatedContainer(
                         duration: duration,
                         curve: curve,

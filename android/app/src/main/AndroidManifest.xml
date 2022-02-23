@@ -1,7 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.slide_test">
+    package="com.beck.slide_puzzle">
+    <queries>
+        <!-- If your app opens https URLs -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
    <application
-        android:label="slide_test"
+        android:label="Slide Puzzle"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -1,4 +1,4 @@
-package com.example.slide_test
+package com.beck.slide_puzzle
 
 import io.flutter.embedding.android.FlutterActivity
 

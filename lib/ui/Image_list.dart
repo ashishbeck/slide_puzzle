@@ -71,6 +71,7 @@ class _ImageListState extends State<ImageList>
           child: BorderedContainer(
             isBottom: !widget.isTall,
             isRight: widget.isTall,
+            label: "imageList",
             child: Container(
               padding: EdgeInsets.all(padding),
               decoration: BoxDecoration(
@@ -138,6 +139,7 @@ class _ImageListState extends State<ImageList>
             height: buttonSize,
             width: buttonSize,
             child: BorderedContainer(
+              label: "collapseButton",
               spacing: 4,
               isBottom: !widget.isTall,
               isRight: widget.isTall,

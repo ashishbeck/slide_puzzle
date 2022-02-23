@@ -20,3 +20,11 @@ The live build is available to try [here](https://n-puzzle-solver-1.web.app/) �
 - This game runs on Android, iOS and web. It is not really supposed to be multiplatform because not everything that is implemented here has support for all the platforms. `soundpool` for example has a very experimental support for windows and linux. Firebase has issues in the said platforms as well.
 
 - The solving function used here incorporates IDA* algorithm (with pattern database heuristic) written in python (code modified from [Michael Schrandt](https://github.com/mschrandt/NPuzzle)) which is executed in Google Cloud Run and is accessed via http requests. After trying to implement the algorithm in dart and realising that it could result in potential UI freezes in web along with many other technical problems, I decided to outsource the computational task. For a puzzle of grid size 3, it is able to solve the puzzle within seconds. Grid size of 4 takes quite some time and 5 is beyond the scope of the algorithm which is why I had to disable the solve button for it. The solution is definitely not optimal (usually 50+ moves) and I am not even trying to go for it because it will take a lot more time (sometimes over 2 minutes to solve with manhattan distance heuristic). Moreover, the player wouldn't even understand the moves the AI makes so it is not ideal to go for the optimal solutions anyway. It is a pure aesthetic feature that just looks "cool" and is extremely satisfying to watch.
+
+## 🛠️ Building and Compiling 
+This project was created in Flutter 2.8.0 but the final build is produced with the latest version of 2.10.1. Please follow the official [documentation](https://docs.flutter.dev/get-started/install) to set up flutter in your system before proceeding. Clone the repository and open it in terminal/cmd/powershell. Run the following commands to get the app running:
+`flutter pub get`
+`flutter run -d chrome`
+### Important!
+When building for production, please make sure to enable the canvaskit renderer otherwise the custom painter used in the project does not work as intended and produces artifacts in html mode (auto mode defaults to html renderer for mobile devices).
+`flutter build web --web-renderer canvaskit`

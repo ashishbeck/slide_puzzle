@@ -1,3 +1,9 @@
+## 0.4.4
+
+ - Refined game state mechanic
+ - Image list excess content indicator fixed
+ - Basic scoreboard implementation
+
 ## 0.4.3
 
  - Bug fixes

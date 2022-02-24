@@ -35,21 +35,43 @@ class _PuzzleState extends State<Puzzle> {
     RawKeyEvent event,
     TileProvider tileProvider,
     ScoreProvider scoreProvider,
+    ConfigProvider configProvider,
   ) {
-    if (event.runtimeType == RawKeyDownEvent) {
+    if (event.runtimeType == RawKeyDownEvent &&
+        configProvider.gamestate == GameState.started) {
       var tileList = tileProvider.getTileList;
       var whiteTile = tileList.singleWhere((element) => element.isWhite);
       if (event.data.logicalKey == LogicalKeyboardKey.arrowUp) {
-        Service().moveWhite(tileList, Direction.up, scoreProvider);
+        Service().moveWhite(
+          tileList,
+          Direction.up,
+          scoreProvider,
+          configProvider,
+        );
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        Service().moveWhite(tileList, Direction.down, scoreProvider);
+        Service().moveWhite(
+          tileList,
+          Direction.down,
+          scoreProvider,
+          configProvider,
+        );
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-        Service().moveWhite(tileList, Direction.left, scoreProvider);
+        Service().moveWhite(
+          tileList,
+          Direction.left,
+          scoreProvider,
+          configProvider,
+        );
       }
       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-        Service().moveWhite(tileList, Direction.right, scoreProvider);
+        Service().moveWhite(
+          tileList,
+          Direction.right,
+          scoreProvider,
+          configProvider,
+        );
       }
       tileProvider.updateNotifiers();
     }
@@ -87,6 +109,37 @@ class _PuzzleState extends State<Puzzle> {
         ),
       ];
 
+  _checkIfSolved(List<TilesModel> tileList, ScoreProvider scoreProvider,
+      ConfigProvider configProvider) {
+    isSolved = Service().isSolved(tileList);
+    bool aiSolved = configProvider.gamestate == GameState.aiSolving;
+    if (isSolved &&
+        tileList.isNotEmpty &&
+        (configProvider.gamestate == GameState.started || aiSolved)) {
+      print("Solved!!");
+      scoreProvider.stopTimer();
+      configProvider.finish();
+      _launchScoreBoard(aiSolved, scoreProvider);
+    }
+  }
+
+  _launchScoreBoard(bool aiSolved, ScoreProvider scoreProvider) async {
+    await Future.delayed(Duration(milliseconds: 100));
+    showDialog(
+        context: context,
+        barrierColor: Colors.black.withOpacity(0.5),
+        builder: (context) {
+          // return AlertDialog(
+          //   content: Text("asd"),
+          // );
+          return Center(
+            child: Text(aiSolved
+                ? "Solved by AI"
+                : "${scoreProvider.moves} in ${scoreProvider.seconds}"),
+          );
+        });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -105,14 +158,7 @@ class _PuzzleState extends State<Puzzle> {
     ConfigProvider configProvider = context.read<ConfigProvider>();
     List<TilesModel> tileList = tileProvider.getTileList;
     gridSize = sqrt(tileList.length).toInt();
-    isSolved = Service().isSolved(tileList);
-    if (isSolved &&
-        tileList.isNotEmpty &&
-        configProvider.gamestate == GameState.started) {
-      print("Solved!!");
-      scoreProvider.stopTimer();
-      configProvider.finish();
-    }
+    _checkIfSolved(tileList, scoreProvider, configProvider);
     // list.forEach((e) {
     //   bool solved = true;
     //   if (e.currentIndex != e.defaultIndex) {
@@ -145,7 +191,7 @@ class _PuzzleState extends State<Puzzle> {
       autofocus: true,
       focusNode: _focusNode,
       onKey: (RawKeyEvent event) {
-        _handleKeyEvent(event, tileProvider, scoreProvider);
+        _handleKeyEvent(event, tileProvider, scoreProvider, configProvider);
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -265,7 +311,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
             (tweenProvider.tweenTopOffset ?? 0).abs() > tileSize / 2)) {
       if (isSameRow || isSameColumn) {
         Service().changePosition(
-            widget.tileList, thisTile, whiteTile, scoreProvider,
+            widget.tileList, thisTile, whiteTile, scoreProvider, configProvider,
             gridSize: isSameColumn ? widget.gridSize : 1);
         tileProvider.updateNotifiers();
       }
@@ -486,9 +532,11 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
                     : null);
           },
           onPanStart: (_) {
-            configProvider.setDuration(const Duration(milliseconds: 0));
-            AudioService.instance.drag();
-            AudioService.instance.vibrate();
+            if (configProvider.gamestate == GameState.started) {
+              configProvider.setDuration(const Duration(milliseconds: 0));
+              AudioService.instance.drag();
+              AudioService.instance.vibrate();
+            }
           },
           onPanEnd: (details) {
             if (configProvider.gamestate == GameState.started) {
@@ -520,6 +568,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
                           thisTile,
                           whiteTile,
                           scoreProvider,
+                          configProvider,
                           gridSize: isSameColumn ? widget.gridSize : 1,
                         );
                         tileProvider.updateNotifiers();

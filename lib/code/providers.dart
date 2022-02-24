@@ -82,7 +82,7 @@ class ConfigProvider extends ChangeNotifier {
   bool get showNumbers => _showNumbers;
   bool _hasStarted = false;
   bool get hasStarted => _hasStarted;
-  GameState _gameState = GameState.starting;
+  GameState _gameState = GameState.waiting;
   GameState get gamestate => _gameState;
   bool _muted = false;
   bool get muted => _muted;
@@ -121,6 +121,11 @@ class ConfigProvider extends ChangeNotifier {
 
   void wait() {
     _gameState = GameState.waiting;
+    notifyListeners();
+  }
+
+  void aiSolving() {
+    _gameState = GameState.aiSolving;
     notifyListeners();
   }
 
@@ -190,4 +195,4 @@ class ScoreProvider extends ChangeNotifier {
   }
 }
 
-enum GameState { starting, waiting, started, finished }
+enum GameState { starting, waiting, started, finished, aiSolving }

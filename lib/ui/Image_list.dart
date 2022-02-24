@@ -25,62 +25,71 @@ class ImageList extends StatefulWidget {
   _ImageListState createState() => _ImageListState();
 }
 
-class _ImageListState extends State<ImageList>
-    with SingleTickerProviderStateMixin {
+class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
   ScrollController scrollController = ScrollController();
   late Animation<double> animation;
   late AnimationController animationController;
-  bool isScrollControllerAttached = false;
+  late AnimationController gradController;
 
   Widget excessScrollIndicator(double size, {required bool isLeft}) {
-    double max = scrollController.hasClients
-        ? scrollController.position.maxScrollExtent
-        : 100;
-    double offset = scrollController.hasClients ? scrollController.offset : 0;
-    double area = 60;
-    return Align(
-      alignment: widget.isTall
-          ? isLeft
-              ? Alignment.centerLeft
-              : Alignment.centerRight
-          : isLeft
-              ? Alignment.topCenter
-              : Alignment.bottomCenter,
-      child: Container(
-        height: widget.isTall
-            ? size
-            : isLeft
-                ? offset < 0
-                    ? 0
-                    : offset > area
-                        ? area
-                        : offset
-                : offset > max
-                    ? 0
-                    : offset < max - area
-                        ? area
-                        : max - offset,
-        width: widget.isTall
+    // double max = scrollController.hasClients
+    //     ? scrollController.position.maxScrollExtent
+    //     : 100;
+    // double offset = scrollController.hasClients ? scrollController.offset : 0;
+    double max = scrollController.position.maxScrollExtent;
+    double offset = scrollController.offset;
+    double area = 30;
+    return IgnorePointer(
+      child: Align(
+        alignment: widget.isTall
             ? isLeft
-                ? offset < 0
-                    ? 0
-                    : offset > area
-                        ? area
-                        : offset
-                : offset > max
-                    ? 0
-                    : offset < max - area
-                        ? area
-                        : max - offset
-            : size,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              secondaryColor.withOpacity(isLeft ? 1 : 0),
-              secondaryColor.withOpacity(isLeft ? 0 : 1),
-            ],
-            begin: widget.isTall ? Alignment.centerLeft : Alignment.topCenter,
-            end: widget.isTall ? Alignment.centerRight : Alignment.bottomCenter,
+                ? Alignment.centerLeft
+                : Alignment.centerRight
+            : isLeft
+                ? Alignment.topCenter
+                : Alignment.bottomCenter,
+        child: FadeTransition(
+          opacity: gradController,
+          child: Container(
+            height: widget.isTall
+                ? size
+                : isLeft
+                    ? offset < 0
+                        ? 0
+                        : offset > area
+                            ? area
+                            : offset
+                    : offset > max
+                        ? 0
+                        : offset < max - area
+                            ? area
+                            : max - offset,
+            width: widget.isTall
+                ? isLeft
+                    ? offset < 0
+                        ? 0
+                        : offset > area
+                            ? area
+                            : offset
+                    : offset > max
+                        ? 0
+                        : offset < max - area
+                            ? area
+                            : max - offset
+                : size,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  secondaryColor.withOpacity(isLeft ? 1 : 0),
+                  secondaryColor.withOpacity(isLeft ? 0 : 1),
+                ],
+                begin:
+                    widget.isTall ? Alignment.centerLeft : Alignment.topCenter,
+                end: widget.isTall
+                    ? Alignment.centerRight
+                    : Alignment.bottomCenter,
+              ),
+            ),
           ),
         ),
       ),
@@ -88,12 +97,14 @@ class _ImageListState extends State<ImageList>
   }
 
   _scrollListener() {
-    if (scrollController.hasClients && !isScrollControllerAttached) {
-      print("Attached");
-      isScrollControllerAttached = true;
-      scrollController.jumpTo(1);
-    }
     setState(() {});
+  }
+
+  _refreshAfterLoaded() async {
+    await Future.delayed(Duration(
+        milliseconds: defaultSidebarTime + defaultEntryTime * 2 + 1000));
+    setState(() {});
+    gradController.forward();
   }
 
   @override
@@ -105,10 +116,17 @@ class _ImageListState extends State<ImageList>
         value: 0,
         lowerBound: 0,
         upperBound: 0.5);
+    gradController = AnimationController(
+        duration: Duration(milliseconds: 500),
+        vsync: this,
+        value: 0,
+        lowerBound: 0,
+        upperBound: 1);
     animation =
         CurvedAnimation(parent: animationController, curve: Curves.easeInOut);
 
     scrollController.addListener(_scrollListener);
+    _refreshAfterLoaded();
   }
 
   @override
@@ -211,9 +229,9 @@ class _ImageListState extends State<ImageList>
                         scrollController.hasClients
                             ? excessScrollIndicator(size, isLeft: true)
                             : Container(),
-                        // scrollController.hasClients
-                        excessScrollIndicator(size, isLeft: false),
-                        // : Container(),
+                        scrollController.hasClients
+                            ? excessScrollIndicator(size, isLeft: false)
+                            : Container(),
                       ],
                     ),
                   ),

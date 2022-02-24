@@ -144,7 +144,13 @@ class _LandingPageState extends State<LandingPage>
                         ),
                         TextSpan(
                             text: "\nwith design help from ",
-                            style: Theme.of(context).textTheme.labelSmall),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall!
+                                .copyWith(
+                                    decorationStyle: TextDecorationStyle.wavy,
+                                    decorationThickness: 4,
+                                    decoration: TextDecoration.lineThrough)),
                         WidgetSpan(
                           child: MouseRegion(
                             onEnter: (event) =>
@@ -161,6 +167,10 @@ class _LandingPageState extends State<LandingPage>
                                     .textTheme
                                     .labelSmall!
                                     .copyWith(
+                                        decorationStyle:
+                                            TextDecorationStyle.wavy,
+                                        decorationThickness: 4,
+                                        decoration: TextDecoration.lineThrough,
                                         color: isHovering2
                                             ? Colors.white
                                             : primaryColor),

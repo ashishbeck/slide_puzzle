@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
           // primarySwatch: primaryColor,
           brightness: Brightness.dark,
         ),
-        home: LandingPage(),
+        home: false ? LayoutPage() : LandingPage(),
       ),
     );
   }

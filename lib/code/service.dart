@@ -12,8 +12,12 @@ import 'package:slide_puzzle/code/providers.dart';
 class Service {
   bool shouldVibrate = true;
 
-  List<TilesModel> changePosition(List<TilesModel> tileList,
-      TilesModel thisTile, TilesModel whiteTile, ScoreProvider scoreProvider,
+  List<TilesModel> changePosition(
+      List<TilesModel> tileList,
+      TilesModel thisTile,
+      TilesModel whiteTile,
+      ScoreProvider scoreProvider,
+      ConfigProvider configProvider,
       {int gridSize = 1}) {
     int distance =
         ((thisTile.currentIndex - whiteTile.currentIndex) ~/ gridSize);
@@ -37,15 +41,19 @@ class Service {
     }
     AudioService.instance.slide(Duration(milliseconds: defaultTime * 1));
     AudioService.instance.vibrate();
-    if (!scoreProvider.isRunning && scoreProvider.beginState) {
+    if (configProvider.gamestate == GameState.waiting) {
+      // if (!scoreProvider.isRunning && scoreProvider.beginState) {
       scoreProvider.beginTimer();
+      // }
     }
-    scoreProvider.incrementMoves();
+    if (configProvider.gamestate == GameState.started) {
+      scoreProvider.incrementMoves();
+    }
     return tileList;
   }
 
   List<TilesModel>? moveWhite(List<TilesModel> tileList, Direction direction,
-      ScoreProvider scoreProvider) {
+      ScoreProvider scoreProvider, ConfigProvider configProvider) {
     int gridSize = sqrt(tileList.length).toInt();
     TilesModel whiteTile = tileList.singleWhere((element) => element.isWhite);
     int row = whiteTile.coordinates.row;
@@ -65,6 +73,7 @@ class Service {
           replaceableTile,
           whiteTile,
           scoreProvider,
+          configProvider,
         );
       case Direction.down:
         if (top) break;
@@ -76,6 +85,7 @@ class Service {
           replaceableTile,
           whiteTile,
           scoreProvider,
+          configProvider,
           gridSize: gridSize,
         );
       case Direction.right:
@@ -88,6 +98,7 @@ class Service {
           replaceableTile,
           whiteTile,
           scoreProvider,
+          configProvider,
         );
       case Direction.up:
         if (bottom) break;
@@ -95,7 +106,7 @@ class Service {
             element.coordinates.row == row + 1 &&
             element.coordinates.column == column);
         return changePosition(
-            tileList, replaceableTile, whiteTile, scoreProvider,
+            tileList, replaceableTile, whiteTile, scoreProvider, configProvider,
             gridSize: gridSize);
     }
   }

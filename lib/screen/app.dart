@@ -93,6 +93,9 @@ class _LayoutPageState extends State<LayoutPage> {
   void solve() async {
     TileProvider tileProvider = context.read<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    configProvider.aiSolving();
+    scoreProvider.stopTimer();
     List<TilesModel> tileList = tileProvider.getTileList;
     bool isSolved = Service().isSolved(tileList);
     if (isSolved) {
@@ -137,7 +140,12 @@ class _LayoutPageState extends State<LayoutPage> {
           default:
             return;
         }
-        Service().moveWhite(tileList, direction, scoreProvider);
+        Service().moveWhite(
+          tileList,
+          direction,
+          scoreProvider,
+          configProvider,
+        );
         tileProvider.updateNotifiers();
         i++;
         if (i == result.length) timer.cancel();

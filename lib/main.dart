@@ -1,14 +1,23 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:slide_puzzle/firebase_options.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/screen/landing.dart';
+import 'package:rxdart/rxdart.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -35,6 +44,20 @@ class MyApp extends StatelessWidget {
         // Provider<List<TilesModel>>.value(
         //   value: list,
         // ),
+        StreamProvider<User?>.value(
+            initialData: null, value: AuthService().user),
+        StreamProvider<UserData?>.value(
+          initialData: null,
+          catchError: (_, __) {
+            print("error at $__");
+          },
+          value: AuthService().user!.transform(
+                FlatMapStreamTransformer<User?, UserData?>(
+                  (firebaseUser) =>
+                      DatabaseService.instance.currentUser(firebaseUser!.uid),
+                ),
+              ),
+        ),
         ChangeNotifierProvider(create: (context) => TileProvider()),
         ChangeNotifierProvider(create: (context) => TweenProvider()),
         ChangeNotifierProvider(create: (context) => ConfigProvider()),

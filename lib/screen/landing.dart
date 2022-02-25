@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
+import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
+import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -39,6 +43,8 @@ class _LandingPageState extends State<LandingPage>
     }
   }
 
+  _authenticateUser() async {}
+
   @override
   void initState() {
     super.initState();
@@ -49,10 +55,19 @@ class _LandingPageState extends State<LandingPage>
         value: 0,
         lowerBound: 0,
         upperBound: 1);
+
+    User? user = context.read<User?>();
+    if (user == null) AuthService().signInAnonymously();
   }
 
   @override
   Widget build(BuildContext context) {
+    UserData? userData = context.watch<UserData?>();
+    if (userData != null) {
+      print("user found: ${userData.toMap()}");
+    } else {
+      print("no user found");
+    }
     return Scaffold(
       backgroundColor: secondaryColor,
       body: ScaleTransition(

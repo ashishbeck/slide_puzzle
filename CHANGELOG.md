@@ -1,3 +1,8 @@
+## 0.5.0
+
+ - Firebase integrated for community scores
+ - Personal best scores updated in firestore
+
 ## 0.4.4
 
  - Refined game state mechanic

@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/audio.dart';
+import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
@@ -111,6 +113,7 @@ class _PuzzleState extends State<Puzzle> {
 
   _checkIfSolved(List<TilesModel> tileList, ScoreProvider scoreProvider,
       ConfigProvider configProvider) {
+    UserData? userData = context.read<UserData?>();
     isSolved = Service().isSolved(tileList);
     bool aiSolved = configProvider.gamestate == GameState.aiSolving;
     if (isSolved &&
@@ -119,7 +122,43 @@ class _PuzzleState extends State<Puzzle> {
       print("Solved!!");
       scoreProvider.stopTimer();
       configProvider.finish();
+      print(gridSize);
+      if (!aiSolved) {
+        _calculateAndSubmitScore(gridSize, scoreProvider);
+      }
       _launchScoreBoard(aiSolved, scoreProvider);
+    }
+  }
+
+  _calculateAndSubmitScore(
+    int gridSize,
+    ScoreProvider scoreProvider,
+  ) {
+    UserData? userData = context.read<UserData?>();
+    // Map<String, int> score = userData!.moves;
+    String grid = gridSize == 3 ? "three" : "four";
+    Map<String, int> allMoves = userData!.moves;
+    Map<String, int> allTimes = userData.times;
+    int bestMove = allMoves[grid]!;
+    int bestTime = allTimes[grid]!;
+    int currentMove = scoreProvider.moves;
+    int currentTime = scoreProvider.seconds;
+    if (currentMove < bestMove ||
+        currentTime < bestTime ||
+        bestMove == 0 ||
+        bestTime == 0) {
+      allMoves[grid] = bestMove == 0 ? currentMove : min(bestMove, currentMove);
+      allTimes[grid] = bestTime == 0 ? currentTime : min(bestTime, currentTime);
+      print(allTimes);
+      print(allMoves);
+      final newData = userData.copyWith(
+        uid: userData.uid,
+        moves: allMoves,
+        times: allTimes,
+        lastSeen: Timestamp.now(),
+      );
+      // print(newData.toString());
+      DatabaseService.instance.updateUserData(newData);
     }
   }
 

@@ -83,7 +83,7 @@ class _LayoutPageState extends State<LayoutPage> {
     // scoreProvider.resetScores();
     scoreProvider.restart();
     if (shuffle) scoreProvider.beginTimer();
-    var duration = Duration(milliseconds: isChangingGrid ? 0 : 500);
+    var duration = Duration(milliseconds: isChangingGrid ? 0 : defaultTime * 2);
     configProvider.setDuration(duration, curve: Curves.easeInOutBack);
     if (shuffle) {
       configProvider.start();

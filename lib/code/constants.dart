@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-int defaultTime = 200;
+int defaultTime = 500;
 int defaultEntryTime = 1000;
 int defaultSidebarTime = 4000;
 Curve defaultCurve = Curves.easeOutBack;

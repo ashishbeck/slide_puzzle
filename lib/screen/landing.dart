@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/auth.dart';
@@ -20,6 +21,7 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage>
     with TickerProviderStateMixin {
   late AnimationController animationController;
+  final FocusNode _focusNode = FocusNode();
   String appName = "Slide Puzzle";
   String packageName = "";
   String version = "";
@@ -43,7 +45,31 @@ class _LandingPageState extends State<LandingPage>
     }
   }
 
-  _authenticateUser() async {}
+  _onPressed() async {
+    // await Future.delayed(Duration(milliseconds: 200));
+    // if (animationController.isCompleted) {
+    //   animationController.reverse();
+    // } else {
+    setState(() {
+      // disableButton = true;
+    });
+    animationController.forward().then(
+          (value) => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LayoutPage(),
+            ),
+          ),
+        );
+  }
+
+  _handleKeyEvent(RawKeyEvent event) {
+    if (event.runtimeType == RawKeyDownEvent &&
+        event.data.logicalKey == LogicalKeyboardKey.enter &&
+        !animationController.isAnimating) {
+      _onPressed();
+    }
+  }
 
   @override
   void initState() {
@@ -61,6 +87,13 @@ class _LandingPageState extends State<LandingPage>
   }
 
   @override
+  void dispose() {
+    animationController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     UserData? userData = context.watch<UserData?>();
     if (userData != null) {
@@ -68,146 +101,145 @@ class _LandingPageState extends State<LandingPage>
     } else {
       print("no user found");
     }
-    return Scaffold(
-      backgroundColor: secondaryColor,
-      body: ScaleTransition(
-        scale: Tween<double>(begin: 1, end: 350).animate(CurvedAnimation(
-            parent: animationController, curve: Curves.easeInQuart)),
-        child: RotationTransition(
-          turns: Tween<double>(begin: 0, end: 0.25).animate(CurvedAnimation(
-              parent: animationController, curve: Curves.easeIn)),
-          child: LayoutBuilder(builder: (context, constraints) {
-            double maxWidth = constraints.maxWidth;
-            double maxHeight = constraints.maxHeight;
-            return Container(
-              height: maxHeight,
-              width: maxWidth,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    // secondaryColor[400]!,
-                    secondaryColor,
-                    secondaryColor,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        appName,
-                        style: Theme.of(context).textTheme.headline5,
-                      ),
-                      MyButton(
-                        label: "Enter",
-                        // labelStyle: TextStyle(color: secondaryColor),
-                        shouldAnimateEntry: false,
-                        onPressed: () async {
-                          await Future.delayed(Duration(milliseconds: 200));
-                          if (animationController.isCompleted) {
-                            animationController.reverse();
-                          } else {
-                            animationController.forward().then(
-                                  (value) => Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => LayoutPage(),
-                                    ),
-                                  ),
-                                );
-                          }
-                        },
-                        expanded: false,
-                      ),
-                      Text(
-                        appName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headline5!
-                            .copyWith(color: secondaryColor),
-                      ),
+
+    Widget button() => MyButton(
+          label: "Enter",
+          // labelStyle: TextStyle(color: secondaryColor),
+          shouldAnimateEntry: false,
+          onPressed: _onPressed,
+          expanded: false,
+        );
+
+    return RawKeyboardListener(
+      focusNode: _focusNode,
+      autofocus: true,
+      onKey: _handleKeyEvent,
+      child: Scaffold(
+        backgroundColor: secondaryColor,
+        body: ScaleTransition(
+          scale: Tween<double>(begin: 1, end: 350).animate(CurvedAnimation(
+              parent: animationController, curve: Curves.easeInQuart)),
+          child: RotationTransition(
+            turns: Tween<double>(begin: 0, end: 0.25).animate(CurvedAnimation(
+                parent: animationController, curve: Curves.easeIn)),
+            child: LayoutBuilder(builder: (context, constraints) {
+              double maxWidth = constraints.maxWidth;
+              double maxHeight = constraints.maxHeight;
+              return Container(
+                height: maxHeight,
+                width: maxWidth,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      // secondaryColor[400]!,
+                      secondaryColor,
+                      secondaryColor,
                     ],
-                  )),
-                  Align(
-                    alignment: Alignment(0, 0.8),
-                    child: Text.rich(
-                      TextSpan(text: "A project by ", children: [
-                        WidgetSpan(
-                          child: MouseRegion(
-                            onEnter: (event) =>
-                                setState(() => isHovering1 = true),
-                            onExit: (event) =>
-                                setState(() => isHovering1 = false),
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () =>
-                                  _launch('https://linktr.ee/ashishbeck'),
-                              child: Text(
-                                "Ashish Beck",
-                                style: TextStyle(
-                                    color: isHovering1
-                                        ? Colors.white
-                                        : primaryColor),
-                              ),
-                            ),
-                          ),
-                        ),
-                        TextSpan(
-                            text: "\nwith design help from ",
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall!
-                                .copyWith(
-                                    decorationStyle: TextDecorationStyle.wavy,
-                                    decorationThickness: 4,
-                                    decoration: TextDecoration.lineThrough)),
-                        WidgetSpan(
-                          child: MouseRegion(
-                            onEnter: (event) =>
-                                setState(() => isHovering2 = true),
-                            onExit: (event) =>
-                                setState(() => isHovering2 = false),
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () =>
-                                  _launch('https://linktr.ee/sushobhan'),
-                              child: Text(
-                                "Sushobhan Parida",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall!
-                                    .copyWith(
-                                        decorationStyle:
-                                            TextDecorationStyle.wavy,
-                                        decorationThickness: 4,
-                                        decoration: TextDecoration.lineThrough,
-                                        color: isHovering2
-                                            ? Colors.white
-                                            : primaryColor),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]),
-                      textAlign: TextAlign.center,
-                    ),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Text(
-                      "v${version}",
-                      style: Theme.of(context).textTheme.caption,
+                ),
+                child: Stack(
+                  children: [
+                    Center(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          appName,
+                          style: Theme.of(context).textTheme.headline5,
+                        ),
+                        animationController.isAnimating
+                            ? IgnorePointer(
+                                child: button(),
+                              )
+                            : button(),
+                        Text(
+                          appName,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline5!
+                              .copyWith(color: secondaryColor),
+                        ),
+                      ],
+                    )),
+                    Align(
+                      alignment: Alignment(0, 0.8),
+                      child: Text.rich(
+                        TextSpan(text: "A project by ", children: [
+                          WidgetSpan(
+                            child: MouseRegion(
+                              onEnter: (event) =>
+                                  setState(() => isHovering1 = true),
+                              onExit: (event) =>
+                                  setState(() => isHovering1 = false),
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () =>
+                                    _launch('https://linktr.ee/ashishbeck'),
+                                child: Text(
+                                  "Ashish Beck",
+                                  style: TextStyle(
+                                      color: isHovering1
+                                          ? Colors.white
+                                          : primaryColor),
+                                ),
+                              ),
+                            ),
+                          ),
+                          TextSpan(
+                              text: "\nwith design help from ",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall!
+                                  .copyWith(
+                                      decorationStyle: TextDecorationStyle.wavy,
+                                      decorationThickness: 4,
+                                      decoration: TextDecoration.lineThrough)),
+                          WidgetSpan(
+                            child: MouseRegion(
+                              onEnter: (event) =>
+                                  setState(() => isHovering2 = true),
+                              onExit: (event) =>
+                                  setState(() => isHovering2 = false),
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTap: () =>
+                                    _launch('https://linktr.ee/sushobhan'),
+                                child: Text(
+                                  "Sushobhan Parida",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall!
+                                      .copyWith(
+                                          decorationStyle:
+                                              TextDecorationStyle.wavy,
+                                          decorationThickness: 4,
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: isHovering2
+                                              ? Colors.white
+                                              : primaryColor),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ]),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  )
-                ],
-              ),
-            );
-          }),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Text(
+                        "v${version}",
+                        style: Theme.of(context).textTheme.caption,
+                      ),
+                    )
+                  ],
+                ),
+              );
+            }),
+          ),
         ),
       ),
     );

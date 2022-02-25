@@ -80,8 +80,12 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  secondaryColor.withOpacity(isLeft ? 1 : 0),
-                  secondaryColor.withOpacity(isLeft ? 0 : 1),
+                  isLeft
+                      ? Colors.white.withOpacity(isLeft ? 1 : 0)
+                      : Colors.transparent,
+                  isLeft
+                      ? Colors.transparent
+                      : primaryColor.withOpacity(isLeft ? 0 : 1),
                 ],
                 begin:
                     widget.isTall ? Alignment.centerLeft : Alignment.topCenter,

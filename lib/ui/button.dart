@@ -13,6 +13,7 @@ class MyButton extends StatefulWidget {
   final Function() onPressed;
   final bool expanded;
   final bool shouldAnimateEntry;
+  final bool isDisabled;
   // final double height;
   const MyButton({
     Key? key,
@@ -22,6 +23,7 @@ class MyButton extends StatefulWidget {
     required this.onPressed,
     required this.expanded,
     this.shouldAnimateEntry = true,
+    this.isDisabled = false,
   }) : super(key: key);
 
   @override
@@ -122,18 +124,18 @@ class _MyButtonState extends State<MyButton> {
         onTapUp: (_) {
           // print("up");
           animationController.reverse();
-          widget.onPressed();
+          if (!widget.isDisabled) widget.onPressed();
         },
         onLongPressUp: () {
           // print("long up");
           animationController.reverse();
-          if (shouldExecute) widget.onPressed();
+          if (shouldExecute && !widget.isDisabled) widget.onPressed();
         },
         onPanEnd: (_) {
           // print("pan end ${_.velocity.pixelsPerSecond.distance}");
           // setState(() => isPressed = false);
           animationController.reverse();
-          if (shouldExecute) widget.onPressed();
+          if (shouldExecute && !widget.isDisabled) widget.onPressed();
         },
         child: BorderedContainer(
           key: _buttonKey,
@@ -144,20 +146,27 @@ class _MyButtonState extends State<MyButton> {
           // isRight: true,
           // animationController: animationController,
           shouldAnimateEntry: widget.shouldAnimateEntry,
-          buttonController: (controller) {
+          buttonController: (controller) async {
             animationController = controller;
           },
           child: Container(
             decoration: BoxDecoration(
                 borderRadius: borderRadius,
                 // border: Border.all(color: primaryColor),
+                // color: widget.isDisabled ? Colors.grey : primaryColor),
                 color: primaryColor),
             child: ClipRRect(
               borderRadius: borderRadius,
               child: MouseRegion(
-                onEnter: (event) => setState(() => isHovering = true),
-                onExit: (event) => setState(() => isHovering = false),
-                cursor: SystemMouseCursors.click,
+                onEnter: (event) {
+                  if (!widget.isDisabled) setState(() => isHovering = true);
+                },
+                onExit: (event) {
+                  if (!widget.isDisabled) setState(() => isHovering = false);
+                },
+                cursor: widget.isDisabled
+                    ? SystemMouseCursors.basic
+                    : SystemMouseCursors.click,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -231,6 +240,10 @@ class _MyButtonState extends State<MyButton> {
   @override
   Widget build(BuildContext context) {
     if (height != 0) getSizeAndPosition();
+    if (widget.isDisabled) {
+      // animationController.forward();
+      // print("4 ${animationController.value}");
+    }
     if (widget.expanded) {
       return Expanded(
         child: customButton(),

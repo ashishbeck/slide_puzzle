@@ -43,6 +43,8 @@ class _ToolBarState extends State<ToolBar> {
         onPressed: () {
           tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
         },
+        isDisabled:
+            configProvider.gamestate == GameState.aiSolving ? true : false,
         expanded: widget.isTall,
         // icon: AutoSizeText(
         //   gridSize == 3 ? "4x4" : "3x3",

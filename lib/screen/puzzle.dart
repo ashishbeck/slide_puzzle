@@ -32,6 +32,7 @@ class _PuzzleState extends State<Puzzle> {
   bool isSolved = false;
   List<int> images = List.generate(6, (index) => index + 1);
   int currentImage = 1;
+  GameState? gameState;
 
   void _handleKeyEvent(
     RawKeyEvent event,
@@ -87,6 +88,7 @@ class _PuzzleState extends State<Puzzle> {
             animations: ["shuffle"],
           ),
           expanded: expanded,
+          isDisabled: gameState == GameState.aiSolving,
           onPressed: () {
             TileProvider tileProvider = context.read<TileProvider>();
             int gridSize = tileProvider.gridSize;
@@ -115,14 +117,15 @@ class _PuzzleState extends State<Puzzle> {
       ConfigProvider configProvider) {
     UserData? userData = context.read<UserData?>();
     isSolved = Service().isSolved(tileList);
-    bool aiSolved = configProvider.gamestate == GameState.aiSolving;
+    bool aiSolved = gameState == GameState.aiSolving;
     if (isSolved &&
         tileList.isNotEmpty &&
-        (configProvider.gamestate == GameState.started || aiSolved)) {
-      print("Solved!!");
+        (gameState == GameState.started || aiSolved)) {
       scoreProvider.stopTimer();
       configProvider.finish();
-      print(gridSize);
+      setState(() {
+        gameState = GameState.finished;
+      });
       if (!aiSolved) {
         _calculateAndSubmitScore(gridSize, scoreProvider);
       }
@@ -149,8 +152,6 @@ class _PuzzleState extends State<Puzzle> {
         bestTime == 0) {
       allMoves[grid] = bestMove == 0 ? currentMove : min(bestMove, currentMove);
       allTimes[grid] = bestTime == 0 ? currentTime : min(bestTime, currentTime);
-      print(allTimes);
-      print(allMoves);
       final newData = userData.copyWith(
         uid: userData.uid,
         moves: allMoves,
@@ -194,9 +195,10 @@ class _PuzzleState extends State<Puzzle> {
   Widget build(BuildContext context) {
     TileProvider tileProvider = context.watch<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
-    ConfigProvider configProvider = context.read<ConfigProvider>();
+    ConfigProvider configProvider = context.watch<ConfigProvider>();
     List<TilesModel> tileList = tileProvider.getTileList;
     gridSize = sqrt(tileList.length).toInt();
+    gameState = configProvider.gamestate;
     _checkIfSolved(tileList, scoreProvider, configProvider);
     // list.forEach((e) {
     //   bool solved = true;

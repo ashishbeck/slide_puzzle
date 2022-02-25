@@ -41,7 +41,9 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
       return;
     }
     Future.delayed(Duration(milliseconds: defaultEntryTime + widget.index * 50))
-        .then((value) => animationController.forward());
+        .then((value) {
+      if (this.mounted) animationController.forward();
+    });
   }
 
   @override

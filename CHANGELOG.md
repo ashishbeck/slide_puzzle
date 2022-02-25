@@ -1,3 +1,11 @@
+## 0.5.1
+
+ - Animation speed of tiles increased
+ - Color changed for excess image indicator
+ - Enter button in landing page disables after click/tap
+ - Enter button in landing page responds to keyboard enter press
+ - Shuffle and grid change button disabled when AI solving
+
 ## 0.5.0
 
  - Firebase integrated for community scores

@@ -206,6 +206,18 @@ class Service {
     String result = "$minuteLeft:$secondsLeft";
     return result;
   }
+
+  double calculatePercentile(List<ChartData> chartData, int best) {
+    int totalPlayers = 0;
+    int totalAboveMe = 0;
+    for (var item in chartData) {
+      totalPlayers += item.y;
+      if (item.x > best) {
+        totalAboveMe += item.y;
+      }
+    }
+    return (totalAboveMe / totalPlayers) * 100;
+  }
 }
 
 class MyCustomScrollBehavior extends MaterialScrollBehavior {

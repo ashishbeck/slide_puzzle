@@ -10,6 +10,7 @@ import 'package:slide_puzzle/ui/button.dart';
 import 'package:slide_puzzle/ui/delayed_loader.dart';
 import 'package:slide_puzzle/ui/scores.dart';
 import 'package:slide_puzzle/ui/sound_vibration.dart';
+import 'package:slide_puzzle/ui/visible_leaderboard.dart';
 
 class ToolBar extends StatefulWidget {
   final BoxConstraints constraints;
@@ -41,10 +42,12 @@ class _ToolBarState extends State<ToolBar> {
       MyButton(
         label: "${gridSize}x$gridSize",
         onPressed: () {
-          tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
+          if (configProvider.gamestate != GameState.aiSolving) {
+            tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
+          }
         },
-        isDisabled:
-            configProvider.gamestate == GameState.aiSolving ? true : false,
+        // isDisabled:
+        //     configProvider.gamestate == GameState.aiSolving ? true : false,
         expanded: widget.isTall,
         // icon: AutoSizeText(
         //   gridSize == 3 ? "4x4" : "3x3",
@@ -53,10 +56,10 @@ class _ToolBarState extends State<ToolBar> {
         //   minFontSize: 8,
         // ),
       ),
-      IconButton(
-        onPressed: () => configProvider.toggleNumbersVisibility(),
-        icon:
-            Icon(configProvider.showNumbers ? Icons.pin : Icons.visibility_off),
+      VisibleLeaderboardTool(
+        isTall: widget.isTall,
+        configProvider: configProvider,
+        scoreProvider: scoreProvider,
       ),
       SoundsVibrationsTool(
           isTall: widget.isTall, configProvider: configProvider),

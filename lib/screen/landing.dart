@@ -7,6 +7,7 @@ import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/screen/app.dart';
+import 'package:slide_puzzle/ui/Scoreboard.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:slide_puzzle/ui/button.dart';
@@ -161,6 +162,14 @@ class _LandingPageState extends State<LandingPage>
                               .headline5!
                               .copyWith(color: secondaryColor),
                         ),
+                        // ScoreBoard(
+                        //   gridSize: 3,
+                        //   // currentMove: 0,
+                        //   // currentTime: 0,
+                        //   bestMove: 4,
+                        //   bestTime: 3,
+                        //   child: Container(),
+                        // ),
                       ],
                     )),
                     Align(

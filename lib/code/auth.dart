@@ -55,4 +55,44 @@ class DatabaseService {
         .snapshots()
         .map((event) => UserData.fromMap((event.data()!)));
   }
+
+  submitDummyCommunityScores(List<ChartData> chartData) {
+    Map<String, int> data = {};
+    chartData.forEach((e) => data.addAll(e.toFirestore()));
+
+    _firestore
+        .collection("community")
+        .doc("times")
+        .set({"three": data}, SetOptions(merge: true));
+  }
+
+  Future<CommunityScores> fetchCommunityScores() async {
+    var times =
+        (await _firestore.collection("community").doc("times").get()).data();
+    var moves =
+        (await _firestore.collection("community").doc("moves").get()).data();
+    Map<String, List<ChartData>> newMoves = {};
+    Map<String, List<ChartData>> newTimes = {};
+    moves!.forEach((key1, value1) {
+      Map<String, int> values = Map<String, int>.from(value1);
+      List<ChartData> data = [];
+      values.forEach((key2, value2) {
+        data.add(ChartData.fromFirestore({key2: value2}));
+      });
+      newMoves.addAll({key1: data});
+    });
+    times!.forEach((key1, value1) {
+      Map<String, int> values = Map<String, int>.from(value1);
+      List<ChartData> data = [];
+      values.forEach((key2, value2) {
+        data.add(ChartData.fromFirestore({key2: value2}));
+      });
+      newTimes.addAll({key1: data});
+    });
+    CommunityScores scores = CommunityScores(
+      moves: newMoves,
+      times: newTimes,
+    );
+    return scores;
+  }
 }

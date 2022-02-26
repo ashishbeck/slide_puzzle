@@ -1,3 +1,9 @@
+## 0.5.2
+
+ - AI solving speed is faster
+ - Scoreboard is stable now
+ - QOL changes
+
 ## 0.5.1
 
  - Animation speed of tiles increased

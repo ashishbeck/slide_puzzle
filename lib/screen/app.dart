@@ -71,13 +71,14 @@ class _LayoutPageState extends State<LayoutPage> {
       isAlreadySolved = Service().isSolved(list);
       if (!shuffle) break;
     }
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    if (configProvider.gamestate == GameState.aiSolving) return;
     TileProvider tileProvider = context.read<TileProvider>();
     if (tileProvider.getTileList.isNotEmpty && shuffle) {
       AudioService.instance.shuffle();
       AudioService.instance.vibrate();
     }
     tileProvider.createTiles(list);
-    ConfigProvider configProvider = context.read<ConfigProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
     // scoreProvider.stopTimer();
     // scoreProvider.resetScores();
@@ -126,7 +127,7 @@ class _LayoutPageState extends State<LayoutPage> {
     var i = 0;
     // print("result is $result ${result.first.runtimeType} ${result.isNotEmpty}");
     if (result.isNotEmpty && result.first != "") {
-      Timer.periodic(duration * 1, (timer) {
+      Timer.periodic(duration * 0.5, (timer) {
         Direction? direction;
         switch (result[i]) {
           case "Left":
@@ -293,7 +294,7 @@ class _LayoutPageState extends State<LayoutPage> {
                         curve: curve,
                         padding: const EdgeInsets.all(4),
                         color: secondaryColor,
-                        child: const Puzzle(),
+                        child: Puzzle(),
                       ),
                     ),
                   ),

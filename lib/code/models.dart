@@ -104,3 +104,60 @@ class UserData {
     );
   }
 }
+
+class ChartData {
+  ChartData(
+    this.x,
+    this.y,
+  );
+  final int x;
+  final int y;
+
+  Map<String, int> toFirestore() {
+    return {
+      x.toString(): y,
+    };
+  }
+
+  factory ChartData.fromFirestore(Map<String, int> map) {
+    return ChartData(int.parse(map.keys.first), map.values.first);
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'x': x,
+      'y': y,
+    };
+  }
+
+  factory ChartData.fromMap(Map<String, dynamic> map) {
+    return ChartData(
+      map['x']?.toInt() ?? 0,
+      map['y']?.toInt() ?? 0,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory ChartData.fromJson(String source) =>
+      ChartData.fromMap(json.decode(source));
+
+  ChartData copyWith({
+    int? x,
+    int? y,
+  }) {
+    return ChartData(
+      x ?? this.x,
+      y ?? this.y,
+    );
+  }
+}
+
+class CommunityScores {
+  final Map<String, List<ChartData>> moves;
+  final Map<String, List<ChartData>> times;
+  CommunityScores({
+    required this.moves,
+    required this.times,
+  });
+}

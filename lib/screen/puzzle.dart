@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,15 +14,19 @@ import 'package:slide_puzzle/code/service.dart';
 import 'package:rive/rive.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:slide_puzzle/screen/app.dart';
+import 'package:slide_puzzle/ui/Scoreboard.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:slide_puzzle/ui/delayed_loader.dart';
+import 'package:slide_puzzle/ui/dialog.dart';
 
 class Puzzle extends StatefulWidget {
-  const Puzzle({Key? key}) : super(key: key);
+  Puzzle({Key? puzzlekey}) : super(key: puzzleKey);
 
   @override
   _PuzzleState createState() => _PuzzleState();
 }
+
+final puzzleKey = GlobalKey<_PuzzleState>();
 
 class _PuzzleState extends State<Puzzle> {
   final FocusNode _focusNode = FocusNode();
@@ -44,6 +49,9 @@ class _PuzzleState extends State<Puzzle> {
         configProvider.gamestate == GameState.started) {
       var tileList = tileProvider.getTileList;
       var whiteTile = tileList.singleWhere((element) => element.isWhite);
+      if (event.data.logicalKey == LogicalKeyboardKey.keyK) {
+        launchScoreBoard(true, scoreProvider, null, configProvider);
+      }
       if (event.data.logicalKey == LogicalKeyboardKey.arrowUp) {
         Service().moveWhite(
           tileList,
@@ -126,10 +134,11 @@ class _PuzzleState extends State<Puzzle> {
       setState(() {
         gameState = GameState.finished;
       });
-      if (!aiSolved) {
-        _calculateAndSubmitScore(gridSize, scoreProvider);
+      UserData? newData;
+      if (kDebugMode ? true : !aiSolved) {
+        newData = _calculateAndSubmitScore(gridSize, scoreProvider);
       }
-      _launchScoreBoard(aiSolved, scoreProvider);
+      launchScoreBoard(aiSolved, scoreProvider, newData, configProvider);
     }
   }
 
@@ -160,22 +169,41 @@ class _PuzzleState extends State<Puzzle> {
       );
       // print(newData.toString());
       DatabaseService.instance.updateUserData(newData);
+      return newData;
     }
+    return userData;
   }
 
-  _launchScoreBoard(bool aiSolved, ScoreProvider scoreProvider) async {
+  launchScoreBoard(bool aiSolved, ScoreProvider scoreProvider,
+      UserData? newData, ConfigProvider configProvider,
+      {bool checking = false}) async {
     await Future.delayed(Duration(milliseconds: 100));
+    String grid = gridSize == 3 ? "three" : "four";
     showDialog(
         context: context,
-        barrierColor: Colors.black.withOpacity(0.5),
+        barrierColor: Colors.black.withOpacity(0.8),
         builder: (context) {
           // return AlertDialog(
           //   content: Text("asd"),
           // );
-          return Center(
-            child: Text(aiSolved
-                ? "Solved by AI"
-                : "${scoreProvider.moves} in ${scoreProvider.seconds}"),
+          return MyDialog(
+            child: ScoreBoard(
+              gridSize: gridSize,
+              currentMove: (scoreProvider.moves == 0 ||
+                      configProvider.gamestate == GameState.started)
+                  ? null
+                  : scoreProvider.moves,
+              currentTime: (scoreProvider.moves == 0 ||
+                      configProvider.gamestate == GameState.started)
+                  ? null
+                  : scoreProvider.seconds,
+              userData: newData!,
+              // bestTime: 12,
+              checking: checking,
+              child: Text(aiSolved
+                  ? "Solved by AI"
+                  : "${scoreProvider.moves} in ${scoreProvider.seconds}"),
+            ),
           );
         });
   }

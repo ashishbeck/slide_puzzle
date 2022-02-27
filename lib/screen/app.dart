@@ -11,6 +11,7 @@ import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/screen/landing.dart';
 import 'package:slide_puzzle/screen/puzzle.dart';
+import 'package:slide_puzzle/ui/3d_transform.dart';
 import 'package:slide_puzzle/ui/Image_list.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/button.dart';
@@ -42,7 +43,9 @@ class _LayoutPageState extends State<LayoutPage> {
       defaultTargetPlatform == TargetPlatform.android);
 
   void createTiles(
-      {int gridSize = 4, bool isChangingGrid = false, bool shuffle = true}) {
+      {int? gridSize, bool isChangingGrid = false, bool shuffle = true}) {
+    TileProvider tileProvider = context.read<TileProvider>();
+    gridSize ??= tileProvider.gridSize;
     bool isSolvable = false;
     bool isAlreadySolved = false;
     int totalTiles = pow(gridSize, 2).toInt();
@@ -53,7 +56,7 @@ class _LayoutPageState extends State<LayoutPage> {
       if (shuffle) random.shuffle();
       list = numbers.map((e) {
         Coordinates coordinates = Coordinates(
-            row: (random[e] / gridSize).floor(), column: random[e] % gridSize);
+            row: (random[e] / gridSize!).floor(), column: random[e] % gridSize);
         return TilesModel(
             defaultIndex: e,
             currentIndex: random[e],
@@ -73,7 +76,6 @@ class _LayoutPageState extends State<LayoutPage> {
     }
     ConfigProvider configProvider = context.read<ConfigProvider>();
     if (configProvider.gamestate == GameState.aiSolving) return;
-    TileProvider tileProvider = context.read<TileProvider>();
     if (tileProvider.getTileList.isNotEmpty && shuffle) {
       AudioService.instance.shuffle();
       AudioService.instance.vibrate();
@@ -287,14 +289,17 @@ class _LayoutPageState extends State<LayoutPage> {
                   child: Container(
                     height: puzzleHeight + buttonHeight,
                     width: puzzleWidth,
-                    child: BorderedContainer(
-                      label: "puzzle",
-                      child: AnimatedContainer(
-                        duration: duration,
-                        curve: curve,
-                        padding: const EdgeInsets.all(4),
-                        color: secondaryColor,
-                        child: Puzzle(),
+                    color: Colors.white,
+                    child: MyTransform(
+                      child: BorderedContainer(
+                        label: "puzzle",
+                        child: AnimatedContainer(
+                          duration: duration,
+                          curve: curve,
+                          padding: const EdgeInsets.all(4),
+                          color: secondaryColor,
+                          child: Puzzle(),
+                        ),
                       ),
                     ),
                   ),

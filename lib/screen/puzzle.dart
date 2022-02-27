@@ -28,7 +28,8 @@ class Puzzle extends StatefulWidget {
 
 final puzzleKey = GlobalKey<_PuzzleState>();
 
-class _PuzzleState extends State<Puzzle> {
+class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
+  late AnimationController controller;
   final FocusNode _focusNode = FocusNode();
   int gridSize = 0;
   // late List<TilesModel> tileList;
@@ -38,6 +39,7 @@ class _PuzzleState extends State<Puzzle> {
   List<int> images = List.generate(6, (index) => index + 1);
   int currentImage = 1;
   GameState? gameState;
+  String currentVideo = "";
 
   void _handleKeyEvent(
     RawKeyEvent event,
@@ -49,8 +51,8 @@ class _PuzzleState extends State<Puzzle> {
         configProvider.gamestate == GameState.started) {
       var tileList = tileProvider.getTileList;
       var whiteTile = tileList.singleWhere((element) => element.isWhite);
-      if (event.data.logicalKey == LogicalKeyboardKey.keyK) {
-        launchScoreBoard(true, scoreProvider, null, configProvider);
+      if (event.data.logicalKey == LogicalKeyboardKey.keyK && kDebugMode) {
+        launchScoreBoard(scoreProvider, null, configProvider);
       }
       if (event.data.logicalKey == LogicalKeyboardKey.arrowUp) {
         Service().moveWhite(
@@ -137,8 +139,8 @@ class _PuzzleState extends State<Puzzle> {
       UserData? newData;
       if (kDebugMode ? true : !aiSolved) {
         newData = _calculateAndSubmitScore(gridSize, scoreProvider);
+        launchScoreBoard(scoreProvider, newData, configProvider);
       }
-      launchScoreBoard(aiSolved, scoreProvider, newData, configProvider);
     }
   }
 
@@ -174,8 +176,8 @@ class _PuzzleState extends State<Puzzle> {
     return userData;
   }
 
-  launchScoreBoard(bool aiSolved, ScoreProvider scoreProvider,
-      UserData? newData, ConfigProvider configProvider,
+  launchScoreBoard(ScoreProvider scoreProvider, UserData? newData,
+      ConfigProvider configProvider,
       {bool checking = false}) async {
     await Future.delayed(Duration(milliseconds: 100));
     String grid = gridSize == 3 ? "three" : "four";
@@ -200,9 +202,7 @@ class _PuzzleState extends State<Puzzle> {
               userData: newData!,
               // bestTime: 12,
               checking: checking,
-              child: Text(aiSolved
-                  ? "Solved by AI"
-                  : "${scoreProvider.moves} in ${scoreProvider.seconds}"),
+              child: const Text("Solved by AI"),
             ),
           );
         });
@@ -217,10 +217,13 @@ class _PuzzleState extends State<Puzzle> {
     // currentTiles = list.map((e) => e.currentIndex).toList();
     // mainTiles = List.generate(pow(gridSize, 2).toInt(), (index) => index);
     // currentTiles = List.from(mainTiles);
+    controller = AnimationController(vsync: this);
+    controller.repeat(period: Duration(milliseconds: defaultTime));
   }
 
   @override
   Widget build(BuildContext context) {
+    print("building puzzle");
     TileProvider tileProvider = context.watch<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
     ConfigProvider configProvider = context.watch<ConfigProvider>();
@@ -236,8 +239,22 @@ class _PuzzleState extends State<Puzzle> {
     // });
     // list.reversed;
     _focusNode.requestFocus();
-    AssetImage assetImage =
-        AssetImage("assets/images/pexels_${tileProvider.currentImage}.jpg");
+    AssetImage assetImage = //AssetImage("assets/images/coffee.gif");
+        AssetImage(tileProvider.images[tileProvider.currentImage]);
+
+    // LottieBuilder image = Lottie.asset(
+    //   tileProvider.images[tileProvider.currentImage],
+    //   repeat: true,
+    //   frameRate: FrameRate(20),
+    //   controller: controller,
+    //   onLoaded: (comp) {
+    //     controller.repeat(period: comp.duration);
+    //   },
+    //   fit: BoxFit.cover,
+    //   alignment: Alignment.center,
+    //   height: double.minPositive, //double.minPositive,
+    //   width: double.minPositive, //double.minPositive,
+    // );
     Image image = Image(
       image: assetImage,
       // "images/simple_dash_large.png",
@@ -246,12 +263,12 @@ class _PuzzleState extends State<Puzzle> {
       height: double.minPositive, //double.minPositive,
       width: double.minPositive, //double.minPositive,
     );
-    // Widget rive = Container(
+    // Widget image = Container(
     //     height: double.minPositive, //double.minPositive,
     //     width: double.minPositive, //double.minPositive,
     //     child: const RiveAnimation.asset(
-    //       'assets/rive/icons.riv',
-    //       animations: ["shuffle"],
+    //       'assets/rive/walk.riv',
+    //       animations: ["walk"],
     //     ));
     // AssetImage assetImage =
     //     const AssetImage("images/simple_dash_large_opaque.png");
@@ -316,6 +333,7 @@ class _PuzzleState extends State<Puzzle> {
   @override
   void dispose() {
     _focusNode.dispose();
+    controller.dispose();
     super.dispose();
   }
 }
@@ -356,6 +374,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
   // double? tweenTopOffset;
   double? mouseOffset;
   bool isAnimating = true;
+  bool isHovering = false;
 
   _onPanEnd(
     DragEndDetails details,
@@ -466,9 +485,10 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    TileProvider tileProvider = context.watch<TileProvider>();
-    TweenProvider tweenProvider = context.watch<TweenProvider>();
-    ConfigProvider configProvider = context.watch<ConfigProvider>();
+    print("building tile");
+    TileProvider tileProvider = context.read<TileProvider>();
+    TweenProvider tweenProvider = context.read<TweenProvider>();
+    ConfigProvider configProvider = context.read<ConfigProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
     double maxHeight = widget.constraints.maxHeight;
     TilesModel thisTile = widget.tileList.firstWhere(
@@ -545,8 +565,21 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
             alignment: Alignment.center,
             children: [
               Container(
+                // duration: Duration(milliseconds: defaultTime),
+                // alignment: Alignment.center,
                 height: height,
                 width: height,
+                // decoration: isHovering
+                //     ? const BoxDecoration(
+                //         borderRadius: BorderRadius.all(
+                //           Radius.circular(20),
+                //         ),
+                //       )
+                //     : const BoxDecoration(
+                //         borderRadius: BorderRadius.all(
+                //           Radius.circular(0),
+                //         ),
+                //       ),
                 child: ClipRect(
                   child: OverflowBox(
                     maxWidth: double.infinity,

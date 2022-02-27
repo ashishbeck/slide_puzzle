@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/constants.dart';
 
 import 'package:slide_puzzle/code/providers.dart';
@@ -30,6 +31,8 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
   late Animation<double> animation;
   late AnimationController animationController;
   late AnimationController gradController;
+  late AnimationController arrowController;
+  bool arrowEntered = false;
 
   Widget excessScrollIndicator(double size, {required bool isLeft}) {
     // double max = scrollController.hasClients
@@ -81,7 +84,7 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
               gradient: LinearGradient(
                 colors: [
                   isLeft
-                      ? Colors.white.withOpacity(isLeft ? 1 : 0)
+                      ? primaryColor.withOpacity(isLeft ? 1 : 0)
                       : Colors.transparent,
                   isLeft
                       ? Colors.transparent
@@ -109,6 +112,7 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
         milliseconds: defaultSidebarTime + defaultEntryTime * 2 + 1000));
     setState(() {});
     gradController.forward();
+    arrowController.forward().then((value) => arrowEntered = true);
   }
 
   @override
@@ -126,6 +130,12 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
         value: 0,
         lowerBound: 0,
         upperBound: 1);
+    arrowController = AnimationController(
+        duration: Duration(milliseconds: 1000),
+        vsync: this,
+        value: 0,
+        lowerBound: 0,
+        upperBound: 1);
     animation =
         CurvedAnimation(parent: animationController, curve: Curves.easeInOut);
 
@@ -136,6 +146,8 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
   @override
   void dispose() {
     animationController.dispose();
+    gradController.dispose();
+    arrowController.dispose();
     scrollController.removeListener(_scrollListener);
     super.dispose();
   }
@@ -214,18 +226,13 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
                               configProvider: configProvider,
                               label: "image$index",
                               preload: true,
-                              child: MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      tileProvider.changeImage(index + 1),
-                                  child: PuzzleImageThumbnail(
-                                      isTall: widget.isTall,
-                                      size: size,
-                                      padding: padding,
-                                      index: index,
-                                      configProvider: configProvider),
-                                ),
+                              child: PuzzleImageThumbnail(
+                                isTall: widget.isTall,
+                                size: size,
+                                padding: padding,
+                                index: index,
+                                configProvider: configProvider,
+                                tileProvider: tileProvider,
                               ),
                             );
                           },
@@ -244,38 +251,57 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
             ),
           ),
           Positioned(
-            left: widget.isTall ? null : -0,
+            left: widget.isTall ? null : 1,
             right: null,
-            top: widget.isTall ? -0 : null,
+            top: widget.isTall ? 1 : null,
             bottom: null,
             child: Container(
               height: buttonSize,
               width: buttonSize,
-              child: BorderedContainer(
-                label: "collapseButton",
-                spacing: 4,
-                isBottom: !widget.isTall,
-                isRight: widget.isTall,
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () => widget.toggleImageList(!widget.isVisible),
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      // height: buttonSize,
-                      // width: buttonSize,
-                      decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(0),
+              child: Opacity(
+                opacity: (arrowController.isAnimating || arrowEntered) ? 1 : 0,
+                child: ClipPath(
+                  clipper: ArrowClipperShape(
+                      isBottom: !widget.isTall,
+                      isRight: widget.isTall,
+                      spacing: 4),
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                            begin: widget.isTall ? Offset(0, 1) : Offset(1, 0),
+                            end: Offset(0, 0))
+                        .animate(arrowController),
+                    child: BorderedContainer(
+                      label: "collapseButton",
+                      spacing: 4,
+                      shouldAnimateEntry: false,
+                      isBottom: !widget.isTall,
+                      isRight: widget.isTall,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            widget.toggleImageList(!widget.isVisible);
+                            AudioService.instance.vibrate();
+                          },
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            // height: buttonSize,
+                            // width: buttonSize,
+                            decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(0),
+                                ),
+                                color: secondaryColor),
+                            child: RotationTransition(
+                              turns: animation,
+                              child: Icon(
+                                widget.isTall
+                                    ? Icons.keyboard_arrow_down
+                                    : Icons.keyboard_arrow_right,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                          color: secondaryColor),
-                      child: RotationTransition(
-                        turns: animation,
-                        child: Icon(
-                          widget.isTall
-                              ? Icons.keyboard_arrow_down
-                              : Icons.keyboard_arrow_right,
-                          color: Colors.white,
                         ),
                       ),
                     ),

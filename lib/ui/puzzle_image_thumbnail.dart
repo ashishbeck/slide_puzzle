@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/providers.dart';
@@ -9,6 +11,7 @@ class PuzzleImageThumbnail extends StatefulWidget {
   final double padding;
   final int index;
   final ConfigProvider configProvider;
+  final TileProvider tileProvider;
   const PuzzleImageThumbnail({
     Key? key,
     required this.isTall,
@@ -16,6 +19,7 @@ class PuzzleImageThumbnail extends StatefulWidget {
     required this.padding,
     required this.index,
     required this.configProvider,
+    required this.tileProvider,
   }) : super(key: key);
 
   @override
@@ -25,6 +29,8 @@ class PuzzleImageThumbnail extends StatefulWidget {
 class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
     with TickerProviderStateMixin {
   late AnimationController animationController;
+  bool isHovering = false;
+
   bool _ifAnimated() {
     String name = "imageIndEntry${widget.index}";
     if (widget.configProvider.entryAnimationDone[name] != null &&
@@ -65,20 +71,45 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
     return ScaleTransition(
       scale: CurvedAnimation(
           parent: animationController, curve: Curves.easeOutBack),
-      child: Container(
-        width: widget.isTall ? widget.size - widget.padding * 2 : widget.size,
-        height: widget.isTall ? widget.size : widget.size - widget.padding * 2,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage("assets/images/pexels_${widget.index + 1}.jpg"),
-              fit: BoxFit.cover),
-          borderRadius: const BorderRadius.all(
-            Radius.circular(10),
+      child: MouseRegion(
+        onEnter: (event) => setState(() => isHovering = true),
+        onExit: (event) => setState(() => isHovering = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {
+            widget.tileProvider.changeImage(widget.index);
+            AudioService.instance.vibrate();
+          },
+          child: Container(
+            width:
+                widget.isTall ? widget.size - widget.padding * 2 : widget.size,
+            height:
+                widget.isTall ? widget.size : widget.size - widget.padding * 2,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isHovering ? Colors.white : primaryColor,
+                width: isHovering ? 3 : 1,
+              ),
+              // image: DecorationImage(
+              //     image: AssetImage(widget.tileProvider.images[widget.index]),
+              //     fit: BoxFit.cover),
+              // borderRadius: const BorderRadius.all(
+              //   Radius.circular(10),
+              // ),
+            ),
+            child: Image.asset(
+              widget.tileProvider.images[widget.index],
+              fit: BoxFit.cover,
+              cacheHeight: 75,
+              cacheWidth: 75,
+            ),
+            // child: Text(widget.tileProvider.images[widget.index]),
+            // child: Lottie.asset(
+            //   widget.tileProvider.images[widget.index],
+            //   animate: false,
+            // ),
           ),
         ),
-        // child: Image(
-        //   image: AssetImage("images/pexels_${index + 1}.jpg"),
-        // ),
       ),
     );
   }

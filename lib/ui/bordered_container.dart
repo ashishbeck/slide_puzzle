@@ -304,3 +304,73 @@ class CustomClipperShape extends CustomClipper<Path> {
     return true;
   }
 }
+
+class ArrowClipperShape extends CustomClipper<Path> {
+  final double spacing;
+  final bool isBottom;
+  final bool isRight;
+  ArrowClipperShape({
+    required this.spacing,
+    required this.isBottom,
+    required this.isRight,
+  });
+
+  @override
+  Path getClip(Size size) {
+    double height = size.height;
+    double width = size.width;
+
+    var bottomRight = Path()
+      ..moveTo(spacing, spacing)
+      ..lineTo(width + spacing, spacing)
+      ..lineTo(width + spacing, height + spacing)
+      ..lineTo(0 + spacing, height + spacing)
+      ..lineTo(0 + spacing, 0 + spacing)
+      ..close();
+
+    var bottomLeft = Path()
+      ..moveTo(-spacing, -spacing)
+      ..lineTo(width, -spacing)
+      ..lineTo(width, height + spacing)
+      ..lineTo(0 - spacing, height + spacing)
+      ..lineTo(0 - spacing, 0 - spacing)
+      ..close();
+    // var bottomLeft = Path()
+    //   ..moveTo(-spacing, spacing)
+    //   ..lineTo(width - spacing, spacing)
+    //   ..lineTo(width - spacing, height + spacing)
+    //   ..lineTo(0 - spacing, height + spacing)
+    //   ..lineTo(0 - spacing, 0 + spacing)
+    //   ..close();
+    // var topRight = Path()
+    //   ..moveTo(width - spacing, -spacing)
+    //   ..lineTo(width + spacing, -spacing)
+    //   ..lineTo(width + spacing, height + spacing)
+    //   ..lineTo(0 + spacing, height + spacing)
+    //   ..lineTo(0 + spacing, 0 - spacing)
+    //   ..close();
+    var topRight = Path()
+      ..moveTo(0, 0)
+      ..lineTo(spacing, -spacing)
+      ..lineTo(width + spacing, -spacing)
+      ..lineTo(width + spacing, height - spacing)
+      ..lineTo(width, height)
+      ..lineTo(0, height)
+      ..lineTo(0, 0)
+      ..close();
+
+    if (isBottom && isRight) {
+      return bottomRight;
+    } else if (isBottom && !isRight) {
+      return bottomLeft;
+    } else if (!isBottom && isRight) {
+      return topRight;
+    }
+    return bottomRight;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
+    return true;
+  }
+}

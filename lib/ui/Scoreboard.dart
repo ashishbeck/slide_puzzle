@@ -1,7 +1,9 @@
 import 'dart:ui';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:slide_puzzle/code/audio.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 import 'package:slide_puzzle/code/auth.dart';
@@ -313,9 +315,12 @@ class _ScoreBoardState extends State<ScoreBoard>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      AutoSizeText(
                         widget.checking ? "STATISTICS" : "Congratulations!",
                         style: TextStyle(fontFamily: "Arcade"),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        minFontSize: 8,
                       ),
                       // SizedBox(
                       //   height: maxHeight * 0.05,
@@ -353,7 +358,10 @@ class _ScoreBoardState extends State<ScoreBoard>
                     right: 0,
                     child: IconButton(
                       icon: Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        AudioService.instance.vibrate();
+                      },
                     )),
                 Positioned(
                   top: 0,

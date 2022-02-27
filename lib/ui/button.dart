@@ -1,9 +1,11 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 
 class MyButton extends StatefulWidget {
@@ -124,18 +126,27 @@ class _MyButtonState extends State<MyButton> {
         onTapUp: (_) {
           // print("up");
           animationController.reverse();
-          if (!widget.isDisabled) widget.onPressed();
+          if (!widget.isDisabled) {
+            widget.onPressed();
+            AudioService.instance.vibrate();
+          }
         },
         onLongPressUp: () {
           // print("long up");
           animationController.reverse();
-          if (shouldExecute && !widget.isDisabled) widget.onPressed();
+          if (shouldExecute && !widget.isDisabled) {
+            widget.onPressed();
+            AudioService.instance.vibrate();
+          }
         },
         onPanEnd: (_) {
           // print("pan end ${_.velocity.pixelsPerSecond.distance}");
           // setState(() => isPressed = false);
           animationController.reverse();
-          if (shouldExecute && !widget.isDisabled) widget.onPressed();
+          if (shouldExecute && !widget.isDisabled) {
+            widget.onPressed();
+            AudioService.instance.vibrate();
+          }
         },
         child: BorderedContainer(
           key: _buttonKey,

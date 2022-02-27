@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/providers.dart';
 
@@ -17,7 +18,10 @@ class SoundsVibrationsTool extends StatelessWidget {
       Expanded(
         child: IconButton(
           icon: Icon(configProvider.muted ? Icons.volume_off : Icons.volume_up),
-          onPressed: configProvider.toggleSound,
+          onPressed: () {
+            configProvider.toggleSound();
+            AudioService.instance.vibrate();
+          },
         ),
       ),
       // isTall ? Divider() : VerticalDivider(),
@@ -26,7 +30,10 @@ class SoundsVibrationsTool extends StatelessWidget {
           icon: Icon(configProvider.vibrationsOff
               ? Icons.disabled_by_default
               : Icons.vibration),
-          onPressed: configProvider.toggleVibration,
+          onPressed: () {
+            configProvider.toggleVibration();
+            AudioService.instance.vibrate();
+          },
         ),
       ),
     ];

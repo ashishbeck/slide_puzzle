@@ -1,3 +1,10 @@
+## 0.5.3
+
+ - All buttons/touch interactions will trigger haptics
+ - Image list arrows animates from inside
+ - Bug Fixes
+ - Panic updates (27th Feb XD)
+
 ## 0.5.2
 
  - AI solving speed is faster

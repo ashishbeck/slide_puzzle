@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:slide_puzzle/code/audio.dart';
@@ -12,15 +13,26 @@ class TileProvider extends ChangeNotifier {
   int get gridSize => _gridSize;
   List<TilesModel> _tileList = [];
   List<TilesModel> get getTileList => _tileList;
-  List<int> _images = List.generate(6, (index) => index + 1);
-  List<int> get images => _images;
-  int _currentImage = 1;
+  List<String> _images = []; //List.generate(6, (index) => index + 1);
+  List<String> get images => _images;
+  int _currentImage = 0;
   int get currentImage => _currentImage;
 
   void createTiles(List<TilesModel> newTiles) {
     _tileList.clear();
     _tileList.addAll(newTiles);
     notifyListeners();
+  }
+
+  void updateImages(BuildContext context) async {
+    final manifestJson =
+        await DefaultAssetBundle.of(context).loadString('AssetManifest.json');
+    final list = json
+        .decode(manifestJson)
+        .keys
+        .where((String key) => key.startsWith('assets/images'))
+        .toList();
+    _images = list;
   }
 
   // void swapTiles(int currentIndex, int newIndex) {

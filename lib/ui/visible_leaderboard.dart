@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
@@ -22,7 +23,10 @@ class VisibleLeaderboardTool extends StatelessWidget {
     List<Widget> children = [
       Expanded(
         child: IconButton(
-          onPressed: () => configProvider.toggleNumbersVisibility(),
+          onPressed: () {
+            configProvider.toggleNumbersVisibility();
+            AudioService.instance.vibrate();
+          },
           icon: Icon(
               configProvider.showNumbers ? Icons.pin : Icons.visibility_off),
         ),
@@ -30,9 +34,12 @@ class VisibleLeaderboardTool extends StatelessWidget {
       // isTall ? Divider() : VerticalDivider(),
       Expanded(
         child: IconButton(
-          onPressed: () => puzzleKey.currentState!.launchScoreBoard(
-              false, scoreProvider, userData, configProvider,
-              checking: true),
+          onPressed: () {
+            puzzleKey.currentState!.launchScoreBoard(
+                scoreProvider, userData, configProvider,
+                checking: true);
+            AudioService.instance.vibrate();
+          },
           icon: Icon(Icons.leaderboard),
         ),
       ),

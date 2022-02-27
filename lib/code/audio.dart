@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rive/rive.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:soundpool/soundpool.dart';
 
@@ -79,5 +81,15 @@ class AudioService {
 
   vibrate() async {
     if (shouldVibrate) HapticFeedback.lightImpact();
+  }
+
+  Widget rive() {
+    return Container(
+        height: double.minPositive, //double.minPositive,
+        width: double.minPositive, //double.minPositive,
+        child: const RiveAnimation.asset(
+          'assets/rive/coffee.riv',
+          animations: ["temp"],
+        ));
   }
 }

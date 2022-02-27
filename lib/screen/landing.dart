@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
+import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/screen/app.dart';
+import 'package:slide_puzzle/ui/3d_transform.dart';
 import 'package:slide_puzzle/ui/Scoreboard.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -47,7 +49,7 @@ class _LandingPageState extends State<LandingPage>
   }
 
   _onPressed() async {
-    // await Future.delayed(Duration(milliseconds: 200));
+    await Future.delayed(Duration(milliseconds: 200));
     // if (animationController.isCompleted) {
     //   animationController.reverse();
     // } else {
@@ -85,6 +87,10 @@ class _LandingPageState extends State<LandingPage>
 
     User? user = context.read<User?>();
     if (user == null) AuthService().signInAnonymously();
+    TileProvider tileProvider = context.read<TileProvider>();
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      tileProvider.updateImages(context);
+    });
   }
 
   @override

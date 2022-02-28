@@ -100,6 +100,8 @@ class ConfigProvider extends ChangeNotifier {
   bool get muted => _muted;
   bool _vibrationsOff = false;
   bool get vibrationsOff => _vibrationsOff;
+  bool _solvedByAI = false;
+  bool get solvedByAI => _solvedByAI;
 
   void setDuration(Duration duration, {Curve? curve}) {
     _duration = duration;
@@ -123,16 +125,19 @@ class ConfigProvider extends ChangeNotifier {
 
   void start() {
     _gameState = GameState.started;
+    _solvedByAI = false;
     notifyListeners();
   }
 
-  void finish() {
+  void finish({bool solvedByAI = false}) {
     _gameState = GameState.finished;
+    _solvedByAI = solvedByAI;
     // notifyListeners();
   }
 
   void wait() {
     _gameState = GameState.waiting;
+    _solvedByAI = false;
     notifyListeners();
   }
 
@@ -207,4 +212,4 @@ class ScoreProvider extends ChangeNotifier {
   }
 }
 
-enum GameState { starting, waiting, started, finished, aiSolving }
+enum GameState { waiting, started, finished, aiSolving }

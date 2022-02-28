@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/audio.dart';
@@ -40,6 +41,7 @@ class _ScoreBoardState extends State<ScoreBoard>
   late Future<CommunityScores> future;
   int gridSize = 0;
   Map<String, int> addExtraData = {"three": 0, "four": 0};
+  Map<String, List<ChartData>> originalChartData = {"three": [], "four": []};
 
   @override
   void initState() {
@@ -95,6 +97,9 @@ class _ScoreBoardState extends State<ScoreBoard>
       required int best,
       required bool isTime,
     }) {
+      // if (originalChartData[grid]!.isEmpty) {
+      //   originalChartData[grid] = List.from(chartData);
+      // }
       double timesPercentileData =
           (Service().calculatePercentile(chartData, current ?? (best)));
       double movesPercentileData =
@@ -334,7 +339,9 @@ class _ScoreBoardState extends State<ScoreBoard>
                                 timeChartData,
                                 isTime: true,
                                 current: widget.currentTime,
-                                best: widget.userData.times[grid]!,
+                                best: kDebugMode
+                                    ? 7
+                                    : widget.userData.moves[grid]!,
                               )
                             : Center(child: CircularProgressIndicator()),
                       ),
@@ -346,7 +353,9 @@ class _ScoreBoardState extends State<ScoreBoard>
                                 moveChartData,
                                 isTime: false,
                                 current: widget.currentMove,
-                                best: widget.userData.moves[grid]!,
+                                best: kDebugMode
+                                    ? 24
+                                    : widget.userData.moves[grid]!,
                               )
                             : Center(child: CircularProgressIndicator()),
                       ),

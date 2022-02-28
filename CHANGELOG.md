@@ -1,3 +1,8 @@
+## 0.5.4
+
+ - Fixed bug where current score would show up when solved by AI mid game
+ - Percentile more accurate for the top players
+ 
 ## 0.5.3
 
  - All buttons/touch interactions will trigger haptics

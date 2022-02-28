@@ -168,14 +168,15 @@ class _LandingPageState extends State<LandingPage>
                               .headline5!
                               .copyWith(color: secondaryColor),
                         ),
-                        // ScoreBoard(
-                        //   gridSize: 3,
-                        //   // currentMove: 0,
-                        //   // currentTime: 0,
-                        //   bestMove: 4,
-                        //   bestTime: 3,
-                        //   child: Container(),
-                        // ),
+                        userData != null
+                            ? ScoreBoard(
+                                gridSize: 3,
+                                // currentMove: 0,
+                                // currentTime: 0,
+                                userData: userData,
+                                child: Container(),
+                              )
+                            : Container(),
                       ],
                     )),
                     Align(

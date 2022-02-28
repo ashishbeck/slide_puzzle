@@ -208,12 +208,20 @@ class Service {
   }
 
   double calculatePercentile(List<ChartData> chartData, int best) {
+    // It is not really percentile but a comparison so had to tweak the
+    // formula a bit
     int totalPlayers = 0;
     int totalAboveMe = 0;
     for (var item in chartData) {
       totalPlayers += item.y;
       if (item.x > best) {
         totalAboveMe += item.y;
+      } else if (item.x == best && item.y == 1) {
+        // If the best, this 1 value belongs to you so you're better than
+        // everyone else and it's a 100% (not percentile) better performance.
+        // If it's an arbitrary number in between the data set, it doesn't
+        // matter if the final percentage is slightly off
+        totalAboveMe += 1;
       }
     }
     return (totalAboveMe / totalPlayers) * 100;

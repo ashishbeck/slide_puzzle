@@ -124,30 +124,30 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
       ];
 
   _checkIfSolved(List<TilesModel> tileList, ScoreProvider scoreProvider,
-      ConfigProvider configProvider) {
+      ConfigProvider configProvider) async {
     UserData? userData = context.read<UserData?>();
     isSolved = Service().isSolved(tileList);
     bool aiSolved = gameState == GameState.aiSolving;
     if (isSolved &&
         tileList.isNotEmpty &&
         (gameState == GameState.started || aiSolved)) {
+      UserData? newData;
+      if (kDebugMode ? true : !aiSolved) {
+        newData = await _calculateAndSubmitScore(gridSize, scoreProvider);
+        launchScoreBoard(scoreProvider, newData, configProvider);
+      }
       scoreProvider.stopTimer();
-      configProvider.finish();
+      configProvider.finish(solvedByAI: aiSolved);
       setState(() {
         gameState = GameState.finished;
       });
-      UserData? newData;
-      if (kDebugMode ? true : !aiSolved) {
-        newData = _calculateAndSubmitScore(gridSize, scoreProvider);
-        launchScoreBoard(scoreProvider, newData, configProvider);
-      }
     }
   }
 
   _calculateAndSubmitScore(
     int gridSize,
     ScoreProvider scoreProvider,
-  ) {
+  ) async {
     UserData? userData = context.read<UserData?>();
     // Map<String, int> score = userData!.moves;
     String grid = gridSize == 3 ? "three" : "four";
@@ -170,7 +170,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
         lastSeen: Timestamp.now(),
       );
       // print(newData.toString());
-      DatabaseService.instance.updateUserData(newData);
+      await DatabaseService.instance.updateUserData(newData);
       return newData;
     }
     return userData;
@@ -192,11 +192,13 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
             child: ScoreBoard(
               gridSize: gridSize,
               currentMove: (scoreProvider.moves == 0 ||
-                      configProvider.gamestate == GameState.started)
+                      configProvider.gamestate == GameState.started ||
+                      configProvider.solvedByAI)
                   ? null
                   : scoreProvider.moves,
               currentTime: (scoreProvider.moves == 0 ||
-                      configProvider.gamestate == GameState.started)
+                      configProvider.gamestate == GameState.started ||
+                      configProvider.solvedByAI)
                   ? null
                   : scoreProvider.seconds,
               userData: newData!,
@@ -223,7 +225,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    print("building puzzle");
+    // print("building puzzle");
     TileProvider tileProvider = context.watch<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
     ConfigProvider configProvider = context.watch<ConfigProvider>();
@@ -485,7 +487,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    print("building tile");
+    // print("building tile");
     TileProvider tileProvider = context.read<TileProvider>();
     TweenProvider tweenProvider = context.read<TweenProvider>();
     ConfigProvider configProvider = context.read<ConfigProvider>();

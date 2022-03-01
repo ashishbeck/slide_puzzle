@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:url_launcher/url_launcher.dart';
 // import 'package:vibration/vibration.dart';
 
 class Service {
@@ -225,6 +227,17 @@ class Service {
       }
     }
     return (totalAboveMe / totalPlayers) * 100;
+  }
+
+  void shareToTwitter(
+      int gridSize, int moves, String time, String mPerc, String tPerc) {
+    String grid = "${gridSize}x$gridSize";
+    String text = "I just solved the $grid Retro Puzzle in $moves moves under "
+        "$time 😎 I am already better than $mPerc% of everyone in terms of steps "
+        "and faster than $tPerc% 💪\n\nThink you can beat me? 😉 Try it out-\n"
+        "&url=https://n-puzzle-solver-1.web.app/";
+    Uri uri = Uri.parse("https://twitter.com/intent/tweet?text=" + text);
+    launch(uri.toString());
   }
 }
 

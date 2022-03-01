@@ -41,7 +41,6 @@ class _ScoreBoardState extends State<ScoreBoard>
   late Future<CommunityScores> future;
   int gridSize = 0;
   Map<String, int> addExtraData = {"three": 0, "four": 0};
-  Map<String, List<ChartData>> originalChartData = {"three": [], "four": []};
 
   @override
   void initState() {
@@ -68,6 +67,8 @@ class _ScoreBoardState extends State<ScoreBoard>
     bool isTall = maxHeight > maxWidth;
     double area = 0.8;
     double height = isTall ? maxWidth * 0.8 : maxHeight * 0.8;
+    String movesPercentile = "";
+    String timesPercentile = "";
 
     // final List<ChartData> chartData = [
     //   ChartData(7, 0),
@@ -105,14 +106,12 @@ class _ScoreBoardState extends State<ScoreBoard>
       double movesPercentileData =
           Service().calculatePercentile(chartData, current ?? (best));
 
-      String timesPercentile =
-          timesPercentileData.toInt() == timesPercentileData
-              ? timesPercentileData.toInt().toString()
-              : timesPercentileData.toStringAsFixed(2);
-      String movesPercentile =
-          movesPercentileData.toInt() == movesPercentileData
-              ? movesPercentileData.toInt().toString()
-              : movesPercentileData.toStringAsFixed(2);
+      timesPercentile = timesPercentileData.toInt() == timesPercentileData
+          ? timesPercentileData.toInt().toString()
+          : timesPercentileData.toStringAsFixed(2);
+      movesPercentile = movesPercentileData.toInt() == movesPercentileData
+          ? movesPercentileData.toInt().toString()
+          : movesPercentileData.toStringAsFixed(2);
 
       String title = best == 0 && (current == 0 || current == null)
           ? "You need to play at least once to see how you stack against others"
@@ -320,8 +319,31 @@ class _ScoreBoardState extends State<ScoreBoard>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Row(
+                      //   children: [
+                      //     DefaultTextStyle(
+                      //       style: TextStyle(fontFamily: "Arcade"),
+                      //       child: MyButton(
+                      //         label: "${gridSize}x$gridSize",
+                      //         onPressed: () {
+                      //           setState(() {
+                      //             gridSize = gridSize == 3 ? 4 : 3;
+                      //           });
+                      //         },
+                      //         expanded: false,
+                      //       ),
+                      //     ),
+                      //     IconButton(
+                      //       icon: Icon(Icons.close),
+                      //       onPressed: () {
+                      //         Navigator.of(context).pop();
+                      //         AudioService.instance.vibrate();
+                      //       },
+                      //     ),
+                      //   ],
+                      // ),
                       AutoSizeText(
-                        widget.checking ? "STATISTICS" : "Congratulations!",
+                        widget.checking ? "STATS" : "BRAVO!",
                         style: TextStyle(fontFamily: "Arcade"),
                         textAlign: TextAlign.center,
                         maxLines: 1,
@@ -339,9 +361,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                                 timeChartData,
                                 isTime: true,
                                 current: widget.currentTime,
-                                best: kDebugMode
-                                    ? 7
-                                    : widget.userData.moves[grid]!,
+                                best: widget.userData.moves[grid]!,
                               )
                             : Center(child: CircularProgressIndicator()),
                       ),
@@ -353,25 +373,35 @@ class _ScoreBoardState extends State<ScoreBoard>
                                 moveChartData,
                                 isTime: false,
                                 current: widget.currentMove,
-                                best: kDebugMode
-                                    ? 24
-                                    : widget.userData.moves[grid]!,
+                                best: widget.userData.moves[grid]!,
                               )
                             : Center(child: CircularProgressIndicator()),
                       ),
                     ],
                   ),
                 ),
-                Positioned(
-                    top: 0,
-                    right: 0,
-                    child: IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        AudioService.instance.vibrate();
-                      },
-                    )),
+                widget.userData.moves[grid]! != 0 &&
+                        widget.userData.times[grid]! != 0
+                    ? Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: MyButton(
+                          label: "Share",
+                          expanded: false,
+                          shouldAnimateEntry: false,
+                          onPressed: () {
+                            Service().shareToTwitter(
+                              gridSize,
+                              widget.userData.moves[grid]!,
+                              Service()
+                                  .intToTimeLeft(widget.userData.times[grid]!),
+                              movesPercentile,
+                              timesPercentile,
+                            );
+                          },
+                        ),
+                      )
+                    : Container(),
                 Positioned(
                   top: 0,
                   left: 0,
@@ -383,22 +413,22 @@ class _ScoreBoardState extends State<ScoreBoard>
                         setState(() {
                           gridSize = gridSize == 3 ? 4 : 3;
                         });
-                        // if (configProvider.gamestate != GameState.aiSolving) {
-                        //   tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
-                        // }
                       },
-                      // isDisabled:
-                      //     configProvider.gamestate == GameState.aiSolving ? true : false,
                       expanded: false,
-                      // icon: AutoSizeText(
-                      //   gridSize == 3 ? "4x4" : "3x3",
-                      //   // style: TextStyle(color: secondaryColor),
-                      //   maxLines: 1,
-                      //   minFontSize: 8,
-                      // ),
                     ),
                   ),
                 ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      AudioService.instance.vibrate();
+                    },
+                  ),
+                )
               ],
             );
           }),

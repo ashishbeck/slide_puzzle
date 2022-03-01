@@ -56,14 +56,34 @@ class DatabaseService {
         .map((event) => UserData.fromMap((event.data()!)));
   }
 
-  submitDummyCommunityScores(List<ChartData> chartData) {
+  submitDummyCommunityScores() {
+    final List<ChartData> chartData = [
+      ChartData(7, 0),
+      ChartData(8, 5),
+      ChartData(9, 14),
+      ChartData(10, 35),
+      ChartData(11, 42),
+      ChartData(12, 56),
+      ChartData(13, 76),
+      ChartData(14, 97),
+      ChartData(15, 124),
+      ChartData(16, 159),
+      ChartData(17, 146),
+      ChartData(18, 124),
+      ChartData(19, 97),
+      ChartData(20, 76),
+      ChartData(21, 56),
+      ChartData(22, 34),
+      ChartData(23, 19),
+      ChartData(24, 0),
+    ];
     Map<String, int> data = {};
     chartData.forEach((e) => data.addAll(e.toFirestore()));
 
     _firestore
-        .collection("community")
+        .collection("testcommunity")
         .doc("times")
-        .set({"three": data}, SetOptions(merge: true));
+        .set({"four": data}, SetOptions(merge: true));
   }
 
   Future<CommunityScores> fetchCommunityScores() async {

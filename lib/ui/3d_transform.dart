@@ -27,10 +27,10 @@ class _MyTransformState extends State<MyTransform>
     setState(() {
       // x = (1 - animation.value) * -0.10999999999999999;
       // y = (1 - animation.value) * -0.13999999999999999;
-      x = (1 - animation.value) * -0.029849349708536;
-      y = (1 - animation.value) * -0.24324220468129937;
-      // x = (1 - animation.value) * 0.3500000000000001;
-      // y = (1 - animation.value) * -0.7600000000000005;
+      // x = (1 - animation.value) * -0.029849349708536;
+      // y = (1 - animation.value) * -0.24324220468129937;
+      x = (1 - animation.value) * -0.060000000000000005;
+      y = (1 - animation.value) * -0.8300000000000005;
     });
   }
 

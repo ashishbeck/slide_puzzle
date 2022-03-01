@@ -238,7 +238,8 @@ class _LayoutPageState extends State<LayoutPage> {
           double absoluteWidth = maxWidth * area;
           double absoluteHeight = maxHeight * area;
           double topPad = MediaQuery.of(context).padding.top;
-          double puzzleHeight = isTall ? absoluteWidth : absoluteHeight;
+          double puzzleHeight =
+              isTall ? min(absoluteWidth, maxHeight - 300) : absoluteHeight;
           if (!isTall && isMobile) puzzleHeight -= topPad;
           double puzzleWidth = puzzleHeight;
 
@@ -281,7 +282,7 @@ class _LayoutPageState extends State<LayoutPage> {
                 AnimatedAlign(
                   duration: duration,
                   curve: curve,
-                  alignment: const Alignment(0, 0),
+                  alignment: const Alignment(0, -0.05),
                   // left: isTopLeft ? 20 : 0,
                   // right: !isTopLeft ? 23 : 0,
                   // top: isTopLeft ? 23 : 0,

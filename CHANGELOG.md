@@ -1,3 +1,9 @@
+## 0.5.5
+
+ - Cloud functions added to maintain community scores
+ - Adjusted puzzle height for squarish screens
+ - Share to Twitter added
+
 ## 0.5.4
 
  - Fixed bug where current score would show up when solved by AI mid game

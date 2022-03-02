@@ -160,39 +160,39 @@ class _LayoutPageState extends State<LayoutPage> {
     }
   }
 
-  List<Widget> buttons({bool expanded = true}) => [
-        MyButton(
-          label: "Shuffle",
-          icon: const RiveAnimation.asset(
-            'assets/rive/icons.riv',
-            animations: ["shuffle"],
-          ),
-          expanded: expanded,
-          // height: height,
-          onPressed: () {
-            TileProvider tileProvider = context.read<TileProvider>();
-            int gridSize = tileProvider.gridSize;
-            createTiles(gridSize: gridSize);
-          },
-        ),
-        // MyButton(
-        //   label: "Reset",
-        //   icon: const Icon(Icons.cancel),
-        //   expanded: expanded,
-        //   height: height,
-        //   onPressed: () {},
-        // ),
-        MyButton(
-          label: "Solve",
-          icon: const RiveAnimation.asset(
-            'assets/rive/icons.riv',
-            animations: ["solve"],
-          ),
-          expanded: expanded,
-          // height: height,
-          onPressed: solve,
-        ),
-      ];
+  // List<Widget> buttons({bool expanded = true}) => [
+  //       MyButton(
+  //         label: "Shuffle",
+  //         icon: const RiveAnimation.asset(
+  //           'assets/rive/icons.riv',
+  //           animations: ["shuffle"],
+  //         ),
+  //         expanded: expanded,
+  //         // height: height,
+  //         onPressed: () {
+  //           TileProvider tileProvider = context.read<TileProvider>();
+  //           int gridSize = tileProvider.gridSize;
+  //           createTiles(gridSize: gridSize);
+  //         },
+  //       ),
+  //       // MyButton(
+  //       //   label: "Reset",
+  //       //   icon: const Icon(Icons.cancel),
+  //       //   expanded: expanded,
+  //       //   height: height,
+  //       //   onPressed: () {},
+  //       // ),
+  //       MyButton(
+  //         label: "Solve",
+  //         icon: const RiveAnimation.asset(
+  //           'assets/rive/icons.riv',
+  //           animations: ["solve"],
+  //         ),
+  //         expanded: expanded,
+  //         // height: height,
+  //         onPressed: solve,
+  //       ),
+  //     ];
 
   @override
   void initState() {

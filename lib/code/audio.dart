@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rive/rive.dart';
 import 'package:slide_puzzle/code/constants.dart';
+import 'package:slide_puzzle/code/store.dart';
 import 'package:soundpool/soundpool.dart';
 
 class AudioService {
@@ -18,8 +19,8 @@ class AudioService {
   int dragFailId = 0;
   int sweepId = 0;
   AudioStreamControl? dragStream;
-  bool isMuted = false;
-  bool shouldVibrate = true;
+  bool isMuted = !Storage.instance.sounds;
+  bool shouldVibrate = Storage.instance.vibrations;
 
   init() async {
     for (var i = 0; i < slideAudio.length; i++) {

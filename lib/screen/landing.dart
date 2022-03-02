@@ -9,6 +9,7 @@ import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:slide_puzzle/ui/3d_transform.dart';
+import 'package:slide_puzzle/ui/Scoreboard.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:slide_puzzle/ui/button.dart';
@@ -24,7 +25,7 @@ class _LandingPageState extends State<LandingPage>
     with TickerProviderStateMixin {
   late AnimationController animationController;
   final FocusNode _focusNode = FocusNode();
-  String appName = "Slide Puzzle";
+  String appName = "Retro Slide Puzzle";
   String packageName = "";
   String version = "";
   String buildNumber = "";
@@ -111,10 +112,21 @@ class _LandingPageState extends State<LandingPage>
 
     Widget button() => MyButton(
           label: "Enter",
+          tooltip: "",
           // labelStyle: TextStyle(color: secondaryColor),
           shouldAnimateEntry: false,
           onPressed: _onPressed,
           expanded: false,
+        );
+
+    Widget info() => const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text(
+            "This game can be played with keyboard arrow keys, screen tap, click, drag n drop and flick to move any number of tiles "
+            "possible.",
+            style: TextStyle(fontFamily: "Glacial", color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
         );
 
     return RawKeyboardListener(
@@ -155,6 +167,7 @@ class _LandingPageState extends State<LandingPage>
                         Text(
                           appName,
                           style: Theme.of(context).textTheme.headline5,
+                          textAlign: TextAlign.center,
                         ),
                         animationController.isAnimating
                             ? IgnorePointer(
@@ -167,6 +180,7 @@ class _LandingPageState extends State<LandingPage>
                               .textTheme
                               .headline5!
                               .copyWith(color: secondaryColor),
+                          textAlign: TextAlign.center,
                         ),
                         // userData != null
                         //     ? ScoreBoard(
@@ -179,6 +193,10 @@ class _LandingPageState extends State<LandingPage>
                         //     : Container(),
                       ],
                     )),
+                    Align(
+                      alignment: Alignment(0, 0.2),
+                      child: info(),
+                    ),
                     Align(
                       alignment: Alignment(0, 0.8),
                       child: Text.rich(
@@ -203,43 +221,43 @@ class _LandingPageState extends State<LandingPage>
                               ),
                             ),
                           ),
-                          TextSpan(
-                              text: "\nwith design help from ",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall!
-                                  .copyWith(
-                                      decorationStyle: TextDecorationStyle.wavy,
-                                      decorationThickness: 4,
-                                      decoration: TextDecoration.lineThrough)),
-                          WidgetSpan(
-                            child: MouseRegion(
-                              onEnter: (event) =>
-                                  setState(() => isHovering2 = true),
-                              onExit: (event) =>
-                                  setState(() => isHovering2 = false),
-                              cursor: SystemMouseCursors.click,
-                              child: GestureDetector(
-                                onTap: () =>
-                                    _launch('https://linktr.ee/sushobhan'),
-                                child: Text(
-                                  "Sushobhan Parida",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall!
-                                      .copyWith(
-                                          decorationStyle:
-                                              TextDecorationStyle.wavy,
-                                          decorationThickness: 4,
-                                          decoration:
-                                              TextDecoration.lineThrough,
-                                          color: isHovering2
-                                              ? Colors.white
-                                              : primaryColor),
-                                ),
-                              ),
-                            ),
-                          ),
+                          // TextSpan(
+                          //     text: "\nwith design help from ",
+                          //     style: Theme.of(context)
+                          //         .textTheme
+                          //         .labelSmall!
+                          //         .copyWith(
+                          //             decorationStyle: TextDecorationStyle.wavy,
+                          //             decorationThickness: 4,
+                          //             decoration: TextDecoration.lineThrough)),
+                          // WidgetSpan(
+                          //   child: MouseRegion(
+                          //     onEnter: (event) =>
+                          //         setState(() => isHovering2 = true),
+                          //     onExit: (event) =>
+                          //         setState(() => isHovering2 = false),
+                          //     cursor: SystemMouseCursors.click,
+                          //     child: GestureDetector(
+                          //       onTap: () =>
+                          //           _launch('https://linktr.ee/sushobhan'),
+                          //       child: Text(
+                          //         "Sushobhan Parida",
+                          //         style: Theme.of(context)
+                          //             .textTheme
+                          //             .labelSmall!
+                          //             .copyWith(
+                          //                 decorationStyle:
+                          //                     TextDecorationStyle.wavy,
+                          //                 decorationThickness: 4,
+                          //                 decoration:
+                          //                     TextDecoration.lineThrough,
+                          //                 color: isHovering2
+                          //                     ? Colors.white
+                          //                     : primaryColor),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                         ]),
                         textAlign: TextAlign.center,
                       ),

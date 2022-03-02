@@ -23,6 +23,7 @@ class VisibleLeaderboardTool extends StatelessWidget {
     List<Widget> children = [
       Expanded(
         child: IconButton(
+          tooltip: "Toggle visibility of numbers on tile",
           onPressed: () {
             configProvider.toggleNumbersVisibility();
             AudioService.instance.vibrate();
@@ -34,6 +35,7 @@ class VisibleLeaderboardTool extends StatelessWidget {
       // isTall ? Divider() : VerticalDivider(),
       Expanded(
         child: IconButton(
+          tooltip: "Show your stats",
           onPressed: () {
             puzzleKey.currentState!.launchScoreBoard(
                 scoreProvider, userData, configProvider,

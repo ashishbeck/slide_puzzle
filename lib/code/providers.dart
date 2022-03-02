@@ -6,6 +6,7 @@ import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/service.dart';
+import 'package:slide_puzzle/code/store.dart';
 import 'package:slide_puzzle/screen/app.dart';
 
 class TileProvider extends ChangeNotifier {
@@ -96,9 +97,9 @@ class ConfigProvider extends ChangeNotifier {
   bool get hasStarted => _hasStarted;
   GameState _gameState = GameState.waiting;
   GameState get gamestate => _gameState;
-  bool _muted = false;
+  bool _muted = !Storage.instance.sounds;
   bool get muted => _muted;
-  bool _vibrationsOff = false;
+  bool _vibrationsOff = !Storage.instance.vibrations;
   bool get vibrationsOff => _vibrationsOff;
   bool _solvedByAI = false;
   bool get solvedByAI => _solvedByAI;
@@ -149,12 +150,14 @@ class ConfigProvider extends ChangeNotifier {
   void toggleSound() {
     _muted = !_muted;
     AudioService.instance.isMuted = _muted;
+    Storage.instance.toggleSounds();
     notifyListeners();
   }
 
   void toggleVibration() {
     _vibrationsOff = !_vibrationsOff;
     AudioService.instance.shouldVibrate = !_vibrationsOff;
+    Storage.instance.toggleVibrations();
     notifyListeners();
   }
 }

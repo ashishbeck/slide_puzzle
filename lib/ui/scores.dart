@@ -24,31 +24,37 @@ class _ScoresState extends State<Scores> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          AutoSizeText(
-            "${scoreProvider.moves} moves",
-            maxLines: 1,
-            minFontSize: 8,
-            textAlign: TextAlign.center,
+          Tooltip(
+            message: "Number of moves since last shuffled",
+            child: AutoSizeText(
+              "${scoreProvider.moves} moves",
+              maxLines: 1,
+              minFontSize: 8,
+              textAlign: TextAlign.center,
+            ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              widget.isTall
-                  ? AutoSizeText(
-                      Service().intToTimeLeft(scoreProvider.seconds),
-                      maxLines: 1,
-                      minFontSize: 8,
-                    )
-                  : Expanded(
-                      child: AutoSizeText(
+          Tooltip(
+            message: "Time elapsed since last shuffled",
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                widget.isTall
+                    ? AutoSizeText(
                         Service().intToTimeLeft(scoreProvider.seconds),
                         maxLines: 1,
                         minFontSize: 8,
+                      )
+                    : Expanded(
+                        child: AutoSizeText(
+                          Service().intToTimeLeft(scoreProvider.seconds),
+                          maxLines: 1,
+                          minFontSize: 8,
+                        ),
                       ),
-                    ),
-              Icon(Icons.timer),
-            ],
+                Icon(Icons.timer),
+              ],
+            ),
           ),
         ],
       ),

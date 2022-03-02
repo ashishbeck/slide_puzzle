@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:slide_puzzle/code/store.dart';
 import 'package:slide_puzzle/firebase_options.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +20,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await GetStorage.init();
+  Storage.instance.init();
   runApp(const MyApp());
 }
 
@@ -77,8 +81,14 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           fontFamily: "Arcade",
           colorSchemeSeed: primaryColor,
-          // primarySwatch: primaryColor,
           brightness: Brightness.dark,
+          tooltipTheme: TooltipThemeData(
+            textStyle: TextStyle(
+              fontFamily: "Glacial",
+              color: Colors.black54,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         home: false ? LayoutPage() : LandingPage(),
       ),

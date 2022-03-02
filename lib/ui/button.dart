@@ -1,8 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:slide_puzzle/code/audio.dart';
 
+import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
@@ -16,6 +16,7 @@ class MyButton extends StatefulWidget {
   final bool expanded;
   final bool shouldAnimateEntry;
   final bool isDisabled;
+  final String tooltip;
   // final double height;
   const MyButton({
     Key? key,
@@ -26,6 +27,7 @@ class MyButton extends StatefulWidget {
     required this.expanded,
     this.shouldAnimateEntry = true,
     this.isDisabled = false,
+    required this.tooltip,
   }) : super(key: key);
 
   @override
@@ -99,106 +101,110 @@ class _MyButtonState extends State<MyButton> {
           maxLines: 1,
           minFontSize: 8,
         );
-    return Container(
-      // height: 32,
-      constraints: const BoxConstraints(maxHeight: 40, maxWidth: 96),
-      // width: 96,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(4),
-      child: GestureDetector(
-        onTap: () {
-          animationController
-              .forward()
-              .then((value) => animationController.reverse());
-        },
-        onTapDown: (_) {
-          // print("down");
-          shouldExecute = true;
-          animationController.forward();
-        },
-        onPanStart: (details) {
-          // print("pan start");
-          shouldExecute = true;
-          animationController.forward();
-        },
-        onPanUpdate: _onUpdate,
-        onLongPressMoveUpdate: _onUpdate,
-        onTapUp: (_) {
-          // print("up");
-          animationController.reverse();
-          if (!widget.isDisabled) {
-            widget.onPressed();
-            AudioService.instance.vibrate();
-          }
-        },
-        onLongPressUp: () {
-          // print("long up");
-          animationController.reverse();
-          if (shouldExecute && !widget.isDisabled) {
-            widget.onPressed();
-            AudioService.instance.vibrate();
-          }
-        },
-        onPanEnd: (_) {
-          // print("pan end ${_.velocity.pixelsPerSecond.distance}");
-          // setState(() => isPressed = false);
-          animationController.reverse();
-          if (shouldExecute && !widget.isDisabled) {
-            widget.onPressed();
-            AudioService.instance.vibrate();
-          }
-        },
-        child: BorderedContainer(
-          key: _buttonKey,
-          label: widget.label,
-          spacing: 5,
-          color: buttonShadowColor,
-          // isBottom: false,
-          // isRight: true,
-          // animationController: animationController,
-          shouldAnimateEntry: widget.shouldAnimateEntry,
-          buttonController: (controller) async {
-            animationController = controller;
+    return Tooltip(
+      message: widget.tooltip,
+      // triggerMode: TooltipTriggerMode.manual,
+      child: Container(
+        // height: 32,
+        constraints: const BoxConstraints(maxHeight: 40, maxWidth: 96),
+        // width: 96,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(4),
+        child: GestureDetector(
+          onTap: () {
+            animationController
+                .forward()
+                .then((value) => animationController.reverse());
           },
-          child: Container(
-            decoration: BoxDecoration(
+          onTapDown: (_) {
+            // print("down");
+            shouldExecute = true;
+            animationController.forward();
+          },
+          onPanStart: (details) {
+            // print("pan start");
+            shouldExecute = true;
+            animationController.forward();
+          },
+          onPanUpdate: _onUpdate,
+          onLongPressMoveUpdate: _onUpdate,
+          onTapUp: (_) {
+            // print("up");
+            animationController.reverse();
+            if (!widget.isDisabled) {
+              widget.onPressed();
+              AudioService.instance.vibrate();
+            }
+          },
+          onLongPressUp: () {
+            // print("long up");
+            animationController.reverse();
+            if (shouldExecute && !widget.isDisabled) {
+              widget.onPressed();
+              AudioService.instance.vibrate();
+            }
+          },
+          onPanEnd: (_) {
+            // print("pan end ${_.velocity.pixelsPerSecond.distance}");
+            // setState(() => isPressed = false);
+            animationController.reverse();
+            if (shouldExecute && !widget.isDisabled) {
+              widget.onPressed();
+              AudioService.instance.vibrate();
+            }
+          },
+          child: BorderedContainer(
+            key: _buttonKey,
+            label: widget.label,
+            spacing: 5,
+            color: buttonShadowColor,
+            // isBottom: false,
+            // isRight: true,
+            // animationController: animationController,
+            shouldAnimateEntry: widget.shouldAnimateEntry,
+            buttonController: (controller) async {
+              animationController = controller;
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                  borderRadius: borderRadius,
+                  // border: Border.all(color: primaryColor),
+                  // color: widget.isDisabled ? Colors.grey : primaryColor),
+                  color: primaryColor),
+              child: ClipRRect(
                 borderRadius: borderRadius,
-                // border: Border.all(color: primaryColor),
-                // color: widget.isDisabled ? Colors.grey : primaryColor),
-                color: primaryColor),
-            child: ClipRRect(
-              borderRadius: borderRadius,
-              child: MouseRegion(
-                onEnter: (event) {
-                  if (!widget.isDisabled) setState(() => isHovering = true);
-                },
-                onExit: (event) {
-                  if (!widget.isDisabled) setState(() => isHovering = false);
-                },
-                cursor: widget.isDisabled
-                    ? SystemMouseCursors.basic
-                    : SystemMouseCursors.click,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    widget.icon != null
-                        ? animatedSwitcher(
-                            child: isHovering
-                                ? Padding(
-                                    padding: const EdgeInsets.all(4.0),
-                                    child: widget.icon,
-                                  )
-                                : Container(),
-                            offset: const Offset(0, -2),
-                          )
-                        : text(),
-                    widget.icon != null
-                        ? animatedSwitcher(
-                            child: isHovering ? Container() : text(),
-                            offset: const Offset(0, 2),
-                          )
-                        : Container(),
-                  ],
+                child: MouseRegion(
+                  onEnter: (event) {
+                    if (!widget.isDisabled) setState(() => isHovering = true);
+                  },
+                  onExit: (event) {
+                    if (!widget.isDisabled) setState(() => isHovering = false);
+                  },
+                  cursor: widget.isDisabled
+                      ? SystemMouseCursors.basic
+                      : SystemMouseCursors.click,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      widget.icon != null
+                          ? animatedSwitcher(
+                              child: isHovering
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: widget.icon,
+                                    )
+                                  : Container(),
+                              offset: const Offset(0, -2),
+                            )
+                          : text(),
+                      widget.icon != null
+                          ? animatedSwitcher(
+                              child: isHovering ? Container() : text(),
+                              offset: const Offset(0, 2),
+                            )
+                          : Container(),
+                    ],
+                  ),
                 ),
               ),
             ),

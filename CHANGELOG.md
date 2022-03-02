@@ -1,3 +1,10 @@
+## 0.5.6
+
+ - Fixed moves percentile not passing during twitter share
+ - Custom loading spinner added
+ - Tooltip-ified everything
+ - Finally succumbed to persistent storage to keep basic user settings
+
 ## 0.5.5
 
  - Cloud functions added to maintain community scores

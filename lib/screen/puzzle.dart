@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -30,7 +32,7 @@ final puzzleKey = GlobalKey<_PuzzleState>();
 
 class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
   late AnimationController controller;
-  final FocusNode _focusNode = FocusNode();
+  final FocusNode focusNode = FocusNode();
   int gridSize = 0;
   // late List<TilesModel> tileList;
   // late List<int> mainTiles;
@@ -53,6 +55,9 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
       var whiteTile = tileList.singleWhere((element) => element.isWhite);
       if (event.data.logicalKey == LogicalKeyboardKey.keyK && kDebugMode) {
         launchScoreBoard(scoreProvider, null, configProvider);
+      }
+      if (event.data.logicalKey == LogicalKeyboardKey.keyS) {
+        _shuffle();
       }
       if (event.data.logicalKey == LogicalKeyboardKey.arrowUp) {
         Service().moveWhite(
@@ -90,20 +95,23 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
     }
   }
 
+  _shuffle() {
+    TileProvider tileProvider = context.read<TileProvider>();
+    int gridSize = tileProvider.gridSize;
+    homeKey.currentState!.createTiles(gridSize: gridSize);
+  }
+
   List<Widget> buttons({bool expanded = true}) => [
         MyButton(
           label: "Shuffle",
+          tooltip: "Shuffle the tile pieces",
           icon: const RiveAnimation.asset(
             'assets/rive/icons.riv',
             animations: ["shuffle"],
           ),
           expanded: expanded,
           isDisabled: gameState == GameState.aiSolving,
-          onPressed: () {
-            TileProvider tileProvider = context.read<TileProvider>();
-            int gridSize = tileProvider.gridSize;
-            homeKey.currentState!.createTiles(gridSize: gridSize);
-          },
+          onPressed: _shuffle,
         ),
         // MyButton(
         //   label: "Reset",
@@ -114,6 +122,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
         // ),
         MyButton(
           label: "Solve",
+          tooltip: "Attempt to auto-solve the puzzle",
           icon: const RiveAnimation.asset(
             'assets/rive/icons.riv',
             animations: ["solve"],
@@ -210,6 +219,18 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
         });
   }
 
+  // _requestFocus() async {
+  //   Timer.periodic(const Duration(milliseconds: 10000), (timer) {
+  //     if (mounted) {
+  //       setState(() {
+  //         focusNode.requestFocus();
+  //       });
+  //     } else {
+  //       timer.cancel();
+  //     }
+  //   });
+  // }
+
   @override
   void initState() {
     super.initState();
@@ -221,11 +242,12 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
     // currentTiles = List.from(mainTiles);
     controller = AnimationController(vsync: this);
     controller.repeat(period: Duration(milliseconds: defaultTime));
+    // _requestFocus();
   }
 
   @override
   Widget build(BuildContext context) {
-    // print("building puzzle");
+    print("building puzzle");
     TileProvider tileProvider = context.watch<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
     ConfigProvider configProvider = context.watch<ConfigProvider>();
@@ -240,7 +262,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
     //   }
     // });
     // list.reversed;
-    _focusNode.requestFocus();
+    focusNode.requestFocus();
     AssetImage assetImage = //AssetImage("assets/images/coffee.gif");
         AssetImage(tileProvider.images[tileProvider.currentImage]);
 
@@ -277,7 +299,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
 
     return RawKeyboardListener(
       autofocus: true,
-      focusNode: _focusNode,
+      focusNode: focusNode,
       onKey: (RawKeyEvent event) {
         _handleKeyEvent(event, tileProvider, scoreProvider, configProvider);
       },
@@ -334,7 +356,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    focusNode.dispose();
     controller.dispose();
     super.dispose();
   }

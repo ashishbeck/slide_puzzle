@@ -255,50 +255,57 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
             right: null,
             top: widget.isTall ? 1 : null,
             bottom: null,
-            child: Container(
-              height: buttonSize,
-              width: buttonSize,
-              child: Opacity(
-                opacity: (arrowController.isAnimating || arrowEntered) ? 1 : 0,
-                child: ClipPath(
-                  clipper: ArrowClipperShape(
-                      isBottom: !widget.isTall,
-                      isRight: widget.isTall,
-                      spacing: 4),
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                            begin: widget.isTall ? Offset(0, 1) : Offset(1, 0),
-                            end: Offset(0, 0))
-                        .animate(arrowController),
-                    child: BorderedContainer(
-                      label: "collapseButton",
-                      spacing: 4,
-                      shouldAnimateEntry: false,
-                      isBottom: !widget.isTall,
-                      isRight: widget.isTall,
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () {
-                            widget.toggleImageList(!widget.isVisible);
-                            AudioService.instance.vibrate();
-                          },
-                          behavior: HitTestBehavior.opaque,
-                          child: Container(
-                            // height: buttonSize,
-                            // width: buttonSize,
-                            decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(0),
+            child: Tooltip(
+              message: widget.isVisible
+                  ? "Hide the image list"
+                  : "Show the image list",
+              child: Container(
+                height: buttonSize,
+                width: buttonSize,
+                child: Opacity(
+                  opacity:
+                      (arrowController.isAnimating || arrowEntered) ? 1 : 0,
+                  child: ClipPath(
+                    clipper: ArrowClipperShape(
+                        isBottom: !widget.isTall,
+                        isRight: widget.isTall,
+                        spacing: 4),
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                              begin:
+                                  widget.isTall ? Offset(0, 1) : Offset(1, 0),
+                              end: Offset(0, 0))
+                          .animate(arrowController),
+                      child: BorderedContainer(
+                        label: "collapseButton",
+                        spacing: 4,
+                        shouldAnimateEntry: false,
+                        isBottom: !widget.isTall,
+                        isRight: widget.isTall,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () {
+                              widget.toggleImageList(!widget.isVisible);
+                              AudioService.instance.vibrate();
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: Container(
+                              // height: buttonSize,
+                              // width: buttonSize,
+                              decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(0),
+                                  ),
+                                  color: secondaryColor),
+                              child: RotationTransition(
+                                turns: animation,
+                                child: Icon(
+                                  widget.isTall
+                                      ? Icons.keyboard_arrow_down
+                                      : Icons.keyboard_arrow_right,
+                                  color: Colors.white,
                                 ),
-                                color: secondaryColor),
-                            child: RotationTransition(
-                              turns: animation,
-                              child: Icon(
-                                widget.isTall
-                                    ? Icons.keyboard_arrow_down
-                                    : Icons.keyboard_arrow_right,
-                                color: Colors.white,
                               ),
                             ),
                           ),

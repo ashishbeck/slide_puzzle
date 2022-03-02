@@ -5,6 +5,7 @@ import 'package:slide_puzzle/code/constants.dart';
 
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
+import 'package:slide_puzzle/screen/puzzle.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:slide_puzzle/ui/delayed_loader.dart';
@@ -41,6 +42,7 @@ class _ToolBarState extends State<ToolBar> {
       Scores(isTall: widget.isTall),
       MyButton(
         label: "${gridSize}x$gridSize",
+        tooltip: "Switch the grid size",
         onPressed: () {
           if (configProvider.gamestate != GameState.aiSolving) {
             tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);

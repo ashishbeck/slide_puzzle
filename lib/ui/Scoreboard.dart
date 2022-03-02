@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/audio.dart';
+import 'package:slide_puzzle/ui/spinner.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 import 'package:slide_puzzle/code/auth.dart';
@@ -101,17 +102,19 @@ class _ScoreBoardState extends State<ScoreBoard>
       // if (originalChartData[grid]!.isEmpty) {
       //   originalChartData[grid] = List.from(chartData);
       // }
-      double timesPercentileData =
-          (Service().calculatePercentile(chartData, current ?? (best)));
-      double movesPercentileData =
-          Service().calculatePercentile(chartData, current ?? (best));
-
-      timesPercentile = timesPercentileData.toInt() == timesPercentileData
-          ? timesPercentileData.toInt().toString()
-          : timesPercentileData.toStringAsFixed(2);
-      movesPercentile = movesPercentileData.toInt() == movesPercentileData
-          ? movesPercentileData.toInt().toString()
-          : movesPercentileData.toStringAsFixed(2);
+      if (isTime) {
+        double timesPercentileData =
+            (Service().calculatePercentile(chartData, current ?? (best)));
+        timesPercentile = timesPercentileData.toInt() == timesPercentileData
+            ? timesPercentileData.toInt().toString()
+            : timesPercentileData.toStringAsFixed(2);
+      } else {
+        double movesPercentileData =
+            Service().calculatePercentile(chartData, current ?? (best));
+        movesPercentile = movesPercentileData.toInt() == movesPercentileData
+            ? movesPercentileData.toInt().toString()
+            : movesPercentileData.toStringAsFixed(2);
+      }
 
       String title = best == 0 && (current == 0 || current == null)
           ? "You need to play at least once to see how you stack against others"
@@ -155,7 +158,6 @@ class _ScoreBoardState extends State<ScoreBoard>
       );
       if (addExtraData[grid]! < 2) {
         var total = chartData.last.x - chartData.first.x;
-        print(total);
         chartData.insert(
             0, ChartData((chartData.first.x - 0.1 * total).toInt(), 0));
         chartData.add(ChartData((chartData.last.x + 0.1 * total).toInt(), 0));
@@ -363,7 +365,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                                 current: widget.currentTime,
                                 best: widget.userData.moves[grid]!,
                               )
-                            : Center(child: CircularProgressIndicator()),
+                            : const Center(child: Spinner()),
                       ),
                       Container(
                         height: maxHeight * 0.3,
@@ -375,7 +377,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                                 current: widget.currentMove,
                                 best: widget.userData.moves[grid]!,
                               )
-                            : Center(child: CircularProgressIndicator()),
+                            : Container(),
                       ),
                     ],
                   ),
@@ -387,6 +389,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                         right: 0,
                         child: MyButton(
                           label: "Share",
+                          tooltip: "Share to your Twitter",
                           expanded: false,
                           shouldAnimateEntry: false,
                           onPressed: () {
@@ -409,6 +412,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                     style: TextStyle(fontFamily: "Arcade"),
                     child: MyButton(
                       label: "${gridSize}x$gridSize",
+                      tooltip: "Switch stats for the grid size",
                       onPressed: () {
                         setState(() {
                           gridSize = gridSize == 3 ? 4 : 3;
@@ -422,6 +426,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                   top: 0,
                   right: 0,
                   child: IconButton(
+                    tooltip: "Close",
                     icon: Icon(Icons.close),
                     onPressed: () {
                       Navigator.of(context).pop();

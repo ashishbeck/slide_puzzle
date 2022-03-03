@@ -42,11 +42,13 @@ enum Direction { left, right, up, down }
 
 class UserData {
   String uid;
+  String username;
   Map<String, int> moves;
   Map<String, int> times;
   Timestamp lastSeen;
   UserData({
     required this.uid,
+    required this.username,
     required this.moves,
     required this.times,
     required this.lastSeen,
@@ -55,15 +57,17 @@ class UserData {
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
+      'username': username,
       'moves': moves,
       'times': times,
       'lastSeen': lastSeen,
     };
   }
 
-  factory UserData.newUser(String uid) {
+  factory UserData.newUser(String uid, String username) {
     return UserData(
       uid: uid,
+      username: username,
       moves: {
         "three": 0,
         "four": 0,
@@ -79,6 +83,7 @@ class UserData {
   factory UserData.fromMap(Map<String, dynamic> map) {
     return UserData(
       uid: map['uid'] ?? '',
+      username: map['username'] ?? '',
       moves: Map<String, int>.from(map['moves']),
       times: Map<String, int>.from(map['times']),
       lastSeen: (map['lastSeen']) ?? Timestamp.now(),
@@ -92,12 +97,14 @@ class UserData {
 
   UserData copyWith({
     String? uid,
+    String? username,
     Map<String, int>? moves,
     Map<String, int>? times,
     Timestamp? lastSeen,
   }) {
     return UserData(
       uid: uid ?? this.uid,
+      username: username ?? this.username,
       moves: moves ?? this.moves,
       times: times ?? this.times,
       lastSeen: lastSeen ?? this.lastSeen,
@@ -160,4 +167,40 @@ class CommunityScores {
     required this.moves,
     required this.times,
   });
+}
+
+class LeaderboardItem {
+  final String uid;
+  final String username;
+  final int time;
+  final int move;
+  LeaderboardItem({
+    required this.uid,
+    required this.username,
+    required this.time,
+    required this.move,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'username': username,
+      'time': time,
+      'move': move,
+    };
+  }
+
+  factory LeaderboardItem.fromMap(Map<String, dynamic> map, String grid) {
+    return LeaderboardItem(
+      uid: map['uid'] ?? '',
+      username: map['username'] ?? '',
+      time: map['times'][grid]?.toInt() ?? 0,
+      move: map['moves'][grid]?.toInt() ?? 0,
+    );
+  }
+
+  // String toJson() => json.encode(toMap());
+
+  // factory LeaderboardItem.fromJson(String source) =>
+  //     LeaderboardItem.fromMap(json.decode(source));
 }

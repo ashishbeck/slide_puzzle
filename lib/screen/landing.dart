@@ -1,3 +1,4 @@
+import 'package:english_words/english_words.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,9 @@ import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:slide_puzzle/ui/3d_transform.dart';
 import 'package:slide_puzzle/ui/Scoreboard.dart';
+import 'package:slide_puzzle/ui/bordered_container.dart';
+import 'package:slide_puzzle/ui/dialog.dart';
+import 'package:slide_puzzle/ui/sound_vibration.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:slide_puzzle/ui/button.dart';
@@ -31,6 +35,25 @@ class _LandingPageState extends State<LandingPage>
   String buildNumber = "";
   bool isHovering1 = false;
   bool isHovering2 = false;
+  List<String> usernames = [];
+
+  List<String> _generateUserName({int total = 5}) {
+    List<String> usernames = generateWordPairs(maxSyllables: 4)
+        .take(total)
+        .map((e) => e.asPascalCase)
+        .toList();
+    return usernames;
+  }
+
+  _updateUserName(String? newUsername) {
+    UserData? userData = context.read<UserData?>();
+    if (newUsername == null || newUsername == userData!.username) return;
+    DatabaseService.instance
+        .updateUserData(userData.copyWith(username: newUsername));
+    setState(() {
+      usernames = _generateUserName();
+    });
+  }
 
   _getPackageInfo() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -49,7 +72,7 @@ class _LandingPageState extends State<LandingPage>
   }
 
   _onPressed() async {
-    await Future.delayed(Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 200));
     // if (animationController.isCompleted) {
     //   animationController.reverse();
     // } else {
@@ -79,7 +102,7 @@ class _LandingPageState extends State<LandingPage>
     super.initState();
     _getPackageInfo();
     animationController = AnimationController(
-        duration: Duration(milliseconds: 2500),
+        duration: const Duration(milliseconds: 2500),
         vsync: this,
         value: 0,
         lowerBound: 0,
@@ -91,7 +114,19 @@ class _LandingPageState extends State<LandingPage>
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       tileProvider.updateImages(context);
     });
+    usernames = _generateUserName();
+    // DatabaseService.instance.fetchLeaderBoards();
     // DatabaseService.instance.submitDummyCommunityScores();
+    // generateWordPairs(maxSyllables: 4).take(15).forEach(print);
+    // generateWordPairs(maxSyllables: 4).take(1).forEach((e) {
+    //   print(e);
+    //   print(e.asCamelCase);
+    //   print(e.asLowerCase);
+    //   print(e.asPascalCase);
+    //   print(e.asSnakeCase);
+    //   print(e.asUpperCase);
+    //   print(e.asString);
+    // });
   }
 
   @override
@@ -128,6 +163,66 @@ class _LandingPageState extends State<LandingPage>
             textAlign: TextAlign.center,
           ),
         );
+
+    Widget usernameWidget() {
+      return Text.rich(
+        TextSpan(text: "Your username is ", children: [
+          WidgetSpan(
+            baseline: TextBaseline.alphabetic,
+            child: PopupMenuButton<String>(
+              child: Text(
+                userData!.username,
+                style: TextStyle(
+                  color: primaryColor,
+                  fontFamily: "Glacial",
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              tooltip: "Change username",
+              color: Colors.white,
+              shape: const RoundedRectangleBorder(),
+              itemBuilder: (context) {
+                // PopupMenuItem(
+                //   child: Text(userData.username),
+                //   value: userData.username,
+                // ),
+                return usernames
+                    .map((e) => PopupMenuItem<String>(
+                          child: Text(
+                            e,
+                            style: TextStyle(
+                              fontFamily: "Glacial",
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                          value: e,
+                        ))
+                    .toList();
+              },
+              onSelected: _updateUserName,
+              onCanceled: () {
+                setState(() {
+                  usernames = _generateUserName();
+                });
+              },
+            ),
+          ),
+          // WidgetSpan(
+          //   child: MouseRegion(
+          //     cursor: SystemMouseCursors.click,
+          //     child: GestureDetector(
+          //       child: Icon(Icons.compare_arrows),
+          //       onTap: _generateUserName,
+          //     ),
+          //   ),
+          // ),
+        ]),
+        style: const TextStyle(fontFamily: "Glacial", fontSize: 24),
+        textAlign: TextAlign.right,
+      );
+    }
 
     return RawKeyboardListener(
       focusNode: _focusNode,
@@ -193,9 +288,18 @@ class _LandingPageState extends State<LandingPage>
                         //     : Container(),
                       ],
                     )),
-                    Align(
-                      alignment: Alignment(0, 0.2),
-                      child: info(),
+                    userData != null
+                        ? Align(
+                            alignment: Alignment(0, 0.2),
+                            // top: maxHeight * 0.55,
+                            // left: 0,
+                            // right: 0,
+                            child: usernameWidget(),
+                          )
+                        : Container(),
+                    const Align(
+                      alignment: Alignment(0.95, -0.98),
+                      child: SoundsVibrationsTool(isTall: false),
                     ),
                     Align(
                       alignment: Alignment(0, 0.8),

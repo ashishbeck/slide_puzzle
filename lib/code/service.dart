@@ -205,15 +205,18 @@ class Service {
         m.toString().length < 2 ? "0" + m.toString() : m.toString();
     String secondsLeft =
         s.toString().length < 2 ? "0" + s.toString() : s.toString();
-    String result = "$minuteLeft:$secondsLeft";
+    String result = "${h == 0 ? "" : hourLeft + ":"}$minuteLeft:$secondsLeft";
     return result;
   }
 
-  double calculatePercentile(List<ChartData> chartData, int best) {
+  double calculatePercentile(List<ChartData> chartData, int best,
+      {bool getRank = false}) {
     // It is not really percentile but a comparison so had to tweak the
     // formula a bit
     int totalPlayers = 0;
     int totalAboveMe = 0;
+    int totalBelowMe = 0;
+    int sameRank = 0;
     for (var item in chartData) {
       totalPlayers += item.y;
       if (item.x > best) {
@@ -223,18 +226,24 @@ class Service {
         // everyone else and it's a 100% (not percentile) better performance.
         // If it's an arbitrary number in between the data set, it doesn't
         // matter if the final percentage is slightly off
-        totalAboveMe += 1;
+        // totalAboveMe += 1;
+        sameRank = 1;
+      } else if (item.x < best) {
+        totalBelowMe += item.y;
       }
+    }
+    if (getRank) {
+      return (totalBelowMe + 1).toDouble();
     }
     return (totalAboveMe / totalPlayers) * 100;
   }
 
-  void shareToTwitter(
-      int gridSize, int moves, String time, String mPerc, String tPerc) {
+  void shareToTwitter(int gridSize, int moves, String time, String mPerc,
+      String tPerc, int rank) {
     String grid = "${gridSize}x$gridSize";
     String text = "I just solved the $grid Retro Puzzle in $moves moves under "
-        "$time 😎 I am already better than $mPerc% of everyone in terms of steps "
-        "and faster than $tPerc% 💪\n\nThink you can beat me? 😉 Try it out-\n"
+        "$time 😎 I am rank $rank in the leaderboards 💪\n\nThink you can "
+        "beat me? 😉 Try it out-\n"
         "&url=https://n-puzzle-solver-1.web.app/";
     Uri uri = Uri.parse("https://twitter.com/intent/tweet?text=" + text);
     launch(uri.toString());

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:english_words/english_words.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:slide_puzzle/code/models.dart';
 
@@ -32,7 +33,8 @@ class DatabaseService {
 
   createUser(String uid) {
     print("creating user");
-    final userData = UserData.newUser(uid);
+    final userData = UserData.newUser(
+        uid, generateWordPairs(maxSyllables: 4).first.asPascalCase);
     // UserData(uid: uid, move3: 0, time3: 0, lastSeen: Timestamp.now());
     _firestore.collection("users").doc(uid).set(userData.toMap());
   }
@@ -83,7 +85,7 @@ class DatabaseService {
     _firestore
         .collection("testcommunity")
         .doc("times")
-        .set({"four": data}, SetOptions(merge: true));
+        .set({"three": data}, SetOptions(merge: true));
   }
 
   Future<CommunityScores> fetchCommunityScores() async {
@@ -114,5 +116,24 @@ class DatabaseService {
       times: newTimes,
     );
     return scores;
+  }
+
+  Stream<List<LeaderboardItem>> fetchLeaderBoards(String grid) {
+    var times = _firestore
+        .collection("users")
+        .orderBy("times.$grid", descending: false)
+        .where("times.$grid", isNotEqualTo: 0)
+        .limit(20)
+        .snapshots()
+        .map((event) => event.docs
+            .map((e) => LeaderboardItem.fromMap(e.data(), grid))
+            .toList());
+    return times;
+    // var moves =
+    //     (await _firestore.collection("testcommunity").doc("moves").get())
+    //         .data();
+    // times.forEach((element) {
+    //   print(element.data());
+    // });
   }
 }

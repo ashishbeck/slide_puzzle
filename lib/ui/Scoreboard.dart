@@ -1,9 +1,11 @@
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:english_words/english_words.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/ui/spinner.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -39,9 +41,20 @@ class ScoreBoard extends StatefulWidget {
 class _ScoreBoardState extends State<ScoreBoard>
     with SingleTickerProviderStateMixin {
   late AnimationController controller;
+  final ItemScrollController itemScrollController = ItemScrollController();
   late Future<CommunityScores> future;
   int gridSize = 0;
   Map<String, int> addExtraData = {"three": 0, "four": 0};
+  bool animateToMe = true;
+
+  void _scrollToMe(int myPosition) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    itemScrollController.scrollTo(
+        index: myPosition,
+        duration: const Duration(milliseconds: 1000),
+        curve: Curves.easeOutQuad);
+    animateToMe = false;
+  }
 
   @override
   void initState() {
@@ -70,6 +83,8 @@ class _ScoreBoardState extends State<ScoreBoard>
     double height = isTall ? maxWidth * 0.8 : maxHeight * 0.8;
     String movesPercentile = "";
     String timesPercentile = "";
+    int rank = 0;
+    UserData userData = widget.userData;
 
     // final List<ChartData> chartData = [
     //   ChartData(7, 0),
@@ -301,11 +316,119 @@ class _ScoreBoardState extends State<ScoreBoard>
       );
     }
 
+    Widget leaderBoardItem(LeaderboardItem item, int index) {
+      bool isMe = item.uid == userData.uid;
+      Color color = index == 0
+          ? Color(0xffFFD700)
+          : index == 1
+              ? Color(0xffC0C0C0)
+              : index == 2
+                  ? Color(0xffCD7F32)
+                  : isMe
+                      ? primaryColor
+                      : Colors.white;
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          AutoSizeText(
+            "${index + 1}",
+            style: TextStyle(
+              fontFamily: "Arcade",
+              color: color,
+            ),
+            maxLines: 1,
+            minFontSize: 8,
+          ),
+          Expanded(
+            child: AutoSizeText(
+              "   ${item.username}" + (isMe ? " (You)" : ""),
+              style: TextStyle(color: color, fontWeight: FontWeight.bold),
+              maxLines: 1,
+              minFontSize: 8,
+            ),
+          ),
+          // Spacer(),
+          AutoSizeText(
+            "${Service().intToTimeLeft(item.time)} (${item.move})",
+            style: TextStyle(color: color),
+            maxLines: 1,
+            minFontSize: 8,
+          )
+        ],
+      );
+    }
+
+    Widget board(List<ChartData> chartData) {
+      int? current = gridSize == widget.gridSize
+          ? widget.currentTime
+          : userData.times[grid]!;
+      int best = userData.times[grid]!;
+      rank = (Service()
+              .calculatePercentile(chartData, current ?? (best), getRank: true))
+          .toInt();
+      return StreamBuilder<List<LeaderboardItem>>(
+          stream: DatabaseService.instance.fetchLeaderBoards(grid),
+          builder: (context, snapshot) {
+            bool isDone =
+                !snapshot.hasError && snapshot.hasData && snapshot.data != null;
+            if (!isDone) return Spinner();
+            List<LeaderboardItem> data = snapshot.data!;
+            data.sort((a, b) {
+              int cmp = a.time.compareTo(b.time);
+              if (cmp != 0) return cmp;
+              return a.move.compareTo(b.move);
+            });
+            int myPosition = data.indexWhere((e) => e.uid == userData.uid);
+            if (animateToMe && itemScrollController.isAttached) {
+              if (myPosition > 10) {
+                _scrollToMe(myPosition);
+              } else if (myPosition.isNegative && rank != 1) {
+                _scrollToMe(data.length);
+              }
+            }
+            return Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.zero),
+                  border: Border.all(
+                    color: Colors.white,
+                  )),
+              child: ScrollConfiguration(
+                behavior: MyCustomScrollBehavior(),
+                child: ScrollablePositionedList.separated(
+                  separatorBuilder: (context, index) => Divider(
+                    indent: 24,
+                    endIndent: 24,
+                  ),
+                  itemCount: data.length + (!myPosition.isNegative ? 0 : 1),
+                  physics: const BouncingScrollPhysics(),
+                  itemScrollController: itemScrollController,
+                  itemBuilder: ((context, index) {
+                    if (index == data.length) {
+                      LeaderboardItem item = LeaderboardItem(
+                          uid: userData.uid,
+                          username: userData.username,
+                          move: widget.currentMove ?? userData.moves[grid]!,
+                          time: widget.currentTime ?? userData.times[grid]!);
+                      return rank == 1
+                          ? Container()
+                          : leaderBoardItem(item, rank - 1);
+                    }
+                    LeaderboardItem item = data[index];
+
+                    return leaderBoardItem(item, index);
+                  }),
+                ),
+              ),
+            );
+          });
+    }
+
     return DefaultTextStyle(
       style: Theme.of(context)
           .textTheme
           .headline5!
-          .copyWith(fontFamily: "Glacial"),
+          .copyWith(fontFamily: "Glacial", fontSize: 18),
       child: FutureBuilder(
           future: future,
           builder: (context, AsyncSnapshot<CommunityScores> snapshot) {
@@ -344,41 +467,50 @@ class _ScoreBoardState extends State<ScoreBoard>
                       //     ),
                       //   ],
                       // ),
+                      SizedBox(
+                        height: 50,
+                      ),
                       AutoSizeText(
-                        widget.checking ? "STATS" : "BRAVO!",
+                        widget.checking ? "LEADERBOARDS" : "BRAVO!",
                         style: TextStyle(fontFamily: "Arcade"),
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         minFontSize: 8,
                       ),
-                      // SizedBox(
-                      //   height: maxHeight * 0.05,
-                      // ),
+                      SizedBox(
+                        height: maxHeight * 0.05,
+                      ),
+                      Expanded(
+                        child: board(timeChartData),
+                      ),
+                      SizedBox(
+                        height: 50,
+                      ),
                       // Spacer(),
-                      Container(
-                        height: maxHeight * 0.3,
-                        child: isDone
-                            ? chart(
-                                isDone,
-                                timeChartData,
-                                isTime: true,
-                                current: widget.currentTime,
-                                best: widget.userData.moves[grid]!,
-                              )
-                            : const Center(child: Spinner()),
-                      ),
-                      Container(
-                        height: maxHeight * 0.3,
-                        child: isDone
-                            ? chart(
-                                isDone,
-                                moveChartData,
-                                isTime: false,
-                                current: widget.currentMove,
-                                best: widget.userData.moves[grid]!,
-                              )
-                            : Container(),
-                      ),
+                      // Container(
+                      //   height: maxHeight * 0.3,
+                      //   child: isDone
+                      //       ? chart(
+                      //           isDone,
+                      //           timeChartData,
+                      //           isTime: true,
+                      //           current: widget.currentTime,
+                      //           best: widget.userData.moves[grid]!,
+                      //         )
+                      //       : const Center(child: Spinner()),
+                      // ),
+                      // Container(
+                      //   height: maxHeight * 0.3,
+                      //   child: isDone
+                      //       ? chart(
+                      //           isDone,
+                      //           moveChartData,
+                      //           isTime: false,
+                      //           current: widget.currentMove,
+                      //           best: widget.userData.moves[grid]!,
+                      //         )
+                      //       : Container(),
+                      // ),
                     ],
                   ),
                 ),
@@ -394,13 +526,13 @@ class _ScoreBoardState extends State<ScoreBoard>
                           shouldAnimateEntry: false,
                           onPressed: () {
                             Service().shareToTwitter(
-                              gridSize,
-                              widget.userData.moves[grid]!,
-                              Service()
-                                  .intToTimeLeft(widget.userData.times[grid]!),
-                              movesPercentile,
-                              timesPercentile,
-                            );
+                                gridSize,
+                                widget.userData.moves[grid]!,
+                                Service().intToTimeLeft(
+                                    widget.userData.times[grid]!),
+                                movesPercentile,
+                                timesPercentile,
+                                rank);
                           },
                         ),
                       )
@@ -412,7 +544,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                     style: TextStyle(fontFamily: "Arcade"),
                     child: MyButton(
                       label: "${gridSize}x$gridSize",
-                      tooltip: "Switch stats for the grid size",
+                      tooltip: "Switch leaderboards for the grid size",
                       onPressed: () {
                         setState(() {
                           gridSize = gridSize == 3 ? 4 : 3;

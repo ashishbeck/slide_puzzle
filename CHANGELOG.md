@@ -1,3 +1,8 @@
+## 0.5.7
+
+ - Added silly usernames
+ - Transitioned from percentile based scoring to rank based
+
 ## 0.5.6
 
  - Fixed moves percentile not passing during twitter share

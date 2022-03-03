@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/providers.dart';
@@ -6,15 +7,14 @@ import 'package:slide_puzzle/code/store.dart';
 
 class SoundsVibrationsTool extends StatelessWidget {
   final bool isTall;
-  final ConfigProvider configProvider;
   const SoundsVibrationsTool({
     Key? key,
     required this.isTall,
-    required this.configProvider,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    ConfigProvider configProvider = context.watch<ConfigProvider>();
     List<Widget> children = [
       Expanded(
         child: IconButton(

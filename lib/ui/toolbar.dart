@@ -64,7 +64,8 @@ class _ToolBarState extends State<ToolBar> {
         scoreProvider: scoreProvider,
       ),
       SoundsVibrationsTool(
-          isTall: widget.isTall, configProvider: configProvider),
+        isTall: widget.isTall,
+      ),
     ];
 
     return DelayedLoader(

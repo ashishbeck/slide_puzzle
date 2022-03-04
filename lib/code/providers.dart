@@ -18,6 +18,21 @@ class TileProvider extends ChangeNotifier {
   List<String> get images => _images;
   int _currentImage = 0;
   int get currentImage => _currentImage;
+  bool _reverse = false;
+  bool get reverse => _reverse;
+
+  void changeGridWithAnimation() {
+    _reverse = true;
+    notifyListeners();
+  }
+
+  // void resetReverse() {
+  //   _reverse = false;
+  //   _gridSize = _gridSize == 3 ? 4 : 3;
+  //   changeGridSize(_gridSize);
+  //   print("changing to $_gridSize");
+  //   notifyListeners();
+  // }
 
   void createTiles(List<TilesModel> newTiles) {
     _tileList.clear();
@@ -51,6 +66,7 @@ class TileProvider extends ChangeNotifier {
   }
 
   void changeGridSize(int index) {
+    _reverse = false;
     _gridSize = index;
     homeKey.currentState!
         .createTiles(gridSize: index, isChangingGrid: true, shuffle: false);

@@ -12,6 +12,10 @@ class Storage {
   bool get vibrations => _vibrations;
   int _colorTheme = 0;
   int get colorTheme => _colorTheme;
+  bool _showNameChange = true;
+  bool get showNameChange => _showNameChange;
+  bool _showPracticeMode = true;
+  bool get showPracticeMode => _showPracticeMode;
 
   init() {
     _sounds = box.read<bool>("sounds") ?? true;
@@ -19,6 +23,9 @@ class Storage {
     _vibrations = box.read<bool>("vibrations") ?? true;
     AudioService.instance.shouldVibrate = _vibrations;
     _colorTheme = box.read<int>("color") ?? 0;
+    _showNameChange = box.read<bool>("showNameChange") ?? true;
+    _showPracticeMode = true;
+    // _showPracticeMode = box.read<bool>("showPracticeMode") ?? true;
   }
 
   toggleSounds() {
@@ -34,5 +41,15 @@ class Storage {
   changeColor(int index) {
     _colorTheme = index;
     box.write("color", _colorTheme);
+  }
+
+  seenNameChange() {
+    _showNameChange = false;
+    box.write("showNameChange", false);
+  }
+
+  seenPracticeMode() {
+    _showPracticeMode = false;
+    box.write("showPracticeMode", false);
   }
 }

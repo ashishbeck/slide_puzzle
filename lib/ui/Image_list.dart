@@ -161,7 +161,6 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
     } else {
       animationController.forward();
     }
-    // print(animation.value);
     TileProvider tileProvider = context.read<TileProvider>();
     ConfigProvider configProvider = context.read<ConfigProvider>();
     double buttonSize = 25;

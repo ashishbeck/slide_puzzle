@@ -1,3 +1,10 @@
+## 0.6.1
+
+ - Tweaked themes
+ - Added hints to change username
+ - Animated puzzle tiles while changing grid (finally 😪)
+ - Practice mode enabled when the tile numbers are visible
+
 ## 0.6.0
 
  - Scoreboard is properly aligned now

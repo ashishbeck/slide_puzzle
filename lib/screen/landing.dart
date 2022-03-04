@@ -8,6 +8,7 @@ import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:slide_puzzle/code/store.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:slide_puzzle/ui/3d_transform.dart';
 import 'package:slide_puzzle/ui/Scoreboard.dart';
@@ -39,8 +40,7 @@ class _LandingPageState extends State<LandingPage>
   bool isHovering2 = false;
   List<String> usernames = [];
   bool backFromGame = false;
-  OverlayEntry? overlayEntry;
-  LayerLink layerLink = LayerLink();
+  bool showUsernameChangeHint = false;
 
   List<String> _generateUserName({int total = 5}) {
     List<String> usernames = generateWordPairs(maxSyllables: 4)
@@ -51,7 +51,6 @@ class _LandingPageState extends State<LandingPage>
   }
 
   _updateUserName(String? newUsername) {
-    if (overlayEntry != null) overlayEntry!.remove();
     UserData? userData = context.read<UserData?>();
     if (newUsername == null || newUsername == userData!.username) return;
     DatabaseService.instance
@@ -95,7 +94,8 @@ class _LandingPageState extends State<LandingPage>
           );
         },
         transitionDuration: const Duration(milliseconds: 500),
-        reverseTransitionDuration: const Duration(milliseconds: 200),
+        reverseTransitionDuration:
+            Duration(milliseconds: offset == 1.0 ? 500 : 200),
         pageBuilder: (context, animation, animation2) => LayoutPage(),
       ),
     );
@@ -137,27 +137,20 @@ class _LandingPageState extends State<LandingPage>
     }
   }
 
-  _showOverlay() async {
+  _showNameChange() async {
     await Future.delayed(const Duration(milliseconds: 4000));
-    overlayEntry = OverlayEntry(
-      builder: (BuildContext context) {
-        return CompositedTransformFollower(
-            // offset: Offset(1, 1),
-            targetAnchor: Alignment.bottomCenter,
-            // followerAnchor: Alignment.bottomCenter,
-            link: layerLink,
-            child: const DefaultTextStyle(
-              style: TextStyle(
-                  fontFamily: "Glacial", fontSize: 14, color: Colors.white),
-              child: Text(
-                "Don't like this? Tap it to generate new ones!",
-              ),
-            ));
-      },
-    );
-    Overlay.of(context)!.insert(overlayEntry!);
-    await Future.delayed(const Duration(milliseconds: 5000));
-    if (overlayEntry != null) overlayEntry!.remove();
+    if (mounted) {
+      setState(() {
+        showUsernameChangeHint = true;
+      });
+      Storage.instance.seenNameChange();
+      await Future.delayed(const Duration(milliseconds: 5000));
+      if (mounted) {
+        setState(() {
+          showUsernameChangeHint = false;
+        });
+      }
+    }
   }
 
   @override
@@ -178,6 +171,7 @@ class _LandingPageState extends State<LandingPage>
       tileProvider.updateImages(context);
     });
     usernames = _generateUserName();
+    if (Storage.instance.showNameChange) _showNameChange();
     // _showOverlay();
     // DatabaseService.instance.fetchLeaderBoards();
     // DatabaseService.instance.submitDummyCommunityScores();
@@ -229,62 +223,85 @@ class _LandingPageState extends State<LandingPage>
         );
 
     Widget usernameWidget() {
-      return Text.rich(
-        TextSpan(text: "Your username is ", children: [
-          WidgetSpan(
-            baseline: TextBaseline.alphabetic,
-            child: PopupMenuButton<String>(
-              child: Text(
-                userData!.username,
-                style: TextStyle(
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Text.rich(
+            TextSpan(text: "Your username is ", children: [
+              WidgetSpan(
+                baseline: TextBaseline.alphabetic,
+                child: PopupMenuButton<String>(
+                  child: Text(
+                    userData!.username,
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontFamily: "Glacial",
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  tooltip: "Change username",
                   color: primaryColor,
-                  fontFamily: "Glacial",
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  shape: const RoundedRectangleBorder(),
+                  itemBuilder: (context) {
+                    // PopupMenuItem(
+                    //   child: Text(userData.username),
+                    //   value: userData.username,
+                    // ),
+                    return usernames
+                        .map((e) => PopupMenuItem<String>(
+                              child: Text(
+                                e,
+                                style: const TextStyle(
+                                  fontFamily: "Glacial",
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              value: e,
+                            ))
+                        .toList();
+                  },
+                  onSelected: _updateUserName,
+                  onCanceled: () {
+                    setState(() {
+                      usernames = _generateUserName();
+                    });
+                  },
                 ),
               ),
-              tooltip: "Change username",
-              color: Colors.white,
-              shape: const RoundedRectangleBorder(),
-              itemBuilder: (context) {
-                // PopupMenuItem(
-                //   child: Text(userData.username),
-                //   value: userData.username,
-                // ),
-                return usernames
-                    .map((e) => PopupMenuItem<String>(
-                          child: Text(
-                            e,
-                            style: TextStyle(
-                              fontFamily: "Glacial",
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
-                            ),
-                          ),
-                          value: e,
-                        ))
-                    .toList();
-              },
-              onSelected: _updateUserName,
-              onCanceled: () {
-                setState(() {
-                  usernames = _generateUserName();
-                });
-              },
-            ),
+              // WidgetSpan(
+              //   child: MouseRegion(
+              //     cursor: SystemMouseCursors.click,
+              //     child: GestureDetector(
+              //       child: Icon(Icons.compare_arrows),
+              //       onTap: _generateUserName,
+              //     ),
+              //   ),
+              // ),
+            ]),
+            style: const TextStyle(fontFamily: "Glacial", fontSize: 24),
+            textAlign: TextAlign.center,
           ),
-          // WidgetSpan(
-          //   child: MouseRegion(
-          //     cursor: SystemMouseCursors.click,
-          //     child: GestureDetector(
-          //       child: Icon(Icons.compare_arrows),
-          //       onTap: _generateUserName,
-          //     ),
-          //   ),
-          // ),
-        ]),
-        style: const TextStyle(fontFamily: "Glacial", fontSize: 24),
-        textAlign: TextAlign.center,
+          Positioned(
+            bottom: -20,
+            right: 0,
+            child: AnimatedSwitcher(
+              duration: Duration(milliseconds: defaultTime),
+              child: showUsernameChangeHint
+                  ? const DefaultTextStyle(
+                      style: TextStyle(
+                          fontFamily: "Glacial",
+                          fontSize: 14,
+                          color: Colors.white),
+                      child: Text(
+                        "Don't like this? Tap it to generate new ones!",
+                      ),
+                    )
+                  : Container(),
+            ),
+          )
+        ],
       );
     }
 
@@ -360,18 +377,13 @@ class _LandingPageState extends State<LandingPage>
                               //     : Container(),
                             ],
                           )),
-                          userData != null
-                              ? Align(
-                                  alignment: Alignment(0, 0.2),
-                                  // top: maxHeight * 0.55,
-                                  // left: 0,
-                                  // right: 0,
-                                  child: CompositedTransformTarget(
-                                    link: layerLink,
-                                    child: usernameWidget(),
-                                  ),
-                                )
-                              : Container(),
+                          Align(
+                            alignment: Alignment(0, 0.2),
+                            // top: maxHeight * 0.55,
+                            // left: 0,
+                            // right: 0,
+                            child: usernameWidget(),
+                          ),
                           const Align(
                             alignment: Alignment(0.95, -0.98),
                             child: SoundsVibrationsTool(isTall: false),

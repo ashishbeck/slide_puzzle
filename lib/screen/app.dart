@@ -216,17 +216,8 @@ class _LayoutPageState extends State<LayoutPage> {
       // floatingActionButton: FloatingActionButton(
       //   child: const Icon(Icons.add),
       //   onPressed: () {
-      //     // _createTiles();
-      //     var i = 0;
-      //     Timer timer = Timer.periodic(duration, (timer) {
-      //       Service().moveWhite(tileList, solvingMoves[i]);
-      //       tileProvider.updateNotifiers();
-      //       i++;
-      //       if (i == solvingMoves.length) timer.cancel();
-      //     });
-      //     // solvingMoves.forEach((element) async {
-      //     //   await Future.delayed(duration);
-      //     // });
+      //     TileProvider tileProvider = context.read<TileProvider>();
+      //     puzzleTileKey.currentState!.reverseAnim(tileProvider);
       //   },
       // ),
       body: LayoutBuilder(

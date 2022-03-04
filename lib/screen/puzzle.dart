@@ -30,16 +30,16 @@ class Puzzle extends StatefulWidget {
 
 final puzzleKey = GlobalKey<_PuzzleState>();
 
-class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
-  late AnimationController controller;
+class _PuzzleState extends State<Puzzle> {
+  late AnimationController animationController;
   final FocusNode focusNode = FocusNode();
   int gridSize = 0;
   // late List<TilesModel> tileList;
   // late List<int> mainTiles;
   // late List<int> currentTiles;
   bool isSolved = false;
-  List<int> images = List.generate(6, (index) => index + 1);
-  int currentImage = 1;
+  // List<int> images = List.generate(6, (index) => index + 1);
+  // int currentImage = 1;
   GameState? gameState;
   String currentVideo = "";
 
@@ -140,6 +140,14 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
     if (isSolved &&
         tileList.isNotEmpty &&
         (gameState == GameState.started || aiSolved)) {
+      if (configProvider.showNumbers) {
+        scoreProvider.stopTimer();
+        configProvider.finish(solvedByAI: aiSolved);
+        setState(() {
+          gameState = GameState.finished;
+        });
+        return;
+      }
       UserData? newData;
       if (!aiSolved) {
         newData = await _calculateAndSubmitScore(gridSize, scoreProvider);
@@ -202,12 +210,14 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
               gridSize: gridSize,
               currentMove: (scoreProvider.moves == 0 ||
                       configProvider.gamestate == GameState.started ||
-                      configProvider.solvedByAI)
+                      configProvider.solvedByAI ||
+                      configProvider.showNumbers)
                   ? null
                   : scoreProvider.moves,
               currentTime: (scoreProvider.moves == 0 ||
                       configProvider.gamestate == GameState.started ||
-                      configProvider.solvedByAI)
+                      configProvider.solvedByAI ||
+                      configProvider.showNumbers)
                   ? null
                   : scoreProvider.seconds,
               userData: newData!,
@@ -240,8 +250,8 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
     // currentTiles = list.map((e) => e.currentIndex).toList();
     // mainTiles = List.generate(pow(gridSize, 2).toInt(), (index) => index);
     // currentTiles = List.from(mainTiles);
-    controller = AnimationController(vsync: this);
-    controller.repeat(period: Duration(milliseconds: defaultTime));
+    // controller = AnimationController(vsync: this);
+    // controller.repeat(period: Duration(milliseconds: defaultTime));
     // _requestFocus();
   }
 
@@ -319,6 +329,11 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
                   defaultIndex: tileList[i].defaultIndex,
                   isWhite: tileList[i].isWhite,
                   image: image,
+                  tileAnimController: (controller) {
+                    if (i == 0) {
+                      animationController = controller;
+                    }
+                  },
                   onTap: (int newPos) {
                     // list.shuffle();
                     // setState(() {
@@ -334,7 +349,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
               DelayedLoader(
                 configProvider: configProvider,
                 label: "Buttons",
-                duration: Duration(milliseconds: 2000),
+                duration: const Duration(milliseconds: 2000),
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: Row(
@@ -357,7 +372,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     focusNode.dispose();
-    controller.dispose();
+    // controller.dispose();
     super.dispose();
   }
 }
@@ -371,17 +386,19 @@ class PuzzleTile extends StatefulWidget {
   final bool isWhite;
   final Function(int newPos) onTap;
   final Widget image;
-  PuzzleTile(
-      {Key? key,
-      required this.tileList,
-      required this.gridSize,
-      required this.currentIndex,
-      required this.constraints,
-      required this.defaultIndex,
-      required this.isWhite,
-      required this.onTap,
-      required this.image})
-      : super(key: key);
+  final Function(AnimationController controller)? tileAnimController;
+  PuzzleTile({
+    Key? key,
+    required this.tileList,
+    required this.gridSize,
+    required this.currentIndex,
+    required this.constraints,
+    required this.defaultIndex,
+    required this.isWhite,
+    required this.onTap,
+    required this.image,
+    required this.tileAnimController,
+  }) : super(key: key);
 
   @override
   State<PuzzleTile> createState() => _PuzzleTileState();
@@ -492,11 +509,29 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     return false;
   }
 
+  _makeEmReanimate() {
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    String name = "puzzleTile${widget.defaultIndex}";
+    configProvider.entryAnimationDone[name] = false;
+    isAnimating = true;
+  }
+
+  reverseAnim(TileProvider tileProvider) {
+    animationController.reverse().then((value) {
+      _makeEmReanimate();
+      if (widget.currentIndex == 0) {
+        int index = tileProvider.gridSize;
+        tileProvider.changeGridSize(index == 3 ? 4 : 3);
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     animationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    widget.tileAnimController!(animationController);
     // _animateEntry();
     _ifAnimated();
   }
@@ -511,6 +546,9 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     // print("building tile");
     TileProvider tileProvider = context.read<TileProvider>();
+    if (tileProvider.reverse) {
+      reverseAnim(tileProvider);
+    }
     TweenProvider tweenProvider = context.read<TweenProvider>();
     ConfigProvider configProvider = context.read<ConfigProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
@@ -588,7 +626,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     //     height * imageLeft,
     //     height *
     //         imageTop); //Offset(height * imageLeft - gap, height * imageTop - gap);
-    Widget container = Container(
+    Widget tileContainer = Container(
         // duration: configProvider.duration,
         child: widget.isWhite
             ? Container()
@@ -718,10 +756,13 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
                           scale: CurvedAnimation(
                               parent: animationController,
                               curve: Curves.easeOutBack),
-                          child: container),
+                          child: tileContainer),
                     );
                   })
-              : container,
+              : ScaleTransition(
+                  scale: CurvedAnimation(
+                      parent: animationController, curve: Curves.easeOutBack),
+                  child: tileContainer),
         ),
       ),
     );

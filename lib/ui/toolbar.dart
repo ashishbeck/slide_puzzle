@@ -45,7 +45,8 @@ class _ToolBarState extends State<ToolBar> {
         tooltip: "Switch the grid size",
         onPressed: () {
           if (configProvider.gamestate != GameState.aiSolving) {
-            tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
+            // tileProvider.changeGridSize(gridSize == 3 ? 4 : 3);
+            tileProvider.changeGridWithAnimation();
           }
         },
         // isDisabled:
@@ -62,6 +63,7 @@ class _ToolBarState extends State<ToolBar> {
         isTall: widget.isTall,
         configProvider: configProvider,
         scoreProvider: scoreProvider,
+        tileProvider: tileProvider,
       ),
       SoundsVibrationsTool(
         isTall: widget.isTall,

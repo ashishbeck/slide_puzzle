@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/constants.dart';
+import 'package:slide_puzzle/code/providers.dart';
 
 class MyTransform extends StatefulWidget {
   final Widget child;
@@ -34,6 +36,32 @@ class _MyTransformState extends State<MyTransform>
     });
   }
 
+  _animateEntry() {
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    String name = "3dtransform";
+    // if (configProvider.entryAnimationDone[name] != null &&
+    //     configProvider.entryAnimationDone[name]!) {
+    //   isAnimating = false;
+    //   return;
+    // }
+    if (!_ifAnimated()) {
+      configProvider.seenEntryAnimation(name);
+      animationController.forward();
+    } else {
+      animationController.value = 1;
+    }
+  }
+
+  bool _ifAnimated() {
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    String name = "3dtransform";
+    if (configProvider.entryAnimationDone[name] != null &&
+        configProvider.entryAnimationDone[name]!) {
+      return true;
+    }
+    return false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +70,7 @@ class _MyTransformState extends State<MyTransform>
     animation =
         CurvedAnimation(parent: animationController, curve: Curves.easeOut);
     animationController.addListener(_listener);
-    animationController.forward();
+    _animateEntry();
   }
 
   @override
@@ -75,13 +103,13 @@ class _MyTransformState extends State<MyTransform>
             alignment: FractionalOffset.center,
             child: GestureDetector(
               onPanUpdate: (details) {
-                if (kDebugMode) {
-                  setState(() {
-                    x = x + details.delta.dy / 100;
-                    y = y + details.delta.dx / 100;
-                  });
-                  print("($x, $y)");
-                }
+                // if (kDebugMode) {
+                //   setState(() {
+                //     x = x + details.delta.dy / 100;
+                //     y = y + details.delta.dx / 100;
+                //   });
+                //   print("($x, $y)");
+                // }
               },
               child: widget.child,
             ),

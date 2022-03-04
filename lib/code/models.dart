@@ -204,3 +204,14 @@ class LeaderboardItem {
   // factory LeaderboardItem.fromJson(String source) =>
   //     LeaderboardItem.fromMap(json.decode(source));
 }
+
+class ColorTheme {
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color buttonShadowColor;
+  const ColorTheme(
+    this.primaryColor,
+    this.secondaryColor,
+    this.buttonShadowColor,
+  );
+}

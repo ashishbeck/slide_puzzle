@@ -110,9 +110,11 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
   _refreshAfterLoaded() async {
     await Future.delayed(Duration(
         milliseconds: defaultSidebarTime + defaultEntryTime * 2 + 1000));
-    setState(() {});
-    gradController.forward();
-    arrowController.forward().then((value) => arrowEntered = true);
+    if (mounted) {
+      setState(() {});
+      gradController.forward();
+      arrowController.forward().then((value) => arrowEntered = true);
+    }
   }
 
   @override

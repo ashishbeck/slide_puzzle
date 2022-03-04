@@ -1,3 +1,12 @@
+## 0.6.0
+
+ - Scoreboard is properly aligned now
+ - Twitter share fixed
+ - Loading screen until user is logged in
+ - Tiles have no gap if placed correctly
+ - Theme changer added
+ - Navigation back to landing screen is allowed and optimized
+
 ## 0.5.7
 
  - Added silly usernames

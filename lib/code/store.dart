@@ -10,12 +10,15 @@ class Storage {
   bool get sounds => _sounds;
   bool _vibrations = true;
   bool get vibrations => _vibrations;
+  int _colorTheme = 0;
+  int get colorTheme => _colorTheme;
 
   init() {
     _sounds = box.read<bool>("sounds") ?? true;
     AudioService.instance.isMuted = !_sounds;
     _vibrations = box.read<bool>("vibrations") ?? true;
     AudioService.instance.shouldVibrate = _vibrations;
+    _colorTheme = box.read<int>("color") ?? 0;
   }
 
   toggleSounds() {
@@ -26,5 +29,10 @@ class Storage {
   toggleVibrations() {
     _vibrations = !_vibrations;
     box.write("vibrations", _vibrations);
+  }
+
+  changeColor(int index) {
+    _colorTheme = index;
+    box.write("color", _colorTheme);
   }
 }

@@ -14,6 +14,8 @@ import 'package:slide_puzzle/ui/Scoreboard.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/dialog.dart';
 import 'package:slide_puzzle/ui/sound_vibration.dart';
+import 'package:slide_puzzle/ui/spinner.dart';
+import 'package:slide_puzzle/ui/theme_changer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:slide_puzzle/ui/button.dart';
@@ -36,6 +38,9 @@ class _LandingPageState extends State<LandingPage>
   bool isHovering1 = false;
   bool isHovering2 = false;
   List<String> usernames = [];
+  bool backFromGame = false;
+  OverlayEntry? overlayEntry;
+  LayerLink layerLink = LayerLink();
 
   List<String> _generateUserName({int total = 5}) {
     List<String> usernames = generateWordPairs(maxSyllables: 4)
@@ -46,6 +51,7 @@ class _LandingPageState extends State<LandingPage>
   }
 
   _updateUserName(String? newUsername) {
+    if (overlayEntry != null) overlayEntry!.remove();
     UserData? userData = context.read<UserData?>();
     if (newUsername == null || newUsername == userData!.username) return;
     DatabaseService.instance
@@ -71,6 +77,30 @@ class _LandingPageState extends State<LandingPage>
     }
   }
 
+  _navigateToGame({double offset = 1}) {
+    return Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          var begin = Offset(0, offset);
+          var end = Offset.zero;
+          var curve = Curves.easeInOutCubic;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+        reverseTransitionDuration: const Duration(milliseconds: 200),
+        pageBuilder: (context, animation, animation2) => LayoutPage(),
+      ),
+    );
+  }
+
   _onPressed() async {
     await Future.delayed(const Duration(milliseconds: 200));
     // if (animationController.isCompleted) {
@@ -79,14 +109,24 @@ class _LandingPageState extends State<LandingPage>
     setState(() {
       // disableButton = true;
     });
-    animationController.forward().then(
-          (value) => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LayoutPage(),
-            ),
-          ),
-        );
+    if (backFromGame) {
+      _navigateToGame();
+    } else {
+      animationController.forward().then(
+            (value) => _navigateToGame(offset: 0.25).then((value) {
+              // animationController.value = 0;
+              animationController.reset();
+              backFromGame = true;
+              if (mounted) setState(() {});
+            }),
+            // (value) => Navigator.pushReplacement(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (context) => LayoutPage(),
+            //   ),
+            // ),
+          );
+    }
   }
 
   _handleKeyEvent(RawKeyEvent event) {
@@ -95,6 +135,29 @@ class _LandingPageState extends State<LandingPage>
         !animationController.isAnimating) {
       _onPressed();
     }
+  }
+
+  _showOverlay() async {
+    await Future.delayed(const Duration(milliseconds: 4000));
+    overlayEntry = OverlayEntry(
+      builder: (BuildContext context) {
+        return CompositedTransformFollower(
+            // offset: Offset(1, 1),
+            targetAnchor: Alignment.bottomCenter,
+            // followerAnchor: Alignment.bottomCenter,
+            link: layerLink,
+            child: const DefaultTextStyle(
+              style: TextStyle(
+                  fontFamily: "Glacial", fontSize: 14, color: Colors.white),
+              child: Text(
+                "Don't like this? Tap it to generate new ones!",
+              ),
+            ));
+      },
+    );
+    Overlay.of(context)!.insert(overlayEntry!);
+    await Future.delayed(const Duration(milliseconds: 5000));
+    if (overlayEntry != null) overlayEntry!.remove();
   }
 
   @override
@@ -115,6 +178,7 @@ class _LandingPageState extends State<LandingPage>
       tileProvider.updateImages(context);
     });
     usernames = _generateUserName();
+    // _showOverlay();
     // DatabaseService.instance.fetchLeaderBoards();
     // DatabaseService.instance.submitDummyCommunityScores();
     // generateWordPairs(maxSyllables: 4).take(15).forEach(print);
@@ -220,7 +284,7 @@ class _LandingPageState extends State<LandingPage>
           // ),
         ]),
         style: const TextStyle(fontFamily: "Glacial", fontSize: 24),
-        textAlign: TextAlign.right,
+        textAlign: TextAlign.center,
       );
     }
 
@@ -230,155 +294,174 @@ class _LandingPageState extends State<LandingPage>
       onKey: _handleKeyEvent,
       child: Scaffold(
         backgroundColor: secondaryColor,
-        body: ScaleTransition(
-          scale: Tween<double>(begin: 1, end: 350).animate(CurvedAnimation(
-              parent: animationController, curve: Curves.easeInQuart)),
-          child: RotationTransition(
-            turns: Tween<double>(begin: 0, end: 0.25).animate(CurvedAnimation(
-                parent: animationController, curve: Curves.easeIn)),
-            child: LayoutBuilder(builder: (context, constraints) {
-              double maxWidth = constraints.maxWidth;
-              double maxHeight = constraints.maxHeight;
-              return Container(
-                height: maxHeight,
-                width: maxWidth,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      // secondaryColor[400]!,
-                      secondaryColor,
-                      secondaryColor,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Center(
-                        child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          appName,
-                          style: Theme.of(context).textTheme.headline5,
-                          textAlign: TextAlign.center,
+        body: userData == null
+            ? const Spinner(
+                text: "Loading",
+              )
+            : ScaleTransition(
+                scale: Tween<double>(begin: 1, end: 350).animate(
+                    CurvedAnimation(
+                        parent: animationController,
+                        curve: Curves.easeInQuart)),
+                child: RotationTransition(
+                  turns: Tween<double>(begin: 0, end: 0.25).animate(
+                      CurvedAnimation(
+                          parent: animationController, curve: Curves.easeIn)),
+                  child: LayoutBuilder(builder: (context, constraints) {
+                    double maxWidth = constraints.maxWidth;
+                    double maxHeight = constraints.maxHeight;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      height: maxHeight,
+                      width: maxWidth,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            // secondaryColor[400]!,
+                            secondaryColor,
+                            secondaryColor,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        animationController.isAnimating
-                            ? IgnorePointer(
-                                child: button(),
-                              )
-                            : button(),
-                        Text(
-                          appName,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headline5!
-                              .copyWith(color: secondaryColor),
-                          textAlign: TextAlign.center,
-                        ),
-                        // userData != null
-                        //     ? ScoreBoard(
-                        //         gridSize: 3,
-                        //         // currentMove: 0,
-                        //         // currentTime: 0,
-                        //         userData: userData,
-                        //         child: Container(),
-                        //       )
-                        //     : Container(),
-                      ],
-                    )),
-                    userData != null
-                        ? Align(
-                            alignment: Alignment(0, 0.2),
-                            // top: maxHeight * 0.55,
-                            // left: 0,
-                            // right: 0,
-                            child: usernameWidget(),
-                          )
-                        : Container(),
-                    const Align(
-                      alignment: Alignment(0.95, -0.98),
-                      child: SoundsVibrationsTool(isTall: false),
-                    ),
-                    Align(
-                      alignment: Alignment(0, 0.8),
-                      child: Text.rich(
-                        TextSpan(text: "A project by ", children: [
-                          WidgetSpan(
-                            child: MouseRegion(
-                              onEnter: (event) =>
-                                  setState(() => isHovering1 = true),
-                              onExit: (event) =>
-                                  setState(() => isHovering1 = false),
-                              cursor: SystemMouseCursors.click,
-                              child: GestureDetector(
-                                onTap: () =>
-                                    _launch('https://linktr.ee/ashishbeck'),
-                                child: Text(
-                                  "Ashish Beck",
-                                  style: TextStyle(
-                                      color: isHovering1
-                                          ? Colors.white
-                                          : primaryColor),
-                                ),
+                      ),
+                      child: Stack(
+                        children: [
+                          Center(
+                              child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                appName,
+                                style: Theme.of(context).textTheme.headline5,
+                                textAlign: TextAlign.center,
                               ),
+                              animationController.isAnimating
+                                  ? IgnorePointer(
+                                      child: button(),
+                                    )
+                                  : button(),
+                              Text(
+                                appName,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headline5!
+                                    .copyWith(color: Colors.transparent),
+                                textAlign: TextAlign.center,
+                              ),
+                              // userData != null
+                              //     ? ScoreBoard(
+                              //         gridSize: 3,
+                              //         // currentMove: 0,
+                              //         // currentTime: 0,
+                              //         userData: userData,
+                              //         child: Container(),
+                              //       )
+                              //     : Container(),
+                            ],
+                          )),
+                          userData != null
+                              ? Align(
+                                  alignment: Alignment(0, 0.2),
+                                  // top: maxHeight * 0.55,
+                                  // left: 0,
+                                  // right: 0,
+                                  child: CompositedTransformTarget(
+                                    link: layerLink,
+                                    child: usernameWidget(),
+                                  ),
+                                )
+                              : Container(),
+                          const Align(
+                            alignment: Alignment(0.95, -0.98),
+                            child: SoundsVibrationsTool(isTall: false),
+                          ),
+                          Align(
+                            alignment: Alignment(-0.95, -0.98),
+                            child: ThemeChanger(
+                              onTap: () {
+                                setState(() {});
+                              },
                             ),
                           ),
-                          // TextSpan(
-                          //     text: "\nwith design help from ",
-                          //     style: Theme.of(context)
-                          //         .textTheme
-                          //         .labelSmall!
-                          //         .copyWith(
-                          //             decorationStyle: TextDecorationStyle.wavy,
-                          //             decorationThickness: 4,
-                          //             decoration: TextDecoration.lineThrough)),
-                          // WidgetSpan(
-                          //   child: MouseRegion(
-                          //     onEnter: (event) =>
-                          //         setState(() => isHovering2 = true),
-                          //     onExit: (event) =>
-                          //         setState(() => isHovering2 = false),
-                          //     cursor: SystemMouseCursors.click,
-                          //     child: GestureDetector(
-                          //       onTap: () =>
-                          //           _launch('https://linktr.ee/sushobhan'),
-                          //       child: Text(
-                          //         "Sushobhan Parida",
-                          //         style: Theme.of(context)
-                          //             .textTheme
-                          //             .labelSmall!
-                          //             .copyWith(
-                          //                 decorationStyle:
-                          //                     TextDecorationStyle.wavy,
-                          //                 decorationThickness: 4,
-                          //                 decoration:
-                          //                     TextDecoration.lineThrough,
-                          //                 color: isHovering2
-                          //                     ? Colors.white
-                          //                     : primaryColor),
-                          //       ),
-                          //     ),
-                          //   ),
-                          // ),
-                        ]),
-                        textAlign: TextAlign.center,
+                          Align(
+                            alignment: Alignment(0, 0.8),
+                            child: Text.rich(
+                              TextSpan(text: "A project by ", children: [
+                                WidgetSpan(
+                                  child: MouseRegion(
+                                    onEnter: (event) =>
+                                        setState(() => isHovering1 = true),
+                                    onExit: (event) =>
+                                        setState(() => isHovering1 = false),
+                                    cursor: SystemMouseCursors.click,
+                                    child: GestureDetector(
+                                      onTap: () => _launch(
+                                          'https://linktr.ee/ashishbeck'),
+                                      child: Text(
+                                        "Ashish Beck",
+                                        style: TextStyle(
+                                            color: isHovering1
+                                                ? Colors.white
+                                                : primaryColor),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                // TextSpan(
+                                //     text: "\nwith design help from ",
+                                //     style: Theme.of(context)
+                                //         .textTheme
+                                //         .labelSmall!
+                                //         .copyWith(
+                                //             decorationStyle: TextDecorationStyle.wavy,
+                                //             decorationThickness: 4,
+                                //             decoration: TextDecoration.lineThrough)),
+                                // WidgetSpan(
+                                //   child: MouseRegion(
+                                //     onEnter: (event) =>
+                                //         setState(() => isHovering2 = true),
+                                //     onExit: (event) =>
+                                //         setState(() => isHovering2 = false),
+                                //     cursor: SystemMouseCursors.click,
+                                //     child: GestureDetector(
+                                //       onTap: () =>
+                                //           _launch('https://linktr.ee/sushobhan'),
+                                //       child: Text(
+                                //         "Sushobhan Parida",
+                                //         style: Theme.of(context)
+                                //             .textTheme
+                                //             .labelSmall!
+                                //             .copyWith(
+                                //                 decorationStyle:
+                                //                     TextDecorationStyle.wavy,
+                                //                 decorationThickness: 4,
+                                //                 decoration:
+                                //                     TextDecoration.lineThrough,
+                                //                 color: isHovering2
+                                //                     ? Colors.white
+                                //                     : primaryColor),
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
+                              ]),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Text(
+                              "v${version}",
+                              style: Theme.of(context).textTheme.caption,
+                            ),
+                          )
+                        ],
                       ),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Text(
-                        "v${version}",
-                        style: Theme.of(context).textTheme.caption,
-                      ),
-                    )
-                  ],
+                    );
+                  }),
                 ),
-              );
-            }),
-          ),
-        ),
+              ),
       ),
     );
   }

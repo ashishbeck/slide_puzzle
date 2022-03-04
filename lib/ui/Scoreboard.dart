@@ -330,16 +330,20 @@ class _ScoreBoardState extends State<ScoreBoard>
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          AutoSizeText(
-            "${index + 1}",
-            style: TextStyle(
-              fontFamily: "Arcade",
-              color: color,
+          Expanded(
+            flex: 1,
+            child: AutoSizeText(
+              "${index + 1}",
+              style: TextStyle(
+                fontFamily: "Arcade",
+                color: color,
+              ),
+              maxLines: 1,
+              minFontSize: 8,
             ),
-            maxLines: 1,
-            minFontSize: 8,
           ),
           Expanded(
+            flex: 8,
             child: AutoSizeText(
               "   ${item.username}" + (isMe ? " (You)" : ""),
               style: TextStyle(color: color, fontWeight: FontWeight.bold),
@@ -348,11 +352,15 @@ class _ScoreBoardState extends State<ScoreBoard>
             ),
           ),
           // Spacer(),
-          AutoSizeText(
-            "${Service().intToTimeLeft(item.time)} (${item.move})",
-            style: TextStyle(color: color),
-            maxLines: 1,
-            minFontSize: 8,
+          Expanded(
+            flex: 2,
+            child: AutoSizeText(
+              "${Service().intToTimeLeft(item.time)} (${item.move})",
+              style: TextStyle(color: color),
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              minFontSize: 8,
+            ),
           )
         ],
       );
@@ -369,9 +377,25 @@ class _ScoreBoardState extends State<ScoreBoard>
       return StreamBuilder<List<LeaderboardItem>>(
           stream: DatabaseService.instance.fetchLeaderBoards(grid),
           builder: (context, snapshot) {
-            bool isDone =
-                !snapshot.hasError && snapshot.hasData && snapshot.data != null;
-            if (!isDone) return Spinner();
+            bool isDone = !snapshot.hasError &&
+                snapshot.hasData &&
+                snapshot.data != null &&
+                snapshot.connectionState != ConnectionState.waiting;
+            if (!isDone) {
+              return Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.zero),
+                  border: Border.all(
+                    color: Colors.white,
+                  ),
+                ),
+                child: const Center(
+                    child: Spinner(
+                  text: "Fetching...",
+                )),
+              );
+            }
             List<LeaderboardItem> data = snapshot.data!;
             data.sort((a, b) {
               int cmp = a.time.compareTo(b.time);
@@ -401,7 +425,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                     endIndent: 24,
                   ),
                   itemCount: data.length + (!myPosition.isNegative ? 0 : 1),
-                  physics: const BouncingScrollPhysics(),
+                  // physics: const BouncingScrollPhysics(),
                   itemScrollController: itemScrollController,
                   itemBuilder: ((context, index) {
                     if (index == data.length) {

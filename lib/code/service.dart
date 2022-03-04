@@ -242,8 +242,8 @@ class Service {
       String tPerc, int rank) {
     String grid = "${gridSize}x$gridSize";
     String text = "I just solved the $grid Retro Puzzle in $moves moves under "
-        "$time 😎 I am rank $rank in the leaderboards 💪\n\nThink you can "
-        "beat me? 😉 Try it out-\n"
+        "$time 😎 I am ranked %23$rank in the leaderboards 💪\n\nThink you can "
+        "beat me? 😉\nTry it out-\n"
         "&url=https://n-puzzle-solver-1.web.app/";
     Uri uri = Uri.parse("https://twitter.com/intent/tweet?text=" + text);
     launch(uri.toString());

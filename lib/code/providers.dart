@@ -54,7 +54,6 @@ class TileProvider extends ChangeNotifier {
     _gridSize = index;
     homeKey.currentState!
         .createTiles(gridSize: index, isChangingGrid: true, shuffle: false);
-    notifyListeners();
   }
 }
 

@@ -141,7 +141,7 @@ class _PuzzleState extends State<Puzzle> with SingleTickerProviderStateMixin {
         tileList.isNotEmpty &&
         (gameState == GameState.started || aiSolved)) {
       UserData? newData;
-      if (kDebugMode ? true : !aiSolved) {
+      if (!aiSolved) {
         newData = await _calculateAndSubmitScore(gridSize, scoreProvider);
         launchScoreBoard(scoreProvider, newData, configProvider);
       }
@@ -539,7 +539,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     bool isLeft = column == 0;
     bool isBottom = row == widget.gridSize - 1;
     bool isRight = column == widget.gridSize - 1;
-    double gap = 1;
+    double gap = thisTile.currentIndex == thisTile.defaultIndex ? 0 : 1;
     double totalGap = ((widget.gridSize + 1) * gap);
     double height = (maxHeight - totalGap) / widget.gridSize;
 
@@ -563,6 +563,11 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
 
     double topOffset = (maxHeight * row) / widget.gridSize + topMousePos;
     double leftOffset = (maxHeight * column) / widget.gridSize + leftMousePos;
+    // if (isHovering) {
+    //   height -= 4;
+    //   topOffset += 2;
+    //   leftOffset += 2;
+    // }
     double tileSize = height + gap;
     //row: (random[e] / gridSize).floor(), column: random[e] % gridSize
     int defaultRow = (thisTile.defaultIndex / widget.gridSize).floor();
@@ -583,55 +588,49 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     //     height * imageLeft,
     //     height *
     //         imageTop); //Offset(height * imageLeft - gap, height * imageTop - gap);
-    Widget container = widget.isWhite
-        ? Container()
-        : Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                // duration: Duration(milliseconds: defaultTime),
-                // alignment: Alignment.center,
-                height: height,
-                width: height,
-                // decoration: isHovering
-                //     ? const BoxDecoration(
-                //         borderRadius: BorderRadius.all(
-                //           Radius.circular(20),
-                //         ),
-                //       )
-                //     : const BoxDecoration(
-                //         borderRadius: BorderRadius.all(
-                //           Radius.circular(0),
-                //         ),
-                //       ),
-                child: ClipRect(
-                  child: OverflowBox(
-                    maxWidth: double.infinity,
-                    maxHeight: double.infinity,
-                    // alignment: Alignment.topLeft,
-                    child: Transform.scale(
-                      scale: widget.gridSize.toDouble().toDouble(),
-                      origin: finalImageOffset,
-                      // alignment: Alignment(imageLeft, imageTop),
-                      child: widget.image,
+    Widget container = Container(
+        // duration: configProvider.duration,
+        child: widget.isWhite
+            ? Container()
+            : Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    // duration: Duration(milliseconds: defaultTime),
+                    // alignment: Alignment.center,
+                    height: height,
+                    width: height,
+                    // decoration: isHovering
+                    //     ? BoxDecoration(border: Border.all(color: primaryColor))
+                    //     : const BoxDecoration(),
+                    child: ClipRect(
+                      child: OverflowBox(
+                        maxWidth: double.infinity,
+                        maxHeight: double.infinity,
+                        // alignment: Alignment.topLeft,
+                        child: Transform.scale(
+                          scale: widget.gridSize.toDouble().toDouble(),
+                          origin: finalImageOffset,
+                          // alignment: Alignment(imageLeft, imageTop),
+                          child: widget.image,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              configProvider.showNumbers
-                  ? Center(
-                      child: AutoSizeText(
-                      "${widget.defaultIndex + 1}",
-                      style: const TextStyle(
-                          fontSize: 32,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(color: Colors.black, blurRadius: 1)
-                          ]),
-                    ))
-                  : Container()
-            ],
-          );
+                  configProvider.showNumbers
+                      ? Center(
+                          child: AutoSizeText(
+                          "${widget.defaultIndex + 1}",
+                          style: const TextStyle(
+                              fontSize: 32,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(color: Colors.black, blurRadius: 1)
+                              ]),
+                        ))
+                      : Container()
+                ],
+              ));
     return AnimatedPositioned(
       duration: configProvider.duration,
       curve: configProvider.curve,
@@ -643,6 +642,8 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
                 ? SystemMouseCursors.basic
                 : SystemMouseCursors.click
             : SystemMouseCursors.forbidden,
+        // onEnter: (_) => setState(() => isHovering = true),
+        // onExit: (_) => setState(() => isHovering = false),
         child: GestureDetector(
           onPanUpdate: (details) {
             if (configProvider.gamestate == GameState.started) {

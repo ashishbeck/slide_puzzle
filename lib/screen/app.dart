@@ -17,6 +17,7 @@ import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
+import 'package:slide_puzzle/ui/colored_background.dart';
 import 'package:slide_puzzle/ui/toolbar.dart';
 
 class LayoutPage extends StatefulWidget {
@@ -220,6 +221,7 @@ class _LayoutPageState extends State<LayoutPage> {
       //     puzzleTileKey.currentState!.reverseAnim(tileProvider);
       //   },
       // ),
+      backgroundColor: Colors.white,
       body: LayoutBuilder(
         builder: (context, constraints) {
           // final size = constraints.
@@ -257,17 +259,17 @@ class _LayoutPageState extends State<LayoutPage> {
           // bool isTall = (width / height) < (6 / 5);
           double padding = 32;
           return Center(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                // image: DecorationImage(
-                //     image: AssetImage("images/stripes_bg.jpg"),
-                //     fit: BoxFit.cover),
-                // gradient: grad.LinearGradient(colors: [
-                //   primaryColor.withOpacity(0.5),
-                //   primaryColor.withOpacity(0.2),
-                // ]),
-              ),
+            child: ColoredBackground(
+              // decoration: const BoxDecoration(
+              //   color: Colors.white,
+              //   // image: DecorationImage(
+              //   //     image: AssetImage("images/stripes_bg.jpg"),
+              //   //     fit: BoxFit.cover),
+              //   // gradient: grad.LinearGradient(colors: [
+              //   //   primaryColor.withOpacity(0.5),
+              //   //   primaryColor.withOpacity(0.2),
+              //   // ]),
+              // ),
               // color: primaryColor.withOpacity(0.2),
               child: Stack(children: [
                 AnimatedAlign(

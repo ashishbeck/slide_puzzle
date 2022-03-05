@@ -194,18 +194,20 @@ class Service {
     return !allowed;
   }
 
-  String intToTimeLeft(int value) {
+  String intToTimeLeft(int value, {bool forTweet = false}) {
     int h, m, s;
     h = value ~/ 3600;
     m = ((value - h * 3600)) ~/ 60;
     s = value - (h * 3600) - (m * 60);
     String hourLeft =
         h.toString().length < 2 ? "0" + h.toString() : h.toString();
-    String minuteLeft =
-        m.toString().length < 2 ? "0" + m.toString() : m.toString();
+    String minuteLeft = (m.toString().length) < 2 && !forTweet
+        ? "0" + m.toString()
+        : m.toString();
     String secondsLeft =
         s.toString().length < 2 ? "0" + s.toString() : s.toString();
-    String result = "${h == 0 ? "" : hourLeft + ":"}$minuteLeft:$secondsLeft";
+    String result =
+        "${h == 0 ? "" : hourLeft + ":"}$minuteLeft${forTweet ? "m" : ""}:$secondsLeft${forTweet ? "s" : ""}";
     return result;
   }
 
@@ -239,12 +241,12 @@ class Service {
   }
 
   void shareToTwitter(int gridSize, int moves, String time, String mPerc,
-      String tPerc, int rank) {
+      String tPerc, int rank, String username) {
     String grid = "${gridSize}x$gridSize";
     String text = "I just solved the $grid Retro Puzzle in $moves moves under "
-        "$time 😎 I am ranked %23$rank in the leaderboards 💪\n\nThink you can "
-        "beat me? 😉\nTry it out-\n"
-        "&url=https://n-puzzle-solver-1.web.app/";
+        "$time 😎 I am ranked %23$rank in the leaderboards 💪\n($username)"
+        "\n\nThink you can beat me? 😉\nTry it out-\n"
+        "&url=$appLink&hashtags=FlutterPuzzleHack";
     Uri uri = Uri.parse("https://twitter.com/intent/tweet?text=" + text);
     launch(uri.toString());
   }

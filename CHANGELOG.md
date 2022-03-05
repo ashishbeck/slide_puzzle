@@ -1,3 +1,12 @@
+## 0.6.2
+
+ - Bug fixes
+ - Background color shifts while puzzle progresses
+ - Added mouse hover effects
+ - Tweaked theme palette and widget
+ - Added readable time when tweeting
+ - Removed arrow for image list (felt out of place)
+
 ## 0.6.1
 
  - Tweaked themes

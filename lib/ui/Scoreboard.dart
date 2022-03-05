@@ -553,10 +553,12 @@ class _ScoreBoardState extends State<ScoreBoard>
                                 gridSize,
                                 widget.userData.moves[grid]!,
                                 Service().intToTimeLeft(
-                                    widget.userData.times[grid]!),
+                                    widget.userData.times[grid]!,
+                                    forTweet: true),
                                 movesPercentile,
                                 timesPercentile,
-                                rank);
+                                rank,
+                                userData.username);
                           },
                         ),
                       )

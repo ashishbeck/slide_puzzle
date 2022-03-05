@@ -47,12 +47,15 @@ class VisibleLeaderboardTool extends StatelessWidget {
                   barrierColor: Colors.black.withOpacity(0.95),
                   builder: (context) {
                     return const Center(
-                      child: Text(
-                        "This is the practice mode where you can see"
-                        " numbers on top of individual tiles.\nYour score will NOT"
-                        " be counted towards the Leaderboards!",
-                        style: TextStyle(fontFamily: "Glacial", fontSize: 18),
-                        textAlign: TextAlign.center,
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          "This is the practice mode where you can see"
+                          " numbers on top of individual tiles.\nYour score will NOT"
+                          " be counted towards the Leaderboards!",
+                          style: TextStyle(fontFamily: "Glacial", fontSize: 18),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     );
                   });

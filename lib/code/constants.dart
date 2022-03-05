@@ -29,9 +29,9 @@ List<ColorTheme> themes = [
     Color.fromARGB(255, 41, 100, 43),
   ),
   const ColorTheme(
-    Color.fromARGB(255, 30, 129, 176),
+    Color(0xff856712),
     Color.fromARGB(255, 33, 19, 13),
-    Color.fromARGB(255, 23, 99, 134),
+    Color.fromARGB(255, 99, 76, 13),
   ),
 ];
 void changeColor(int index) {
@@ -46,3 +46,5 @@ List<String> slideAudio = [
   "amb_electricarc_small_b_03.wav",
   "amb_electricarc_small_b_04.wav",
 ];
+
+String appLink = "https://n-puzzle-solver-1.web.app/";

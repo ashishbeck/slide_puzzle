@@ -31,7 +31,7 @@ class Puzzle extends StatefulWidget {
 final puzzleKey = GlobalKey<_PuzzleState>();
 
 class _PuzzleState extends State<Puzzle> {
-  late AnimationController animationController;
+  // late AnimationController animationController;
   final FocusNode focusNode = FocusNode();
   int gridSize = 0;
   // late List<TilesModel> tileList;
@@ -329,11 +329,6 @@ class _PuzzleState extends State<Puzzle> {
                   defaultIndex: tileList[i].defaultIndex,
                   isWhite: tileList[i].isWhite,
                   image: image,
-                  tileAnimController: (controller) {
-                    if (i == 0) {
-                      animationController = controller;
-                    }
-                  },
                   onTap: (int newPos) {
                     // list.shuffle();
                     // setState(() {
@@ -386,7 +381,6 @@ class PuzzleTile extends StatefulWidget {
   final bool isWhite;
   final Function(int newPos) onTap;
   final Widget image;
-  final Function(AnimationController controller)? tileAnimController;
   PuzzleTile({
     Key? key,
     required this.tileList,
@@ -397,7 +391,6 @@ class PuzzleTile extends StatefulWidget {
     required this.isWhite,
     required this.onTap,
     required this.image,
-    required this.tileAnimController,
   }) : super(key: key);
 
   @override
@@ -504,6 +497,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     if (configProvider.entryAnimationDone[name] != null &&
         configProvider.entryAnimationDone[name]!) {
       isAnimating = false;
+      animationController.value = 1;
       return true;
     }
     return false;
@@ -531,7 +525,6 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     super.initState();
     animationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 500));
-    widget.tileAnimController!(animationController);
     // _animateEntry();
     _ifAnimated();
   }
@@ -602,9 +595,9 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     double topOffset = (maxHeight * row) / widget.gridSize + topMousePos;
     double leftOffset = (maxHeight * column) / widget.gridSize + leftMousePos;
     // if (isHovering) {
-    //   height -= 4;
-    //   topOffset += 2;
-    //   leftOffset += 2;
+    //   height += 4;
+    //   topOffset -= 2;
+    //   leftOffset -= 2;
     // }
     double tileSize = height + gap;
     //row: (random[e] / gridSize).floor(), column: random[e] % gridSize
@@ -628,29 +621,38 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     //         imageTop); //Offset(height * imageLeft - gap, height * imageTop - gap);
     Widget tileContainer = Container(
         // duration: configProvider.duration,
-        child: widget.isWhite
+        child: widget.isWhite &&
+                (configProvider.gamestate == GameState.started ||
+                    configProvider.gamestate == GameState.aiSolving)
             ? Container()
             : Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(
-                    // duration: Duration(milliseconds: defaultTime),
-                    // alignment: Alignment.center,
-                    height: height,
-                    width: height,
-                    // decoration: isHovering
-                    //     ? BoxDecoration(border: Border.all(color: primaryColor))
-                    //     : const BoxDecoration(),
-                    child: ClipRect(
-                      child: OverflowBox(
-                        maxWidth: double.infinity,
-                        maxHeight: double.infinity,
-                        // alignment: Alignment.topLeft,
-                        child: Transform.scale(
-                          scale: widget.gridSize.toDouble().toDouble(),
-                          origin: finalImageOffset,
-                          // alignment: Alignment(imageLeft, imageTop),
-                          child: widget.image,
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 500),
+                    opacity: (isHovering &&
+                            configProvider.gamestate == GameState.started)
+                        ? 0.65
+                        : 1,
+                    child: Container(
+                      // duration: Duration(milliseconds: defaultTime),
+                      // alignment: Alignment.center,
+                      height: height,
+                      width: height,
+                      // decoration: isHovering
+                      //     ? BoxDecoration(border: Border.all(color: primaryColor))
+                      //     : const BoxDecoration(),
+                      child: ClipRect(
+                        child: OverflowBox(
+                          maxWidth: double.infinity,
+                          maxHeight: double.infinity,
+                          // alignment: Alignment.topLeft,
+                          child: Transform.scale(
+                            scale: widget.gridSize.toDouble().toDouble(),
+                            origin: finalImageOffset,
+                            // alignment: Alignment(imageLeft, imageTop),
+                            child: widget.image,
+                          ),
                         ),
                       ),
                     ),
@@ -680,8 +682,8 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
                 ? SystemMouseCursors.basic
                 : SystemMouseCursors.click
             : SystemMouseCursors.forbidden,
-        // onEnter: (_) => setState(() => isHovering = true),
-        // onExit: (_) => setState(() => isHovering = false),
+        onEnter: (_) => setState(() => isHovering = true),
+        onExit: (_) => setState(() => isHovering = false),
         child: GestureDetector(
           onPanUpdate: (details) {
             if (configProvider.gamestate == GameState.started) {

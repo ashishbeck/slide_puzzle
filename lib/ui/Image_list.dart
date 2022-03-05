@@ -107,15 +107,53 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
     setState(() {});
   }
 
-  _refreshAfterLoaded() async {
-    await Future.delayed(Duration(
-        milliseconds: defaultSidebarTime + defaultEntryTime * 2 + 1000));
-    if (mounted) {
-      setState(() {});
-      gradController.forward();
-      arrowController.forward().then((value) => arrowEntered = true);
+  _animateArrowEntry() async {
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    String name = "sidearrow";
+    // if (configProvider.entryAnimationDone[name] != null &&
+    //     configProvider.entryAnimationDone[name]!) {
+    //   isAnimating = false;
+    //   return;
+    // }
+    if (!_ifAnimated()) {
+      configProvider.seenEntryAnimation(name);
+      await Future.delayed(Duration(
+          milliseconds: defaultSidebarTime + defaultEntryTime * 2 + 1000));
+      if (mounted) {
+        setState(() {});
+        gradController.forward();
+        arrowController.forward().then((value) => arrowEntered = true);
+      }
+    } else {
+      await Future.delayed(Duration(milliseconds: 20));
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
+
+  bool _ifAnimated() {
+    ConfigProvider configProvider = context.read<ConfigProvider>();
+    String name = "sidearrow";
+    if (configProvider.entryAnimationDone[name] != null &&
+        configProvider.entryAnimationDone[name]!) {
+      arrowEntered = true;
+      arrowController.value = 1;
+      gradController.value = 1;
+      return true;
+    }
+    return false;
+  }
+
+  // _refreshAfterLoaded() async {
+  //   await Future.delayed(Duration(
+  //       milliseconds: defaultSidebarTime + defaultEntryTime * 2 + 1000));
+  //   if (mounted) {
+  //     setState(() {});
+  //     gradController.forward();
+  //     arrowController.forward().then((value) => arrowEntered = true);
+  //   }
+  // }
 
   @override
   void initState() {
@@ -142,7 +180,7 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
         CurvedAnimation(parent: animationController, curve: Curves.easeInOut);
 
     scrollController.addListener(_scrollListener);
-    _refreshAfterLoaded();
+    _animateArrowEntry();
   }
 
   @override
@@ -251,73 +289,73 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
               ),
             ),
           ),
-          Positioned(
-            left: widget.isTall ? null : 1,
-            right: null,
-            top: widget.isTall ? 1 : null,
-            bottom: null,
-            child: Tooltip(
-              message: widget.isVisible
-                  ? "Hide the image list"
-                  : "Show the image list",
-              child: Container(
-                height: buttonSize,
-                width: buttonSize,
-                child: Opacity(
-                  opacity:
-                      (arrowController.isAnimating || arrowEntered) ? 1 : 0,
-                  child: ClipPath(
-                    clipper: ArrowClipperShape(
-                        isBottom: !widget.isTall,
-                        isRight: widget.isTall,
-                        spacing: 4),
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                              begin:
-                                  widget.isTall ? Offset(0, 1) : Offset(1, 0),
-                              end: Offset(0, 0))
-                          .animate(arrowController),
-                      child: BorderedContainer(
-                        label: "collapseButton",
-                        spacing: 4,
-                        shouldAnimateEntry: false,
-                        isBottom: !widget.isTall,
-                        isRight: widget.isTall,
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () {
-                              widget.toggleImageList(!widget.isVisible);
-                              AudioService.instance.vibrate();
-                            },
-                            behavior: HitTestBehavior.opaque,
-                            child: Container(
-                              // height: buttonSize,
-                              // width: buttonSize,
-                              decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(0),
-                                  ),
-                                  color: secondaryColor),
-                              child: RotationTransition(
-                                turns: animation,
-                                child: Icon(
-                                  widget.isTall
-                                      ? Icons.keyboard_arrow_down
-                                      : Icons.keyboard_arrow_right,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          )
+          // Positioned(
+          //   left: widget.isTall ? null : 1,
+          //   right: null,
+          //   top: widget.isTall ? 1 : null,
+          //   bottom: null,
+          //   child: Tooltip(
+          //     message: widget.isVisible
+          //         ? "Hide the image list"
+          //         : "Show the image list",
+          //     child: Container(
+          //       height: buttonSize,
+          //       width: buttonSize,
+          //       child: Opacity(
+          //         opacity:
+          //             (arrowController.isAnimating || arrowEntered) ? 1 : 0,
+          //         child: ClipPath(
+          //           clipper: ArrowClipperShape(
+          //               isBottom: !widget.isTall,
+          //               isRight: widget.isTall,
+          //               spacing: 4),
+          //           child: SlideTransition(
+          //             position: Tween<Offset>(
+          //                     begin:
+          //                         widget.isTall ? Offset(0, 1) : Offset(1, 0),
+          //                     end: Offset(0, 0))
+          //                 .animate(arrowController),
+          //             child: BorderedContainer(
+          //               label: "collapseButton",
+          //               spacing: 4,
+          //               shouldAnimateEntry: false,
+          //               isBottom: !widget.isTall,
+          //               isRight: widget.isTall,
+          //               child: MouseRegion(
+          //                 cursor: SystemMouseCursors.click,
+          //                 child: GestureDetector(
+          //                   onTap: () {
+          //                     widget.toggleImageList(!widget.isVisible);
+          //                     AudioService.instance.vibrate();
+          //                   },
+          //                   behavior: HitTestBehavior.opaque,
+          //                   child: Container(
+          //                     // height: buttonSize,
+          //                     // width: buttonSize,
+          //                     decoration: BoxDecoration(
+          //                         borderRadius: const BorderRadius.all(
+          //                           Radius.circular(0),
+          //                         ),
+          //                         color: secondaryColor),
+          //                     child: RotationTransition(
+          //                       turns: animation,
+          //                       child: Icon(
+          //                         widget.isTall
+          //                             ? Icons.keyboard_arrow_down
+          //                             : Icons.keyboard_arrow_right,
+          //                         color: Colors.white,
+          //                       ),
+          //                     ),
+          //                   ),
+          //                 ),
+          //               ),
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // )
         ],
       ),
     );

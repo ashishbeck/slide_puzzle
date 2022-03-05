@@ -24,8 +24,7 @@ class Storage {
     AudioService.instance.shouldVibrate = _vibrations;
     _colorTheme = box.read<int>("color") ?? 0;
     _showNameChange = box.read<bool>("showNameChange") ?? true;
-    _showPracticeMode = true;
-    // _showPracticeMode = box.read<bool>("showPracticeMode") ?? true;
+    _showPracticeMode = box.read<bool>("showPracticeMode") ?? true;
   }
 
   toggleSounds() {

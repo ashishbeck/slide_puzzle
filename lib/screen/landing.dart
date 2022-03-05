@@ -87,15 +87,22 @@ class _LandingPageState extends State<LandingPage>
 
           var tween =
               Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
+          var reverseTween = Tween(begin: const Offset(0, 1), end: end)
+              .chain(CurveTween(curve: curve));
+          if (animation.status == AnimationStatus.reverse) {
+            return SlideTransition(
+              position: animation.drive(reverseTween),
+              child: child,
+            );
+          }
           return SlideTransition(
             position: animation.drive(tween),
             child: child,
           );
         },
         transitionDuration: const Duration(milliseconds: 500),
-        reverseTransitionDuration:
-            Duration(milliseconds: offset == 1.0 ? 500 : 200),
+        // reverseTransitionDuration:
+        //     Duration(milliseconds: offset == 1.0 ? 500 : 200),
         pageBuilder: (context, animation, animation2) => LayoutPage(),
       ),
     );

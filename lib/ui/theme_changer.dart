@@ -39,15 +39,12 @@ class ThemeChanger extends StatelessWidget {
                   Container(
                     width: size,
                     height: size,
-                    color: theme.primaryColor,
+                    color: theme.secondaryColor,
                   ),
                   ClipPath(
                     clipper: DiagonalClipperShape(),
                     child: Container(
-                      width: size,
-                      height: size,
-                      color: theme.secondaryColor,
-                    ),
+                        width: size, height: size, color: theme.primaryColor),
                   ),
                 ],
               ),
@@ -72,11 +69,13 @@ class DiagonalClipperShape extends CustomClipper<Path> {
     double height = size.height;
     double width = size.width;
 
+    double offset = size.width * 0.3;
+
     var path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(width, height)
+      ..moveTo(0, 0 + offset)
+      ..lineTo(width - offset, height)
       ..lineTo(0, height)
-      ..lineTo(0, 0);
+      ..lineTo(0, 0 + offset);
     return path;
   }
 

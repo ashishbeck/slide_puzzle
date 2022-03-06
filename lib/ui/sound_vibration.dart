@@ -22,6 +22,7 @@ class SoundsVibrationsTool extends StatelessWidget {
           icon: Icon(configProvider.muted ? Icons.volume_off : Icons.volume_up),
           onPressed: () {
             configProvider.toggleSound();
+            AudioService.instance.button();
             AudioService.instance.vibrate();
           },
         ),
@@ -35,6 +36,7 @@ class SoundsVibrationsTool extends StatelessWidget {
               : Icons.vibration),
           onPressed: () {
             configProvider.toggleVibration();
+            AudioService.instance.button();
             AudioService.instance.vibrate();
           },
         ),

@@ -48,7 +48,12 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
     }
     Future.delayed(Duration(milliseconds: defaultEntryTime + widget.index * 50))
         .then((value) {
-      if (this.mounted) animationController.forward();
+      if (mounted) {
+        animationController.forward();
+        if (widget.index == 0) {
+          AudioService.instance.bubbles();
+        }
+      }
     });
   }
 
@@ -78,6 +83,7 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
         child: GestureDetector(
           onTap: () {
             widget.tileProvider.changeImage(widget.index);
+            AudioService.instance.button();
             AudioService.instance.vibrate();
           },
           child: Container(

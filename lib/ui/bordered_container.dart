@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
+import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/providers.dart';
@@ -52,7 +53,13 @@ class _BorderedContainerState extends State<BorderedContainer>
       configProvider.seenEntryAnimation("3x3");
       configProvider.seenEntryAnimation("4x4");
     }
+    if (widget.label == "shuffle" || widget.label == "reset") {
+      configProvider.seenEntryAnimation("shuffle");
+      configProvider.seenEntryAnimation("reset");
+    }
+
     configProvider.seenEntryAnimation(widget.label);
+    AudioService.instance.elementEntry();
     controller.forward().then((value) => setState(() {
           isAnimatingBase = false;
           buttonController.duration = Duration(milliseconds: 500);

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
@@ -41,6 +42,7 @@ class _LandingPageState extends State<LandingPage>
   List<String> usernames = [];
   bool backFromGame = false;
   bool showUsernameChangeHint = false;
+  bool isLoaded = false;
 
   List<String> _generateUserName({int total = 5}) {
     List<String> usernames = generateWordPairs(maxSyllables: 4)
@@ -119,6 +121,7 @@ class _LandingPageState extends State<LandingPage>
     if (backFromGame) {
       _navigateToGame();
     } else {
+      AudioService.instance.entry();
       animationController.forward().then(
             (value) => _navigateToGame(offset: 0.25).then((value) {
               // animationController.value = 0;
@@ -145,7 +148,7 @@ class _LandingPageState extends State<LandingPage>
   }
 
   _showNameChange() async {
-    await Future.delayed(const Duration(milliseconds: 4000));
+    await Future.delayed(const Duration(milliseconds: 7000));
     if (mounted) {
       setState(() {
         showUsernameChangeHint = true;
@@ -179,6 +182,10 @@ class _LandingPageState extends State<LandingPage>
     });
     usernames = _generateUserName();
     if (Storage.instance.showNameChange) _showNameChange();
+
+    AudioService.instance
+        .init()
+        .then((value) => setState(() => isLoaded = true));
     // _showOverlay();
     // DatabaseService.instance.fetchLeaderBoards();
     // DatabaseService.instance.submitDummyCommunityScores();
@@ -318,7 +325,7 @@ class _LandingPageState extends State<LandingPage>
       onKey: _handleKeyEvent,
       child: Scaffold(
         backgroundColor: secondaryColor,
-        body: userData == null
+        body: userData == null && !isLoaded
             ? const Spinner(
                 text: "Loading",
               )

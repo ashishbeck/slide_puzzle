@@ -77,7 +77,7 @@ class _LayoutPageState extends State<LayoutPage> {
     }
     ConfigProvider configProvider = context.read<ConfigProvider>();
     if (configProvider.gamestate == GameState.aiSolving) return;
-    if (tileProvider.getTileList.isNotEmpty && shuffle) {
+    if (tileProvider.getTileList.isNotEmpty && !isChangingGrid) {
       AudioService.instance.shuffle();
       AudioService.instance.vibrate();
     }
@@ -198,9 +198,8 @@ class _LayoutPageState extends State<LayoutPage> {
   @override
   void initState() {
     super.initState();
-    AudioService.instance.init();
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      createTiles(shuffle: false);
+      createTiles(shuffle: false, isChangingGrid: true);
     });
     if (isWebMobile) area = 0.9;
   }

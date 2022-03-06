@@ -1,3 +1,11 @@
+## 0.6.3
+
+ - Shuffle button switches to reset when pressed
+ - Cursor is not forbidden anymore
+ - Sounds redesigned
+ - Shows a popup of practice mode when enabled
+ - Shows loading screen all sounds have been loaded as well
+
 ## 0.6.2
 
  - Bug fixes

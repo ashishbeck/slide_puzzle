@@ -46,13 +46,13 @@ class _ColoredBackgroundState extends State<ColoredBackground> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 500),
             decoration: BoxDecoration(
-              color: secondaryColor.withOpacity((1 - perc) * 0.5),
-              // gradient: RadialGradient(
-              //   colors: [
-              //     Colors.red,
-              //     secondaryColor.withOpacity(perc * 0.5),
-              //   ],
-              // ),
+              // color: secondaryColor.withOpacity((1 - perc) * 0.5),
+              gradient: RadialGradient(
+                colors: [
+                  Colors.transparent,
+                  secondaryColor.withOpacity((1 - perc) * 0.5),
+                ],
+              ),
             ),
             // child: widget.child,
           ),

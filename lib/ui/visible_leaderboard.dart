@@ -59,7 +59,32 @@ class VisibleLeaderboardTool extends StatelessWidget {
                       ),
                     );
                   });
+            } else if (configProvider.showNumbers) {
+              showDialog(
+                  context: context,
+                  barrierColor: Colors.black.withOpacity(0.95),
+                  builder: (_) {
+                    Future.delayed(const Duration(milliseconds: 1000))
+                        .then((value) {
+                      try {
+                        Navigator.of(_).pop();
+                      } catch (e) {
+                        // print(e);
+                      }
+                    });
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          "Practice Mode Activated",
+                          style: TextStyle(fontSize: 24),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  });
             }
+            AudioService.instance.button();
             AudioService.instance.vibrate();
           },
           icon: Icon(
@@ -74,6 +99,7 @@ class VisibleLeaderboardTool extends StatelessWidget {
             puzzleKey.currentState!.launchScoreBoard(
                 scoreProvider, userData, configProvider,
                 checking: true);
+            AudioService.instance.button();
             AudioService.instance.vibrate();
           },
           icon: Icon(Icons.leaderboard),

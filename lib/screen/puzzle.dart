@@ -20,6 +20,7 @@ import 'package:slide_puzzle/ui/Scoreboard.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:slide_puzzle/ui/delayed_loader.dart';
 import 'package:slide_puzzle/ui/dialog.dart';
+import 'package:slide_puzzle/ui/mouse_region.dart';
 
 class Puzzle extends StatefulWidget {
   Puzzle({Key? puzzlekey}) : super(key: puzzleKey);
@@ -95,23 +96,28 @@ class _PuzzleState extends State<Puzzle> {
     }
   }
 
-  _shuffle() {
+  _shuffle({bool shuffle = true}) {
     TileProvider tileProvider = context.read<TileProvider>();
     int gridSize = tileProvider.gridSize;
-    homeKey.currentState!.createTiles(gridSize: gridSize);
+    homeKey.currentState!.createTiles(gridSize: gridSize, shuffle: shuffle);
   }
 
   List<Widget> buttons({bool expanded = true}) => [
         MyButton(
-          label: "Shuffle",
-          tooltip: "Shuffle the tile pieces",
+          label: gameState == GameState.started ? "Reset" : "Shuffle",
+          tooltip: gameState == GameState.started
+              ? "Reset puzzle"
+              : "Shuffle the tile pieces",
           icon: const RiveAnimation.asset(
             'assets/rive/icons.riv',
             animations: ["shuffle"],
           ),
           expanded: expanded,
+          shouldAnimateEntry: gameState != GameState.started,
           isDisabled: gameState == GameState.aiSolving,
-          onPressed: _shuffle,
+          onPressed: () {
+            _shuffle(shuffle: gameState != GameState.started);
+          },
         ),
         // MyButton(
         //   label: "Reset",
@@ -438,14 +444,14 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
         tileProvider.updateNotifiers();
       }
     } else {
-      AudioService.instance.drag(failed: true);
+      // AudioService.instance.drag(failed: true);
       AudioService.instance.vibrate();
     }
     mouseOffset = null;
     tweenProvider.setData();
     configProvider.resetDuration();
     setState(() {});
-    AudioService.instance.drag(starting: false);
+    // AudioService.instance.drag(starting: false);
   }
 
   _onPanUpdate(
@@ -487,6 +493,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     // }
     if (!_ifAnimated()) {
       configProvider.seenEntryAnimation(name);
+      if (widget.currentIndex == 0) AudioService.instance.tiles();
       animationController.forward().then((value) => isAnimating = false);
     }
   }
@@ -511,6 +518,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
   }
 
   reverseAnim(TileProvider tileProvider) {
+    if (widget.currentIndex == 0) AudioService.instance.tilesExit();
     animationController.reverse().then((value) {
       _makeEmReanimate();
       if (widget.currentIndex == 0) {
@@ -628,31 +636,24 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
             : Stack(
                 alignment: Alignment.center,
                 children: [
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 500),
-                    opacity: (isHovering &&
-                            configProvider.gamestate == GameState.started)
-                        ? 0.65
-                        : 1,
-                    child: Container(
-                      // duration: Duration(milliseconds: defaultTime),
-                      // alignment: Alignment.center,
-                      height: height,
-                      width: height,
-                      // decoration: isHovering
-                      //     ? BoxDecoration(border: Border.all(color: primaryColor))
-                      //     : const BoxDecoration(),
-                      child: ClipRect(
-                        child: OverflowBox(
-                          maxWidth: double.infinity,
-                          maxHeight: double.infinity,
-                          // alignment: Alignment.topLeft,
-                          child: Transform.scale(
-                            scale: widget.gridSize.toDouble().toDouble(),
-                            origin: finalImageOffset,
-                            // alignment: Alignment(imageLeft, imageTop),
-                            child: widget.image,
-                          ),
+                  Container(
+                    // duration: Duration(milliseconds: defaultTime),
+                    // alignment: Alignment.center,
+                    height: height,
+                    width: height,
+                    // decoration: isHovering
+                    //     ? BoxDecoration(border: Border.all(color: primaryColor))
+                    //     : const BoxDecoration(),
+                    child: ClipRect(
+                      child: OverflowBox(
+                        maxWidth: double.infinity,
+                        maxHeight: double.infinity,
+                        // alignment: Alignment.topLeft,
+                        child: Transform.scale(
+                          scale: widget.gridSize.toDouble().toDouble(),
+                          origin: finalImageOffset,
+                          // alignment: Alignment(imageLeft, imageTop),
+                          child: widget.image,
                         ),
                       ),
                     ),
@@ -676,14 +677,9 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
       curve: configProvider.curve,
       top: topOffset + gap / 2,
       left: leftOffset + gap / 2,
-      child: MouseRegion(
-        cursor: configProvider.gamestate == GameState.started
-            ? thisTile.isWhite
-                ? SystemMouseCursors.basic
-                : SystemMouseCursors.click
-            : SystemMouseCursors.forbidden,
-        onEnter: (_) => setState(() => isHovering = true),
-        onExit: (_) => setState(() => isHovering = false),
+      child: MyMouseRegion(
+        configProvider: configProvider,
+        thisTile: thisTile,
         child: GestureDetector(
           onPanUpdate: (details) {
             if (configProvider.gamestate == GameState.started) {
@@ -701,7 +697,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
           onPanStart: (_) {
             if (configProvider.gamestate == GameState.started) {
               configProvider.setDuration(const Duration(milliseconds: 0));
-              AudioService.instance.drag();
+              // AudioService.instance.drag();
               AudioService.instance.vibrate();
             }
           },

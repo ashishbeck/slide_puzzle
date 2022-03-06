@@ -588,6 +588,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                     icon: Icon(Icons.close),
                     onPressed: () {
                       Navigator.of(context).pop();
+                      AudioService.instance.button();
                       AudioService.instance.vibrate();
                     },
                   ),

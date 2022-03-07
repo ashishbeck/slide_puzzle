@@ -1,3 +1,10 @@
+## 0.7.0
+
+ - Added license information
+ - Theme change affects the material app as well
+ - Various bug fixes
+ - Update logo and splash
+
 ## 0.6.3
 
  - Shuffle button switches to reset when pressed

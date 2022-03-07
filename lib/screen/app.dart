@@ -40,8 +40,9 @@ class _LayoutPageState extends State<LayoutPage> {
   final isWebMobile = kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.android);
-  final isMobile = (defaultTargetPlatform == TargetPlatform.iOS ||
-      defaultTargetPlatform == TargetPlatform.android);
+  final isMobileOnly = !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android);
 
   void createTiles(
       {int? gridSize, bool isChangingGrid = false, bool shuffle = true}) {
@@ -201,7 +202,7 @@ class _LayoutPageState extends State<LayoutPage> {
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       createTiles(shuffle: false, isChangingGrid: true);
     });
-    if (isWebMobile) area = 0.9;
+    if (isWebMobile || isMobileOnly) area = 0.9;
   }
 
   @override
@@ -221,136 +222,138 @@ class _LayoutPageState extends State<LayoutPage> {
       //   },
       // ),
       backgroundColor: Colors.white,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // final size = constraints.
-          double maxWidth = constraints.maxWidth;
-          double maxHeight = constraints.maxHeight;
-          bool isTall = maxWidth * 0.85 < maxHeight;
-          double absoluteWidth = maxWidth * area;
-          double absoluteHeight = maxHeight * area;
-          double topPad = MediaQuery.of(context).padding.top;
-          double puzzleHeight =
-              isTall ? min(absoluteWidth, maxHeight - 300) : absoluteHeight;
-          if (!isTall && isMobile) puzzleHeight -= topPad;
-          double puzzleWidth = puzzleHeight;
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // final size = constraints.
+            double maxWidth = constraints.maxWidth;
+            double maxHeight = constraints.maxHeight;
+            bool isTall = maxWidth * 0.85 < maxHeight;
+            double absoluteWidth = maxWidth * area;
+            double absoluteHeight = maxHeight * area;
+            double topPad = MediaQuery.of(context).padding.top;
+            double puzzleHeight =
+                isTall ? min(absoluteWidth, maxHeight - 300) : absoluteHeight;
+            if (!isTall && isMobileOnly) puzzleHeight -= topPad * 2;
+            double puzzleWidth = puzzleHeight;
 
-          // double imageListHeight = 100;
-          double imageListMainGap = isTall ? 24 : 64;
-          // double imageListCrossGap = (imageListVisibile ? 0 : -90);
-          double imageListCrossOffset =
-              1 + (2 * 95 / (isTall ? maxHeight : maxWidth));
-          double toolbarGap = isTall ? 24 : 64;
+            // double imageListHeight = 100;
+            double imageListMainGap = isTall ? 24 : 64;
+            // double imageListCrossGap = (imageListVisibile ? 0 : -90);
+            double imageListCrossOffset =
+                1 + (2 * 95 / (isTall ? maxHeight : maxWidth));
+            double toolbarGap = isTall ? 24 : 64;
 
-          // head scratcher below for a solid hour and still not perfect :(
-          double bottomButtonOffset =
-              (2 * puzzleHeight * area / maxHeight) - offsetFromCenter + 0.12;
-          double rightButtonOffset =
-              (2 * puzzleHeight * area / (maxWidth * 0.85)) -
-                  offsetFromCenter +
-                  0.12;
-          //     ((puzzleWidth - (offsetFromCenter * maxWidth / 2)) *
-          //         2 /
-          //         maxWidth);
-          // print(rightButtonOffset);
+            // head scratcher below for a solid hour and still not perfect :(
+            double bottomButtonOffset =
+                (2 * puzzleHeight * area / maxHeight) - offsetFromCenter + 0.12;
+            double rightButtonOffset =
+                (2 * puzzleHeight * area / (maxWidth * 0.85)) -
+                    offsetFromCenter +
+                    0.12;
+            //     ((puzzleWidth - (offsetFromCenter * maxWidth / 2)) *
+            //         2 /
+            //         maxWidth);
+            // print(rightButtonOffset);
 
-          // print("$maxWidth and $maxHeight");
-          // bool isTall = (width / height) < (6 / 5);
-          double padding = 32;
-          return Center(
-            child: ColoredBackground(
-              // decoration: const BoxDecoration(
-              //   color: Colors.white,
-              //   // image: DecorationImage(
-              //   //     image: AssetImage("images/stripes_bg.jpg"),
-              //   //     fit: BoxFit.cover),
-              //   // gradient: grad.LinearGradient(colors: [
-              //   //   primaryColor.withOpacity(0.5),
-              //   //   primaryColor.withOpacity(0.2),
-              //   // ]),
-              // ),
-              // color: primaryColor.withOpacity(0.2),
-              child: Stack(children: [
-                AnimatedAlign(
-                  duration: duration,
-                  curve: curve,
-                  alignment: const Alignment(0, -0.05),
-                  // left: isTopLeft ? 20 : 0,
-                  // right: !isTopLeft ? 23 : 0,
-                  // top: isTopLeft ? 23 : 0,
-                  // bottom: !isTopLeft ? 23 : 0,
-                  child: Container(
-                    height: puzzleHeight + buttonHeight,
-                    width: puzzleWidth,
-                    color: Colors.white,
-                    child: MyTransform(
-                      child: BorderedContainer(
-                        label: "puzzle",
-                        child: AnimatedContainer(
-                          duration: duration,
-                          curve: curve,
-                          padding: const EdgeInsets.all(4),
-                          color: secondaryColor,
-                          child: Puzzle(),
+            // print("$maxWidth and $maxHeight");
+            // bool isTall = (width / height) < (6 / 5);
+            double padding = 32;
+            return Center(
+              child: ColoredBackground(
+                // decoration: const BoxDecoration(
+                //   color: Colors.white,
+                //   // image: DecorationImage(
+                //   //     image: AssetImage("images/stripes_bg.jpg"),
+                //   //     fit: BoxFit.cover),
+                //   // gradient: grad.LinearGradient(colors: [
+                //   //   primaryColor.withOpacity(0.5),
+                //   //   primaryColor.withOpacity(0.2),
+                //   // ]),
+                // ),
+                // color: primaryColor.withOpacity(0.2),
+                child: Stack(children: [
+                  AnimatedAlign(
+                    duration: duration,
+                    curve: curve,
+                    alignment: Alignment(0, isMobileOnly ? 0 : -0.05),
+                    // left: isTopLeft ? 20 : 0,
+                    // right: !isTopLeft ? 23 : 0,
+                    // top: isTopLeft ? 23 : 0,
+                    // bottom: !isTopLeft ? 23 : 0,
+                    child: Container(
+                      height: puzzleHeight + buttonHeight,
+                      width: puzzleWidth,
+                      color: Colors.white,
+                      child: MyTransform(
+                        child: BorderedContainer(
+                          label: "puzzle",
+                          child: AnimatedContainer(
+                            duration: duration,
+                            curve: curve,
+                            padding: const EdgeInsets.all(4),
+                            color: secondaryColor,
+                            child: Puzzle(),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                // image list
-                AnimatedAlign(
-                  duration: duration,
-                  curve: curve,
-                  alignment: isTall
-                      ? imageListVisibile
-                          ? Alignment.bottomCenter
-                          : Alignment(0, imageListCrossOffset)
-                      : imageListVisibile
-                          ? Alignment.centerRight
-                          : Alignment(imageListCrossOffset, 0),
-                  // right: isTall ? imageListMainGap : imageListCrossGap,
-                  // top: isTall ? null : imageListMainGap,
-                  // left: isTall ? imageListMainGap : null,
-                  // bottom: isTall ? imageListCrossGap : imageListMainGap,
-                  child: Container(
-                    height: isTall ? null : maxHeight - 2 * imageListMainGap,
-                    width: isTall ? maxWidth - 2 * imageListMainGap : null,
-                    child: ImageList(
-                      constraints: constraints,
-                      isTall: isTall,
-                      isVisible: imageListVisibile,
-                      toggleImageList: (bool visibility) =>
-                          setState(() => imageListVisibile = visibility),
-                    ),
-                  ),
-                ),
-
-                // toolbar
-                AnimatedAlign(
-                  duration: duration,
-                  curve: curve,
-                  alignment:
-                      isTall ? Alignment.topCenter : Alignment.centerLeft,
-                  // left: isTall ? toolbarGap : 0,
-                  // top: isTall ? topPad : toolbarGap,
-                  // right: isTall ? toolbarGap : null,
-                  // bottom: isTall ? null : toolbarGap,
-                  child: SafeArea(
+                  // image list
+                  AnimatedAlign(
+                    duration: duration,
+                    curve: curve,
+                    alignment: isTall
+                        ? imageListVisibile
+                            ? Alignment.bottomCenter
+                            : Alignment(0, imageListCrossOffset)
+                        : imageListVisibile
+                            ? Alignment.centerRight
+                            : Alignment(imageListCrossOffset, 0),
+                    // right: isTall ? imageListMainGap : imageListCrossGap,
+                    // top: isTall ? null : imageListMainGap,
+                    // left: isTall ? imageListMainGap : null,
+                    // bottom: isTall ? imageListCrossGap : imageListMainGap,
                     child: Container(
-                      height: isTall ? null : maxHeight - 2 * toolbarGap,
-                      width: isTall ? maxWidth - 2 * toolbarGap : null,
-                      child: ToolBar(
+                      height: isTall ? null : maxHeight - 2 * imageListMainGap,
+                      width: isTall ? maxWidth - 2 * imageListMainGap : null,
+                      child: ImageList(
                         constraints: constraints,
                         isTall: isTall,
+                        isVisible: imageListVisibile,
+                        toggleImageList: (bool visibility) =>
+                            setState(() => imageListVisibile = visibility),
                       ),
                     ),
                   ),
-                ),
-              ]),
-            ),
-          );
-        },
+
+                  // toolbar
+                  AnimatedAlign(
+                    duration: duration,
+                    curve: curve,
+                    alignment:
+                        isTall ? Alignment.topCenter : Alignment.centerLeft,
+                    // left: isTall ? toolbarGap : 0,
+                    // top: isTall ? topPad : toolbarGap,
+                    // right: isTall ? toolbarGap : null,
+                    // bottom: isTall ? null : toolbarGap,
+                    child: SafeArea(
+                      child: Container(
+                        height: isTall ? null : maxHeight - 2 * toolbarGap,
+                        width: isTall ? maxWidth - 2 * toolbarGap : null,
+                        child: ToolBar(
+                          constraints: constraints,
+                          isTall: isTall,
+                        ),
+                      ),
+                    ),
+                  ),
+                ]),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

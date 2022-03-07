@@ -19,19 +19,19 @@ List<ColorTheme> themes = [
   //   Color(0xff856712),
   // ),
   const ColorTheme(
-    Color.fromARGB(255, 33, 150, 243),
-    Color.fromARGB(255, 233, 59, 117),
-    Color.fromARGB(255, 24, 109, 179),
-  ),
-  const ColorTheme(
     Color.fromARGB(255, 76, 175, 80),
     Color.fromARGB(255, 35, 35, 35),
     Color.fromARGB(255, 41, 100, 43),
   ),
   const ColorTheme(
-    Color(0xff856712),
-    Color.fromARGB(255, 33, 19, 13),
-    Color.fromARGB(255, 99, 76, 13),
+    Color.fromARGB(255, 33, 150, 243),
+    Color.fromARGB(255, 233, 59, 117),
+    Color.fromARGB(255, 24, 109, 179),
+  ),
+  const ColorTheme(
+    Color.fromARGB(255, 49, 49, 49),
+    Color.fromARGB(255, 145, 145, 145),
+    Color.fromARGB(255, 12, 12, 12),
   ),
 ];
 void changeColor(int index) {
@@ -39,12 +39,5 @@ void changeColor(int index) {
   secondaryColor = themes[index].secondaryColor;
   buttonShadowColor = themes[index].buttonShadowColor;
 }
-
-List<String> slideAudio = [
-  "amb_electricarc_small_b_01.wav",
-  "amb_electricarc_small_b_02.wav",
-  "amb_electricarc_small_b_03.wav",
-  "amb_electricarc_small_b_04.wav",
-];
 
 String appLink = "https://n-puzzle-solver-1.web.app/";

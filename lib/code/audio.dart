@@ -6,12 +6,13 @@ import 'package:soundpool/soundpool.dart';
 class AudioService {
   static final AudioService instance = AudioService._init();
   AudioService._init();
-  Soundpool pool = Soundpool.fromOptions(
-      // options: const SoundpoolOptions(streamType: StreamType.notification),
-      );
+  static Soundpool pool = Soundpool.fromOptions(
+    options:
+        const SoundpoolOptions(streamType: StreamType.music, maxStreams: 10),
+  );
 
   List<int> slideIds = List.generate(5, (index) => 0);
-  int shuffleId = 0;
+  static int shuffleId = 0;
   int entryId = 0;
   int elementEntryId = 0;
   int entryBgId = 0;
@@ -24,8 +25,11 @@ class AudioService {
   AudioStreamControl? dragStream;
   bool isMuted = !Storage.instance.sounds;
   bool shouldVibrate = Storage.instance.vibrations;
+  AudioStreamControl? downStream;
+  AudioStreamControl? upStream;
 
   Future<void> init() async {
+    await pool.release();
     for (var i = 0; i < 5; i++) {
       slideIds[i] = await rootBundle
           .load("assets/audio/slide_$i.wav")
@@ -99,13 +103,13 @@ class AudioService {
   shuffle() async {
     if (isMuted) return;
     // await Future.delayed(Duration(milliseconds: 400));
-    var stream = await pool.playWithControls(shuffleId);
+    await pool.playWithControls(shuffleId);
     // stream.setVolume(volume: 0.2);
     // await Future.delayed(Duration(milliseconds: defaultTime * 3));
     // stream.stop();
   }
 
-  entry() {
+  entry() async {
     if (isMuted) return;
     pool.play(entryId);
   }
@@ -134,14 +138,18 @@ class AudioService {
     pool.play(buttonId);
   }
 
-  buttonDown() {
+  buttonDown() async {
     if (isMuted) return;
-    pool.play(buttonDownId);
+    downStream = await pool.playWithControls(buttonDownId);
   }
 
-  buttonUp() {
+  buttonUp() async {
     if (isMuted) return;
-    pool.play(buttonUpId);
+
+    if (downStream == null || downStream!.playing) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      upStream = await pool.playWithControls(buttonUpId);
+    }
   }
 
   bubbles() async {

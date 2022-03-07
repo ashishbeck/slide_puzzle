@@ -22,15 +22,23 @@ void main() async {
   );
   await GetStorage.init();
   Storage.instance.init();
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+final mainKey = GlobalKey<_MyAppState>();
 
+class MyApp extends StatefulWidget {
+  MyApp({Key? mainkey}) : super(key: mainKey);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   // flutter build web --release --base-href="/slide_puzzle_release/"
   @override
   Widget build(BuildContext context) {
+    Color colorScheme = primaryColor;
     // int gridSize = 3;
     // int totalTiles = pow(gridSize, 2).toInt();
     // List<TilesModel> list = List.generate(totalTiles, (index) {
@@ -80,9 +88,9 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: "Arcade",
-          colorSchemeSeed: primaryColor,
+          colorSchemeSeed: colorScheme,
           brightness: Brightness.dark,
-          tooltipTheme: TooltipThemeData(
+          tooltipTheme: const TooltipThemeData(
             textStyle: TextStyle(
               fontFamily: "Glacial",
               color: Colors.black54,

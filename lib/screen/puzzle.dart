@@ -17,6 +17,7 @@ import 'package:rive/rive.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:slide_puzzle/ui/Scoreboard.dart';
+import 'package:slide_puzzle/ui/animated_fader.dart';
 import 'package:slide_puzzle/ui/button.dart';
 import 'package:slide_puzzle/ui/delayed_loader.dart';
 import 'package:slide_puzzle/ui/dialog.dart';
@@ -627,51 +628,47 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     //     height * imageLeft,
     //     height *
     //         imageTop); //Offset(height * imageLeft - gap, height * imageTop - gap);
-    Widget tileContainer = Container(
-        // duration: configProvider.duration,
-        child: widget.isWhite &&
-                (configProvider.gamestate == GameState.started ||
-                    configProvider.gamestate == GameState.aiSolving)
-            ? Container()
-            : Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    // duration: Duration(milliseconds: defaultTime),
-                    // alignment: Alignment.center,
-                    height: height,
-                    width: height,
-                    // decoration: isHovering
-                    //     ? BoxDecoration(border: Border.all(color: primaryColor))
-                    //     : const BoxDecoration(),
-                    child: ClipRect(
-                      child: OverflowBox(
-                        maxWidth: double.infinity,
-                        maxHeight: double.infinity,
-                        // alignment: Alignment.topLeft,
-                        child: Transform.scale(
-                          scale: widget.gridSize.toDouble().toDouble(),
-                          origin: finalImageOffset,
-                          // alignment: Alignment(imageLeft, imageTop),
-                          child: widget.image,
-                        ),
-                      ),
-                    ),
+    Widget tileContainer = MyAnimatedFader(
+        isVisible: !widget.isWhite ||
+            (configProvider.gamestate == GameState.waiting ||
+                configProvider.gamestate == GameState.finished),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              // duration: Duration(milliseconds: defaultTime),
+              // alignment: Alignment.center,
+              height: height,
+              width: height,
+              // decoration: isHovering
+              //     ? BoxDecoration(border: Border.all(color: primaryColor))
+              //     : const BoxDecoration(),
+              child: ClipRect(
+                child: OverflowBox(
+                  maxWidth: double.infinity,
+                  maxHeight: double.infinity,
+                  // alignment: Alignment.topLeft,
+                  child: Transform.scale(
+                    scale: widget.gridSize.toDouble().toDouble(),
+                    origin: finalImageOffset,
+                    // alignment: Alignment(imageLeft, imageTop),
+                    child: widget.image,
                   ),
-                  configProvider.showNumbers
-                      ? Center(
-                          child: AutoSizeText(
-                          "${widget.defaultIndex + 1}",
-                          style: const TextStyle(
-                              fontSize: 32,
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(color: Colors.black, blurRadius: 1)
-                              ]),
-                        ))
-                      : Container()
-                ],
-              ));
+                ),
+              ),
+            ),
+            configProvider.showNumbers
+                ? Center(
+                    child: AutoSizeText(
+                    "${widget.defaultIndex + 1}",
+                    style: const TextStyle(
+                        fontSize: 32,
+                        color: Colors.white,
+                        shadows: [Shadow(color: Colors.black, blurRadius: 1)]),
+                  ))
+                : Container()
+          ],
+        ));
     return AnimatedPositioned(
       duration: configProvider.duration,
       curve: configProvider.curve,

@@ -19,13 +19,13 @@ class ColoredBackground extends StatefulWidget {
 class _ColoredBackgroundState extends State<ColoredBackground> {
   Duration duration = const Duration(milliseconds: 3000);
 
-  _calculatePercentage(List<TilesModel> tileList) {
-    if (tileList.isEmpty) return 0;
+  double _calculatePercentage(List<TilesModel> tileList) {
+    if (tileList.isEmpty) return 1;
     int total = tileList.length;
     int done = tileList
         .where((element) => element.currentIndex == element.defaultIndex)
         .length;
-    return done / total;
+    return (done / total).toDouble();
   }
 
   @override

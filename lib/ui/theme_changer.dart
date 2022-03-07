@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/store.dart';
+import 'package:slide_puzzle/main.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 
 class ThemeChanger extends StatelessWidget {
@@ -29,8 +31,11 @@ class ThemeChanger extends StatelessWidget {
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
               onTap: () {
+                AudioService.instance.button();
+                AudioService.instance.vibrate();
                 changeColor(themes.indexOf(theme));
                 Storage.instance.changeColor(themes.indexOf(theme));
+                mainKey.currentState!.setState(() {});
                 onTap();
               },
               child: Stack(

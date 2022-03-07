@@ -8,7 +8,7 @@
         </intent>
     </queries>
    <application
-        android:label="Slide Puzzle"
+        android:label="Retro Slide Puzzle"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:english_words/english_words.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,7 @@ import 'package:slide_puzzle/code/auth.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/code/store.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:slide_puzzle/ui/3d_transform.dart';
@@ -53,6 +56,8 @@ class _LandingPageState extends State<LandingPage>
   }
 
   _updateUserName(String? newUsername) {
+    AudioService.instance.vibrate();
+    AudioService.instance.button();
     UserData? userData = context.read<UserData?>();
     if (newUsername == null || newUsername == userData!.username) return;
     DatabaseService.instance
@@ -183,9 +188,10 @@ class _LandingPageState extends State<LandingPage>
     usernames = _generateUserName();
     if (Storage.instance.showNameChange) _showNameChange();
 
-    AudioService.instance
-        .init()
-        .then((value) => setState(() => isLoaded = true));
+    AudioService.instance.init().then((value) {
+      print("audio loaded");
+      isLoaded = true;
+    });
     // _showOverlay();
     // DatabaseService.instance.fetchLeaderBoards();
     // DatabaseService.instance.submitDummyCommunityScores();
@@ -236,6 +242,120 @@ class _LandingPageState extends State<LandingPage>
           ),
         );
 
+    Widget licenses(double height, double width) {
+      WidgetSpan hyperlink({required String url, required String label}) =>
+          WidgetSpan(
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => _launch(url),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: "Arcade",
+                    color: primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          );
+
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+            onTap: () {
+              AudioService.instance.vibrate();
+              AudioService.instance.button();
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return MyDialog(
+                      height: height,
+                      width: width,
+                      child: DefaultTextStyle(
+                        style: const TextStyle(
+                          fontFamily: "Glacial",
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
+                        child: Stack(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                top: 32,
+                              ),
+                              child: ScrollConfiguration(
+                                behavior: MyCustomScrollBehavior(),
+                                child: ListView(
+                                  children: [
+                                    const Text(
+                                      "Made with 💙 by Ashish Beck in 🇮🇳",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 16,
+                                    ),
+                                    Text.rich(TextSpan(
+                                        text:
+                                            "Images are gathered from the following sources:\n",
+                                        children: [
+                                          hyperlink(
+                                              url: "https://www.pexels.com/",
+                                              label: "Pexels"),
+                                          const TextSpan(text: "\n"),
+                                          hyperlink(
+                                              url: "https://vecteezy.com/",
+                                              label: "Vecteezy"),
+                                          const TextSpan(text: "\n"),
+                                          TextSpan(
+                                              text:
+                                                  "\nSounds are gathered from the following sources:\n"),
+                                          hyperlink(
+                                              url: "https://www.zapsplat.com/",
+                                              label: "Zapsplat"),
+                                          const TextSpan(text: "\n"),
+                                          hyperlink(
+                                              url: "https://mixkit.co/",
+                                              label: "Mixkit"),
+                                          const TextSpan(text: "\n"),
+                                          hyperlink(
+                                              url: "https://pixabay.com/",
+                                              label: "Pixabay"),
+                                        ]))
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: IconButton(
+                                onPressed: () {
+                                  AudioService.instance.vibrate();
+
+                                  AudioService.instance.button();
+                                  Navigator.of(context).pop();
+                                },
+                                icon: Icon(Icons.close),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  });
+            },
+            child: Text(
+              "Licenses",
+              style: TextStyle(fontSize: 14),
+            )),
+      );
+    }
+
     Widget usernameWidget() {
       return Stack(
         clipBehavior: Clip.none,
@@ -246,7 +366,7 @@ class _LandingPageState extends State<LandingPage>
                 baseline: TextBaseline.alphabetic,
                 child: PopupMenuButton<String>(
                   child: Text(
-                    userData!.username,
+                    userData == null ? "..." : userData.username,
                     style: TextStyle(
                       color: primaryColor,
                       fontFamily: "Glacial",
@@ -262,6 +382,10 @@ class _LandingPageState extends State<LandingPage>
                     //   child: Text(userData.username),
                     //   value: userData.username,
                     // ),
+                    if (userData != null &&
+                        !usernames.contains(userData.username)) {
+                      usernames.insert(0, userData.username);
+                    }
                     return usernames
                         .map((e) => PopupMenuItem<String>(
                               child: Text(
@@ -319,175 +443,182 @@ class _LandingPageState extends State<LandingPage>
       );
     }
 
-    return RawKeyboardListener(
-      focusNode: _focusNode,
-      autofocus: true,
-      onKey: _handleKeyEvent,
-      child: Scaffold(
-        backgroundColor: secondaryColor,
-        body: userData == null && !isLoaded
-            ? const Spinner(
-                text: "Loading",
-              )
-            : ScaleTransition(
-                scale: Tween<double>(begin: 1, end: 350).animate(
-                    CurvedAnimation(
-                        parent: animationController,
-                        curve: Curves.easeInQuart)),
-                child: RotationTransition(
-                  turns: Tween<double>(begin: 0, end: 0.25).animate(
+    return SafeArea(
+      child: RawKeyboardListener(
+        focusNode: _focusNode,
+        autofocus: true,
+        onKey: _handleKeyEvent,
+        child: Scaffold(
+          backgroundColor: secondaryColor,
+          body: (userData == null && !isLoaded)
+              ? const Spinner(
+                  text: "Loading",
+                )
+              : ScaleTransition(
+                  scale: Tween<double>(begin: 1, end: 350).animate(
                       CurvedAnimation(
-                          parent: animationController, curve: Curves.easeIn)),
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    double maxWidth = constraints.maxWidth;
-                    double maxHeight = constraints.maxHeight;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      height: maxHeight,
-                      width: maxWidth,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            // secondaryColor[400]!,
-                            secondaryColor,
-                            secondaryColor,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
-                          Center(
-                              child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                appName,
-                                style: Theme.of(context).textTheme.headline5,
-                                textAlign: TextAlign.center,
-                              ),
-                              animationController.isAnimating
-                                  ? IgnorePointer(
-                                      child: button(),
-                                    )
-                                  : button(),
-                              Text(
-                                appName,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headline5!
-                                    .copyWith(color: Colors.transparent),
-                                textAlign: TextAlign.center,
-                              ),
-                              // userData != null
-                              //     ? ScoreBoard(
-                              //         gridSize: 3,
-                              //         // currentMove: 0,
-                              //         // currentTime: 0,
-                              //         userData: userData,
-                              //         child: Container(),
-                              //       )
-                              //     : Container(),
+                          parent: animationController,
+                          curve: Curves.easeInQuart)),
+                  child: RotationTransition(
+                    turns: Tween<double>(begin: 0, end: 0.25).animate(
+                        CurvedAnimation(
+                            parent: animationController, curve: Curves.easeIn)),
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      double maxWidth = constraints.maxWidth;
+                      double maxHeight = constraints.maxHeight;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: maxHeight,
+                        width: maxWidth,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              // secondaryColor[400]!,
+                              secondaryColor,
+                              secondaryColor,
                             ],
-                          )),
-                          Align(
-                            alignment: Alignment(0, 0.2),
-                            // top: maxHeight * 0.55,
-                            // left: 0,
-                            // right: 0,
-                            child: usernameWidget(),
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          const Align(
-                            alignment: Alignment(0.95, -0.98),
-                            child: SoundsVibrationsTool(isTall: false),
-                          ),
-                          Align(
-                            alignment: Alignment(-0.95, -0.98),
-                            child: ThemeChanger(
-                              onTap: () {
-                                setState(() {});
-                              },
+                        ),
+                        child: Stack(
+                          children: [
+                            Center(
+                                child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  appName,
+                                  style: Theme.of(context).textTheme.headline5,
+                                  textAlign: TextAlign.center,
+                                ),
+                                animationController.isAnimating
+                                    ? IgnorePointer(
+                                        child: button(),
+                                      )
+                                    : button(),
+                                Text(
+                                  appName,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headline5!
+                                      .copyWith(color: Colors.transparent),
+                                  textAlign: TextAlign.center,
+                                ),
+                                // userData != null
+                                //     ? ScoreBoard(
+                                //         gridSize: 3,
+                                //         // currentMove: 0,
+                                //         // currentTime: 0,
+                                //         userData: userData,
+                                //         child: Container(),
+                                //       )
+                                //     : Container(),
+                              ],
+                            )),
+                            Align(
+                              alignment: Alignment(0, 0.2),
+                              // top: maxHeight * 0.55,
+                              // left: 0,
+                              // right: 0,
+                              child: usernameWidget(),
                             ),
-                          ),
-                          Align(
-                            alignment: Alignment(0, 0.8),
-                            child: Text.rich(
-                              TextSpan(text: "A project by ", children: [
-                                WidgetSpan(
-                                  child: MouseRegion(
-                                    onEnter: (event) =>
-                                        setState(() => isHovering1 = true),
-                                    onExit: (event) =>
-                                        setState(() => isHovering1 = false),
-                                    cursor: SystemMouseCursors.click,
-                                    child: GestureDetector(
-                                      onTap: () => _launch(
-                                          'https://linktr.ee/ashishbeck'),
-                                      child: Text(
-                                        "Ashish Beck",
-                                        style: TextStyle(
-                                            color: isHovering1
-                                                ? Colors.white
-                                                : primaryColor),
+                            const Align(
+                              alignment: Alignment(0.95, -0.98),
+                              child: SoundsVibrationsTool(isTall: false),
+                            ),
+                            Align(
+                              alignment: Alignment(0.95, 0.98),
+                              child: licenses(
+                                  maxHeight * 0.5, min(500, maxWidth * 0.75)),
+                            ),
+                            Align(
+                              alignment: Alignment(-0.95, -0.98),
+                              child: ThemeChanger(
+                                onTap: () {
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment(0, 0.8),
+                              child: Text.rich(
+                                TextSpan(text: "A project by ", children: [
+                                  WidgetSpan(
+                                    child: MouseRegion(
+                                      onEnter: (event) =>
+                                          setState(() => isHovering1 = true),
+                                      onExit: (event) =>
+                                          setState(() => isHovering1 = false),
+                                      cursor: SystemMouseCursors.click,
+                                      child: GestureDetector(
+                                        onTap: () => _launch(
+                                            'https://linktr.ee/ashishbeck'),
+                                        child: Text(
+                                          "Ashish Beck",
+                                          style: TextStyle(
+                                              color: isHovering1
+                                                  ? Colors.white
+                                                  : primaryColor),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                // TextSpan(
-                                //     text: "\nwith design help from ",
-                                //     style: Theme.of(context)
-                                //         .textTheme
-                                //         .labelSmall!
-                                //         .copyWith(
-                                //             decorationStyle: TextDecorationStyle.wavy,
-                                //             decorationThickness: 4,
-                                //             decoration: TextDecoration.lineThrough)),
-                                // WidgetSpan(
-                                //   child: MouseRegion(
-                                //     onEnter: (event) =>
-                                //         setState(() => isHovering2 = true),
-                                //     onExit: (event) =>
-                                //         setState(() => isHovering2 = false),
-                                //     cursor: SystemMouseCursors.click,
-                                //     child: GestureDetector(
-                                //       onTap: () =>
-                                //           _launch('https://linktr.ee/sushobhan'),
-                                //       child: Text(
-                                //         "Sushobhan Parida",
-                                //         style: Theme.of(context)
-                                //             .textTheme
-                                //             .labelSmall!
-                                //             .copyWith(
-                                //                 decorationStyle:
-                                //                     TextDecorationStyle.wavy,
-                                //                 decorationThickness: 4,
-                                //                 decoration:
-                                //                     TextDecoration.lineThrough,
-                                //                 color: isHovering2
-                                //                     ? Colors.white
-                                //                     : primaryColor),
-                                //       ),
-                                //     ),
-                                //   ),
-                                // ),
-                              ]),
-                              textAlign: TextAlign.center,
+                                  // TextSpan(
+                                  //     text: "\nwith design help from ",
+                                  //     style: Theme.of(context)
+                                  //         .textTheme
+                                  //         .labelSmall!
+                                  //         .copyWith(
+                                  //             decorationStyle: TextDecorationStyle.wavy,
+                                  //             decorationThickness: 4,
+                                  //             decoration: TextDecoration.lineThrough)),
+                                  // WidgetSpan(
+                                  //   child: MouseRegion(
+                                  //     onEnter: (event) =>
+                                  //         setState(() => isHovering2 = true),
+                                  //     onExit: (event) =>
+                                  //         setState(() => isHovering2 = false),
+                                  //     cursor: SystemMouseCursors.click,
+                                  //     child: GestureDetector(
+                                  //       onTap: () =>
+                                  //           _launch('https://linktr.ee/sushobhan'),
+                                  //       child: Text(
+                                  //         "Sushobhan Parida",
+                                  //         style: Theme.of(context)
+                                  //             .textTheme
+                                  //             .labelSmall!
+                                  //             .copyWith(
+                                  //                 decorationStyle:
+                                  //                     TextDecorationStyle.wavy,
+                                  //                 decorationThickness: 4,
+                                  //                 decoration:
+                                  //                     TextDecoration.lineThrough,
+                                  //                 color: isHovering2
+                                  //                     ? Colors.white
+                                  //                     : primaryColor),
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ]),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                          ),
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Text(
-                              "v${version}",
-                              style: Theme.of(context).textTheme.caption,
-                            ),
-                          )
-                        ],
-                      ),
-                    );
-                  }),
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Text(
+                                "v${version}",
+                                style: Theme.of(context).textTheme.caption,
+                              ),
+                            )
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }

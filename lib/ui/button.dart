@@ -112,14 +112,15 @@ class _MyButtonState extends State<MyButton> {
         padding: const EdgeInsets.all(4),
         child: GestureDetector(
           onTap: () {
-            AudioService.instance.buttonDown();
+            print("tap");
+            // AudioService.instance.buttonDown();
             animationController.forward().then((value) {
               animationController.reverse();
-              AudioService.instance.buttonUp();
+              // AudioService.instance.buttonUp();
             });
           },
           onTapDown: (_) {
-            // print("down");
+            print("down");
             shouldExecute = true;
             AudioService.instance.buttonDown();
             animationController.forward();
@@ -133,7 +134,7 @@ class _MyButtonState extends State<MyButton> {
           onPanUpdate: _onUpdate,
           onLongPressMoveUpdate: _onUpdate,
           onTapUp: (_) {
-            // print("up");
+            print("up");
             AudioService.instance.buttonUp();
             animationController.reverse();
             if (!widget.isDisabled) {
@@ -225,6 +226,7 @@ class _MyButtonState extends State<MyButton> {
     final configProvider = context.read<ConfigProvider>();
     if (configProvider.previewedButtons[widget.label] == null ||
         !configProvider.previewedButtons[widget.label]!) {
+      if (widget.label == "Reset") return;
       await Future.delayed(Duration(milliseconds: 2000 + defaultEntryTime));
       if (this.mounted) {
         setState(() {

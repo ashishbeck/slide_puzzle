@@ -377,10 +377,8 @@ class _ScoreBoardState extends State<ScoreBoard>
       return StreamBuilder<List<LeaderboardItem>>(
           stream: DatabaseService.instance.fetchLeaderBoards(grid),
           builder: (context, snapshot) {
-            bool isDone = !snapshot.hasError &&
-                snapshot.hasData &&
-                snapshot.data != null &&
-                snapshot.connectionState != ConnectionState.waiting;
+            bool isDone =
+                !snapshot.hasError && snapshot.hasData && snapshot.data != null;
             if (!isDone) {
               return Container(
                 padding: EdgeInsets.all(8),
@@ -420,9 +418,10 @@ class _ScoreBoardState extends State<ScoreBoard>
               child: ScrollConfiguration(
                 behavior: MyCustomScrollBehavior(),
                 child: ScrollablePositionedList.separated(
-                  separatorBuilder: (context, index) => Divider(
+                  separatorBuilder: (context, index) => const Divider(
                     indent: 24,
                     endIndent: 24,
+                    color: Colors.black,
                   ),
                   itemCount: data.length + (!myPosition.isNegative ? 0 : 1),
                   // physics: const BouncingScrollPhysics(),
@@ -502,7 +501,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                         minFontSize: 8,
                       ),
                       SizedBox(
-                        height: maxHeight * 0.05,
+                        height: 16,
                       ),
                       Expanded(
                         child: board(timeChartData),

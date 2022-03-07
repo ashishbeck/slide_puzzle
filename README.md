@@ -39,5 +39,7 @@ When building for release, please make sure to enable the canvaskit renderer oth
 
 ## © Copyright
 Certain images and sounds used in this project have been acquired from sources that provide copyright free services.
+
 Images are compiled from [Pexels](https://www.pexels.com/) and [Vecteezy](https://vecteezy.com/).
+
 Sounds are compiled from [Zapsplat](https://www.zapsplat.com/), [Mixkit](https://mixkit.co/) and [Pixabay](https://pixabay.com/).

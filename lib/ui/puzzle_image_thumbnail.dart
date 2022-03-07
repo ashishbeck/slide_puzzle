@@ -30,6 +30,7 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
     with TickerProviderStateMixin {
   late AnimationController animationController;
   bool isHovering = false;
+  late Image image;
 
   bool _ifAnimated() {
     String name = "imageIndEntry${widget.index}";
@@ -63,12 +64,24 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
     animationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 500));
     _animateEntry();
+    image = Image.asset(
+      widget.tileProvider.images[widget.index],
+      fit: BoxFit.cover,
+      height: 75,
+      width: 75,
+    );
   }
 
   @override
   void dispose() {
     animationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(image.image, context);
   }
 
   @override
@@ -103,12 +116,7 @@ class _PuzzleImageThumbnailState extends State<PuzzleImageThumbnail>
               //   Radius.circular(10),
               // ),
             ),
-            child: Image.asset(
-              widget.tileProvider.images[widget.index],
-              fit: BoxFit.cover,
-              cacheHeight: 75,
-              cacheWidth: 75,
-            ),
+            child: image,
             // child: Text(widget.tileProvider.images[widget.index]),
             // child: Lottie.asset(
             //   widget.tileProvider.images[widget.index],

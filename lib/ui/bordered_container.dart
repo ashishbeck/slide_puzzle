@@ -53,9 +53,9 @@ class _BorderedContainerState extends State<BorderedContainer>
       configProvider.seenEntryAnimation("3x3");
       configProvider.seenEntryAnimation("4x4");
     }
-    if (widget.label == "shuffle" || widget.label == "reset") {
-      configProvider.seenEntryAnimation("shuffle");
-      configProvider.seenEntryAnimation("reset");
+    if (widget.label == "Shuffle" || widget.label == "Reset") {
+      configProvider.seenEntryAnimation("Shuffle");
+      configProvider.seenEntryAnimation("Reset");
     }
 
     configProvider.seenEntryAnimation(widget.label);

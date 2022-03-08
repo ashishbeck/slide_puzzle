@@ -8,6 +8,7 @@ import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/service.dart';
 import 'package:slide_puzzle/code/store.dart';
 import 'package:slide_puzzle/screen/app.dart';
+import 'package:slide_puzzle/ui/rive_icons.dart';
 
 class TileProvider extends ChangeNotifier {
   int _gridSize = 4;
@@ -192,9 +193,11 @@ class ScoreProvider extends ChangeNotifier {
     _isRunning = true;
     _beginState = false;
     resetScores();
+    // RiveIcons.instance.startTheTimer();
     thisTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!_isRunning) {
         timer.cancel();
+        notifyListeners();
       } else {
         incrementSeconds();
       }
@@ -210,7 +213,9 @@ class ScoreProvider extends ChangeNotifier {
 
   void stopTimer() {
     _isRunning = false;
+    // RiveIcons.instance.stopTheTimer();
     if (thisTimer != null) thisTimer!.cancel();
+    notifyListeners();
   }
 
   void incrementMoves() {

@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:rive/rive.dart';
 
 import 'package:slide_puzzle/code/audio.dart';
+import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/store.dart';
 import 'package:slide_puzzle/screen/app.dart';
 import 'package:slide_puzzle/screen/puzzle.dart';
 import 'package:slide_puzzle/ui/dialog.dart';
+import 'package:slide_puzzle/ui/rive_icons.dart';
 
 class VisibleLeaderboardTool extends StatefulWidget {
   final bool isTall;
@@ -29,45 +31,46 @@ class VisibleLeaderboardTool extends StatefulWidget {
 }
 
 class _VisibleLeaderboardToolState extends State<VisibleLeaderboardTool> {
-  Artboard? _numbersArtboard;
-  SMIInput<bool>? _isNumbersVisible;
-  Artboard? _leaderboardArtboard;
-  RiveAnimationController? _leaderboardController;
+  final riveInstance = RiveIcons.instance;
+  // Artboard? _numbersArtboard;
+  // SMIInput<bool>? _isNumbersVisible;
+  // Artboard? _leaderboardArtboard;
+  // RiveAnimationController? _leaderboardController;
 
-  @override
-  void initState() {
-    super.initState();
+  // @override
+  // void initState() {
+  //   super.initState();
 
-    rootBundle.load('assets/rive/toolbar.riv').then(
-      (data) async {
-        final file = RiveFile.import(data);
+  //   rootBundle.load('assets/rive/toolbar.riv').then(
+  //     (data) async {
+  //       final file = RiveFile.import(data);
 
-        final numbersArtboard = file.artboardByName("visible");
-        final leaderboardArtboard = file.artboardByName("leaderboard");
-        var numbersController =
-            StateMachineController.fromArtboard(numbersArtboard!, 'toggle');
-        var leaderboardController =
-            OneShotAnimation("trigger", autoplay: false);
-        if (numbersController != null) {
-          numbersArtboard.addController(numbersController);
-          _isNumbersVisible = numbersController.findInput('isVisible');
-        }
-        leaderboardArtboard!.addController(leaderboardController);
-        setState(() {
-          _numbersArtboard = numbersArtboard;
-          _leaderboardArtboard = leaderboardArtboard;
-          _leaderboardController = leaderboardController;
-        });
-      },
-    );
-  }
+  //       final numbersArtboard = file.artboardByName("visible");
+  //       final leaderboardArtboard = file.artboardByName("leaderboard");
+  //       var numbersController =
+  //           StateMachineController.fromArtboard(numbersArtboard!, 'toggle');
+  //       var leaderboardController =
+  //           OneShotAnimation("trigger", autoplay: false);
+  //       if (numbersController != null) {
+  //         numbersArtboard.addController(numbersController);
+  //         _isNumbersVisible = numbersController.findInput('isVisible');
+  //       }
+  //       leaderboardArtboard!.addController(leaderboardController);
+  //       setState(() {
+  //         _numbersArtboard = numbersArtboard;
+  //         _leaderboardArtboard = leaderboardArtboard;
+  //         _leaderboardController = leaderboardController;
+  //       });
+  //     },
+  //   );
+  // }
 
   _animate(ConfigProvider configProvider) {
-    if (_isNumbersVisible != null) {
+    if (riveInstance.isNumbersVisible != null) {
       if (!configProvider.showNumbers) {
-        _isNumbersVisible!.value = false;
+        riveInstance.isNumbersVisible!.value = false;
       } else {
-        _isNumbersVisible!.value = true;
+        riveInstance.isNumbersVisible!.value = true;
       }
     }
   }
@@ -112,36 +115,32 @@ class _VisibleLeaderboardToolState extends State<VisibleLeaderboardTool> {
                     );
                   });
             } else if (widget.configProvider.showNumbers) {
-              showDialog(
-                  context: context,
-                  barrierColor: Colors.black.withOpacity(0.95),
-                  builder: (_) {
-                    Future.delayed(const Duration(milliseconds: 1000))
-                        .then((value) {
-                      try {
-                        Navigator.of(_).pop();
-                      } catch (e) {
-                        // print(e);
-                      }
-                    });
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text(
-                          "Practice Mode Activated",
-                          style: TextStyle(fontSize: 24),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    );
-                  });
+              Widget text = const Text(
+                "Practice Mode Activated",
+                style: TextStyle(
+                    fontSize: 24, color: Colors.white, fontFamily: "Arcade"),
+                textAlign: TextAlign.center,
+              );
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(
+                  content: text,
+                  backgroundColor: secondaryColor,
+                  duration: const Duration(milliseconds: 1000),
+                  margin: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).size.height * 0.5,
+                      left: 24,
+                      right: 24),
+                  behavior: SnackBarBehavior.floating,
+                  dismissDirection: DismissDirection.horizontal,
+                ));
             }
             AudioService.instance.button();
             AudioService.instance.vibrate();
           },
-          icon: _numbersArtboard == null
+          icon: riveInstance.numbersArtboard == null
               ? Rive(artboard: RuntimeArtboard())
-              : Rive(artboard: _numbersArtboard!),
+              : Rive(artboard: riveInstance.numbersArtboard!),
         ),
       ),
       // isTall ? Divider() : VerticalDivider(),
@@ -154,13 +153,13 @@ class _VisibleLeaderboardToolState extends State<VisibleLeaderboardTool> {
                 checking: true);
             AudioService.instance.button();
             AudioService.instance.vibrate();
-            if (_leaderboardController != null) {
-              _leaderboardController!.isActive = true;
+            if (riveInstance.leaderboardController != null) {
+              riveInstance.leaderboardController!.isActive = true;
             }
           },
-          icon: _leaderboardArtboard == null
+          icon: riveInstance.leaderboardArtboard == null
               ? Rive(artboard: RuntimeArtboard())
-              : Rive(artboard: _leaderboardArtboard!),
+              : Rive(artboard: riveInstance.leaderboardArtboard!),
         ),
       ),
     ];

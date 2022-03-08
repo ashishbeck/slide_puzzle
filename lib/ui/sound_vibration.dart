@@ -6,6 +6,7 @@ import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/store.dart';
+import 'package:slide_puzzle/ui/rive_icons.dart';
 
 class SoundsVibrationsTool extends StatefulWidget {
   final bool isTall;
@@ -19,54 +20,55 @@ class SoundsVibrationsTool extends StatefulWidget {
 }
 
 class _SoundsVibrationsToolState extends State<SoundsVibrationsTool> {
-  Artboard? _audioArtboard;
-  SMIInput<bool>? _isAudioVisible;
-  Artboard? _vibrationArtboard;
-  SMIInput<bool>? _isVibrationVisible;
+  final riveInstance = RiveIcons.instance;
+  // Artboard? _audioArtboard;
+  // SMIInput<bool>? _isAudioVisible;
+  // Artboard? _vibrationArtboard;
+  // SMIInput<bool>? _isVibrationVisible;
 
-  @override
-  void initState() {
-    super.initState();
+  // @override
+  // void initState() {
+  //   super.initState();
 
-    rootBundle.load('assets/rive/toolbar.riv').then(
-      (data) async {
-        final file = RiveFile.import(data);
+  //   rootBundle.load('assets/rive/toolbar.riv').then(
+  //     (data) async {
+  //       final file = RiveFile.import(data);
 
-        final audioArtboard = file.artboardByName("audio");
-        final vibrationArtboard = file.artboardByName("vibration");
-        var audioController =
-            StateMachineController.fromArtboard(audioArtboard!, 'toggle');
-        var vibrationController =
-            StateMachineController.fromArtboard(vibrationArtboard!, 'toggle');
-        if (audioController != null) {
-          audioArtboard.addController(audioController);
-          _isAudioVisible = audioController.findInput('isVisible');
-        }
-        if (vibrationController != null) {
-          vibrationArtboard.addController(vibrationController);
-          _isVibrationVisible = vibrationController.findInput('isVisible');
-        }
-        setState(() {
-          _audioArtboard = audioArtboard;
-          _vibrationArtboard = vibrationArtboard;
-        });
-      },
-    );
-  }
+  //       final audioArtboard = file.artboardByName("audio");
+  //       final vibrationArtboard = file.artboardByName("vibration");
+  //       var audioController =
+  //           StateMachineController.fromArtboard(audioArtboard!, 'toggle');
+  //       var vibrationController =
+  //           StateMachineController.fromArtboard(vibrationArtboard!, 'toggle');
+  //       if (audioController != null) {
+  //         audioArtboard.addController(audioController);
+  //         _isAudioVisible = audioController.findInput('isVisible');
+  //       }
+  //       if (vibrationController != null) {
+  //         vibrationArtboard.addController(vibrationController);
+  //         _isVibrationVisible = vibrationController.findInput('isVisible');
+  //       }
+  //       setState(() {
+  //         _audioArtboard = audioArtboard;
+  //         _vibrationArtboard = vibrationArtboard;
+  //       });
+  //     },
+  //   );
+  // }
 
   _animate(ConfigProvider configProvider) {
-    if (_isAudioVisible != null) {
+    if (riveInstance.isAudioVisible != null) {
       if (configProvider.muted) {
-        _isAudioVisible!.value = false;
+        riveInstance.isAudioVisible!.value = false;
       } else {
-        _isAudioVisible!.value = true;
+        riveInstance.isAudioVisible!.value = true;
       }
     }
-    if (_isVibrationVisible != null) {
+    if (riveInstance.isVibrationVisible != null) {
       if (configProvider.vibrationsOff) {
-        _isVibrationVisible!.value = false;
+        riveInstance.isVibrationVisible!.value = false;
       } else {
-        _isVibrationVisible!.value = true;
+        riveInstance.isVibrationVisible!.value = true;
       }
     }
   }
@@ -79,9 +81,9 @@ class _SoundsVibrationsToolState extends State<SoundsVibrationsTool> {
       Expanded(
         child: IconButton(
           tooltip: "Toggle sounds",
-          icon: _audioArtboard == null
+          icon: riveInstance.audioArtboard == null
               ? Rive(artboard: RuntimeArtboard())
-              : Rive(artboard: _audioArtboard!),
+              : Rive(artboard: riveInstance.audioArtboard!),
           // icon: Icon(configProvider.muted ? Icons.volume_off : Icons.volume_up),
           onPressed: () {
             configProvider.toggleSound();
@@ -94,9 +96,9 @@ class _SoundsVibrationsToolState extends State<SoundsVibrationsTool> {
       Expanded(
         child: IconButton(
           tooltip: "Toggle vibrations",
-          icon: _vibrationArtboard == null
+          icon: riveInstance.vibrationArtboard == null
               ? Rive(artboard: RuntimeArtboard())
-              : Rive(artboard: _vibrationArtboard!),
+              : Rive(artboard: riveInstance.vibrationArtboard!),
           onPressed: () {
             configProvider.toggleVibration();
             AudioService.instance.button();

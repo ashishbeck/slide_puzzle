@@ -1,9 +1,11 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rive/rive.dart';
 
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/service.dart';
+import 'package:slide_puzzle/ui/rive_icons.dart';
 
 class Scores extends StatefulWidget {
   final bool isTall;
@@ -17,9 +19,21 @@ class Scores extends StatefulWidget {
 }
 
 class _ScoresState extends State<Scores> {
+  final riveInstance = RiveIcons.instance;
+  _animate(ScoreProvider configProvider) {
+    if (riveInstance.isTimerRunning != null) {
+      if (configProvider.isRunning) {
+        riveInstance.isTimerRunning!.value = true;
+      } else {
+        riveInstance.isTimerRunning!.value = false;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ScoreProvider scoreProvider = context.watch<ScoreProvider>();
+    _animate(scoreProvider);
     return Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -52,7 +66,13 @@ class _ScoresState extends State<Scores> {
                           minFontSize: 8,
                         ),
                       ),
-                Icon(Icons.timer),
+                SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: riveInstance.timerArtboard == null
+                      ? Rive(artboard: RuntimeArtboard())
+                      : Rive(artboard: riveInstance.timerArtboard!),
+                ),
               ],
             ),
           ),

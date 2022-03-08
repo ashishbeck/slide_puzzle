@@ -1,3 +1,8 @@
+## 0.7.2
+
+ - Practice mode dialog is now a snackbar
+ - RiveIcons are now a separate class to avoid rebuilding
+
 ## 0.7.1
 
  - Grammar fixes in README

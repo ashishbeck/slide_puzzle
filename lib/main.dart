@@ -14,6 +14,7 @@ import 'package:slide_puzzle/screen/app.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/screen/landing.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:slide_puzzle/ui/rive_icons.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ void main() async {
   );
   await GetStorage.init();
   Storage.instance.init();
+  await RiveIcons.instance.init();
   runApp(MyApp());
 }
 

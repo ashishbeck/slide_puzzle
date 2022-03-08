@@ -18,6 +18,7 @@ import 'package:slide_puzzle/ui/3d_transform.dart';
 import 'package:slide_puzzle/ui/Scoreboard.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/dialog.dart';
+import 'package:slide_puzzle/ui/rive_icons.dart';
 import 'package:slide_puzzle/ui/sound_vibration.dart';
 import 'package:slide_puzzle/ui/spinner.dart';
 import 'package:slide_puzzle/ui/theme_changer.dart';
@@ -189,8 +190,9 @@ class _LandingPageState extends State<LandingPage>
     if (Storage.instance.showNameChange) _showNameChange();
 
     AudioService.instance.init().then((value) {
-      setState((){
-      isLoaded = true;});
+      setState(() {
+        isLoaded = true;
+      });
     });
     // _showOverlay();
     // DatabaseService.instance.fetchLeaderBoards();

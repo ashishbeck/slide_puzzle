@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:rive/rive.dart';
 
 import 'package:slide_puzzle/code/audio.dart';
 import 'package:slide_puzzle/code/models.dart';
@@ -9,7 +11,7 @@ import 'package:slide_puzzle/screen/app.dart';
 import 'package:slide_puzzle/screen/puzzle.dart';
 import 'package:slide_puzzle/ui/dialog.dart';
 
-class VisibleLeaderboardTool extends StatelessWidget {
+class VisibleLeaderboardTool extends StatefulWidget {
   final bool isTall;
   final ConfigProvider configProvider;
   final ScoreProvider scoreProvider;
@@ -23,24 +25,74 @@ class VisibleLeaderboardTool extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<VisibleLeaderboardTool> createState() => _VisibleLeaderboardToolState();
+}
+
+class _VisibleLeaderboardToolState extends State<VisibleLeaderboardTool> {
+  Artboard? _numbersArtboard;
+  SMIInput<bool>? _isNumbersVisible;
+  Artboard? _leaderboardArtboard;
+  RiveAnimationController? _leaderboardController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    rootBundle.load('assets/rive/toolbar.riv').then(
+      (data) async {
+        final file = RiveFile.import(data);
+
+        final numbersArtboard = file.artboardByName("visible");
+        final leaderboardArtboard = file.artboardByName("leaderboard");
+        var numbersController =
+            StateMachineController.fromArtboard(numbersArtboard!, 'toggle');
+        var leaderboardController =
+            OneShotAnimation("trigger", autoplay: false);
+        if (numbersController != null) {
+          numbersArtboard.addController(numbersController);
+          _isNumbersVisible = numbersController.findInput('isVisible');
+        }
+        leaderboardArtboard!.addController(leaderboardController);
+        setState(() {
+          _numbersArtboard = numbersArtboard;
+          _leaderboardArtboard = leaderboardArtboard;
+          _leaderboardController = leaderboardController;
+        });
+      },
+    );
+  }
+
+  _animate(ConfigProvider configProvider) {
+    if (_isNumbersVisible != null) {
+      if (!configProvider.showNumbers) {
+        _isNumbersVisible!.value = false;
+      } else {
+        _isNumbersVisible!.value = true;
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     UserData? userData = context.read<UserData?>();
+    ConfigProvider configProvider = context.watch<ConfigProvider>();
+    _animate(configProvider);
     List<Widget> children = [
       Expanded(
         child: IconButton(
           tooltip: "Toggle visibility of numbers (practice mode)",
           onPressed: () {
-            if (configProvider.showNumbers &&
-                (configProvider.gamestate == GameState.started ||
-                    configProvider.gamestate == GameState.finished)) {
-              int gridSize = tileProvider.gridSize;
+            if (widget.configProvider.showNumbers &&
+                (widget.configProvider.gamestate == GameState.started ||
+                    widget.configProvider.gamestate == GameState.finished)) {
+              int gridSize = widget.tileProvider.gridSize;
               homeKey.currentState!
                   .createTiles(gridSize: gridSize, shuffle: false);
             }
-            configProvider.toggleNumbersVisibility();
+            widget.configProvider.toggleNumbersVisibility();
 
             if (Storage.instance.showPracticeMode &&
-                configProvider.showNumbers) {
+                widget.configProvider.showNumbers) {
               Storage.instance.seenPracticeMode();
               showDialog(
                   context: context,
@@ -59,7 +111,7 @@ class VisibleLeaderboardTool extends StatelessWidget {
                       ),
                     );
                   });
-            } else if (configProvider.showNumbers) {
+            } else if (widget.configProvider.showNumbers) {
               showDialog(
                   context: context,
                   barrierColor: Colors.black.withOpacity(0.95),
@@ -87,8 +139,9 @@ class VisibleLeaderboardTool extends StatelessWidget {
             AudioService.instance.button();
             AudioService.instance.vibrate();
           },
-          icon: Icon(
-              configProvider.showNumbers ? Icons.pin : Icons.visibility_off),
+          icon: _numbersArtboard == null
+              ? Rive(artboard: RuntimeArtboard())
+              : Rive(artboard: _numbersArtboard!),
         ),
       ),
       // isTall ? Divider() : VerticalDivider(),
@@ -97,12 +150,17 @@ class VisibleLeaderboardTool extends StatelessWidget {
           tooltip: "Show Leaderboards",
           onPressed: () {
             puzzleKey.currentState!.launchScoreBoard(
-                scoreProvider, userData, configProvider,
+                widget.scoreProvider, userData, widget.configProvider,
                 checking: true);
             AudioService.instance.button();
             AudioService.instance.vibrate();
+            if (_leaderboardController != null) {
+              _leaderboardController!.isActive = true;
+            }
           },
-          icon: Icon(Icons.leaderboard),
+          icon: _leaderboardArtboard == null
+              ? Rive(artboard: RuntimeArtboard())
+              : Rive(artboard: _leaderboardArtboard!),
         ),
       ),
     ];
@@ -110,7 +168,7 @@ class VisibleLeaderboardTool extends StatelessWidget {
     return Container(
       child: IntrinsicHeight(
         child: IntrinsicWidth(
-          child: isTall
+          child: widget.isTall
               ? Column(
                   children: children,
                 )

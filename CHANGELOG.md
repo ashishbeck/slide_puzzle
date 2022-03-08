@@ -1,3 +1,8 @@
+## 0.7.1
+
+ - Grammar fixes in README
+ - Toolbar icons converted to rive icons
+
 ## 0.7.0
 
  - Added license information

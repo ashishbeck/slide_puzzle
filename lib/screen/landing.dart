@@ -189,8 +189,8 @@ class _LandingPageState extends State<LandingPage>
     if (Storage.instance.showNameChange) _showNameChange();
 
     AudioService.instance.init().then((value) {
-      print("audio loaded");
-      isLoaded = true;
+      setState((){
+      isLoaded = true;});
     });
     // _showOverlay();
     // DatabaseService.instance.fetchLeaderBoards();

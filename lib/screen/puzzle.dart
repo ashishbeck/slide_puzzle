@@ -416,6 +416,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
   double? mouseOffset;
   bool isAnimating = true;
   bool isHovering = false;
+  Size? _size;
 
   _onPanEnd(
     DragEndDetails details,
@@ -554,6 +555,12 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     TweenProvider tweenProvider = context.read<TweenProvider>();
     ConfigProvider configProvider = context.read<ConfigProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
+
+    Size size = widget.constraints.biggest;
+    _size ??= size;
+    Duration duration = size != _size ? Duration.zero : configProvider.duration;
+    _size = size;
+
     double maxHeight = widget.constraints.maxHeight;
     TilesModel thisTile = widget.tileList.firstWhere(
       (element) => element.currentIndex == widget.currentIndex,
@@ -670,7 +677,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
           ],
         ));
     return AnimatedPositioned(
-      duration: configProvider.duration,
+      duration: duration,
       curve: configProvider.curve,
       top: topOffset + gap / 2,
       left: leftOffset + gap / 2,

@@ -123,7 +123,7 @@ class DatabaseService {
         .collection("users")
         .orderBy("times.$grid", descending: false)
         .where("times.$grid", isNotEqualTo: 0)
-        .limit(20)
+        .limit(50)
         .snapshots()
         .map((event) => event.docs
             .map((e) => LeaderboardItem.fromMap(e.data(), grid))

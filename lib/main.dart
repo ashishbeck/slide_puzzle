@@ -14,6 +14,7 @@ import 'package:slide_puzzle/screen/app.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/screen/landing.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:slide_puzzle/ui/colored_background.dart';
 import 'package:slide_puzzle/ui/rive_icons.dart';
 
 void main() async {
@@ -100,7 +101,11 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
         ),
-        home: false ? LayoutPage() : LandingPage(),
+        home: false
+            ? ColoredBackground(
+                child: Container(),
+              )
+            : LandingPage(),
       ),
     );
   }

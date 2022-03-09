@@ -1,3 +1,8 @@
+## 0.7.3
+
+ - Bug fixes
+ - Basic background implementation
+
 ## 0.7.2
 
  - Practice mode dialog is now a snackbar

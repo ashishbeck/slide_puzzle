@@ -288,6 +288,7 @@ class _LandingPageState extends State<LandingPage>
                                 left: 16,
                                 right: 16,
                                 top: 32,
+                                bottom: 16,
                               ),
                               child: ScrollConfiguration(
                                 behavior: MyCustomScrollBehavior(),
@@ -343,6 +344,25 @@ class _LandingPageState extends State<LandingPage>
                                   Navigator.of(context).pop();
                                 },
                                 icon: Icon(Icons.close),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment(0.95, 0.98),
+                              child: DefaultTextStyle(
+                                style: TextStyle(
+                                    fontFamily: "Glacial", color: Colors.white),
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      AudioService.instance.vibrate();
+
+                                      AudioService.instance.button();
+                                      showLicensePage(context: context);
+                                    },
+                                    child: Text("Open Source Licenses"),
+                                  ),
+                                ),
                               ),
                             ),
                           ],

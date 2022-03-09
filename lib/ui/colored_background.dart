@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:slide_puzzle/code/constants.dart';
 import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
+import 'package:slide_puzzle/ui/background.dart';
 import 'package:slide_puzzle/ui/delayed_loader.dart';
 
 class ColoredBackground extends StatefulWidget {
@@ -34,6 +35,11 @@ class _ColoredBackgroundState extends State<ColoredBackground> {
     ConfigProvider configProvider = context.watch<ConfigProvider>();
     List<TilesModel> tileList = tileProvider.getTileList;
     double perc = _calculatePercentage(tileList);
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+    double boxSize = 200;
+    int totalHorizontalBoxes = (width / (boxSize - 10)).ceil();
+    int totalVerticalBoxes = (height / (boxSize - 10)).ceil();
 
     return Stack(
       alignment: Alignment.center,
@@ -54,7 +60,19 @@ class _ColoredBackgroundState extends State<ColoredBackground> {
                 ],
               ),
             ),
-            // child: widget.child,
+            // child: ExampleFunvasWidget(),
+            child: Stack(
+              children: [
+                for (var i = 0; i < totalHorizontalBoxes; i++) ...{
+                  for (var j = 0; j < totalVerticalBoxes; j++) ...{
+                    BackgroundBox(
+                      size: boxSize,
+                      offset: Offset(i.toDouble(), j.toDouble()),
+                    ),
+                  },
+                }
+              ],
+            ),
           ),
         ),
         widget.child

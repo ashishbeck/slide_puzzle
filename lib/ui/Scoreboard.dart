@@ -412,6 +412,7 @@ class _ScoreBoardState extends State<ScoreBoard>
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.zero),
+                  color: Colors.black.withOpacity(0.8),
                   border: Border.all(
                     color: Colors.white,
                   )),

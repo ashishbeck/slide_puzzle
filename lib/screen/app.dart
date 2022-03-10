@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:async/async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/painting/gradient.dart' as grad;
@@ -43,6 +44,7 @@ class _LayoutPageState extends State<LayoutPage> {
   final isMobileOnly = !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.android);
+  late CancelableOperation<List<String>> cancelableOperation;
 
   void createTiles(
       {int? gridSize, bool isChangingGrid = false, bool shuffle = true}) {
@@ -87,7 +89,12 @@ class _LayoutPageState extends State<LayoutPage> {
     // scoreProvider.stopTimer();
     // scoreProvider.resetScores();
     scoreProvider.restart();
-    if (shuffle) scoreProvider.beginTimer();
+    if (shuffle) {
+      // adding this delay because I don't know why it bugs out the
+      // rive controllers :(
+      Future.delayed(const Duration(milliseconds: 100))
+          .then((value) => scoreProvider.beginTimer());
+    }
     var duration = Duration(milliseconds: isChangingGrid ? 0 : defaultTime * 2);
     configProvider.setDuration(duration, curve: Curves.easeInOutBack);
     if (shuffle) {
@@ -103,63 +110,80 @@ class _LayoutPageState extends State<LayoutPage> {
     TileProvider tileProvider = context.read<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
     ConfigProvider configProvider = context.read<ConfigProvider>();
-    configProvider.aiSolving();
-    scoreProvider.stopTimer();
     List<TilesModel> tileList = tileProvider.getTileList;
     bool isSolved = Service().isSolved(tileList);
+    if (configProvider.gamestate == GameState.aiSolving) return;
     if (isSolved) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          content: Text("The puzzle is already solved!"),
-        ));
+        ..showSnackBar(MySnackbar("The puzzle is already solved!", context));
+      configProvider.doneProcessing();
       return;
     }
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return const AlertDialog(
-            content: ListTile(
-              title: Text("Trying to solve the puzzle"),
-              leading: CircularProgressIndicator(),
-            ),
+    configProvider.aiSolving();
+    scoreProvider.stopTimer();
+    // showDialog(
+    //     context: context,
+    //     barrierDismissible: false,
+    //     builder: (context) {
+    //       return const AlertDialog(
+    //         content: ListTile(
+    //           title: Text("Trying to solve the puzzle"),
+    //           leading: CircularProgressIndicator(),
+    //         ),
+    //       );
+    //     });
+    cancelableOperation = CancelableOperation.fromFuture(
+      Service().getSolution(tileList),
+      onCancel: () {
+        debugPrint('cancelled');
+        configProvider.doneProcessing();
+        configProvider.start();
+        scoreProvider.beginTimer(isResuming: true);
+      },
+    );
+    cancelableOperation.value.then((value) {
+      debugPrint('then: $value');
+      List<String> result = value;
+      configProvider.doneProcessing();
+      // Navigator.pop(context);
+      var i = 0;
+      // print("result is $result ${result.first.runtimeType} ${result.isNotEmpty}");
+      if (result.isNotEmpty && result.first != "") {
+        Timer.periodic(const Duration(milliseconds: 250), (timer) {
+          Direction? direction;
+          switch (result[i]) {
+            case "Left":
+              direction = Direction.left;
+              break;
+            case "Right":
+              direction = Direction.right;
+              break;
+            case "Down":
+              direction = Direction.down;
+              break;
+            case "Up":
+              direction = Direction.up;
+              break;
+            default:
+              return;
+          }
+          Service().moveWhite(
+            tileList,
+            direction,
+            scoreProvider,
+            configProvider,
           );
+          tileProvider.updateNotifiers();
+          i++;
+          if (i == result.length) timer.cancel();
         });
-    List<String> result = await Service().getSolution(tileList);
-    Navigator.pop(context);
-    var i = 0;
-    // print("result is $result ${result.first.runtimeType} ${result.isNotEmpty}");
-    if (result.isNotEmpty && result.first != "") {
-      Timer.periodic(duration * 0.5, (timer) {
-        Direction? direction;
-        switch (result[i]) {
-          case "Left":
-            direction = Direction.left;
-            break;
-          case "Right":
-            direction = Direction.right;
-            break;
-          case "Down":
-            direction = Direction.down;
-            break;
-          case "Up":
-            direction = Direction.up;
-            break;
-          default:
-            return;
-        }
-        Service().moveWhite(
-          tileList,
-          direction,
-          scoreProvider,
-          configProvider,
-        );
-        tileProvider.updateNotifiers();
-        i++;
-        if (i == result.length) timer.cancel();
-      });
-    }
+      }
+    });
+    cancelableOperation.value.whenComplete(() {
+      debugPrint('onDone');
+      // solve(fetching: false);
+    });
   }
 
   // List<Widget> buttons({bool expanded = true}) => [
@@ -208,6 +232,8 @@ class _LayoutPageState extends State<LayoutPage> {
   @override
   Widget build(BuildContext context) {
     int newGridSize = context.select<TileProvider, int>((_) => _.gridSize);
+    GameState gameState = context.select<ConfigProvider, GameState>(
+        (configProvider) => configProvider.gamestate);
     // if (newGridSize != gridSize) {
     //   gridSize = newGridSize;
     //   _createTiles();
@@ -235,6 +261,19 @@ class _LayoutPageState extends State<LayoutPage> {
             double puzzleHeight =
                 isTall ? min(absoluteWidth, maxHeight - 300) : absoluteHeight;
             if (!isTall && isMobileOnly) puzzleHeight -= topPad * 2;
+            double toolAlign = 1;
+            bool aiSolving = gameState == GameState.aiSolving;
+            if (aiSolving) {
+              puzzleHeight -=
+                  maxHeight * ((isWebMobile || isMobileOnly) ? 0.1 : 0.25);
+              toolAlign = 1.5;
+              duration = const Duration(milliseconds: 2000);
+              curve = Curves.easeOutBack;
+            } else {
+              toolAlign = 1;
+              duration = Duration(milliseconds: defaultTime);
+              curve = Curves.easeOut;
+            }
             double puzzleWidth = puzzleHeight;
 
             // double imageListHeight = 100;
@@ -281,16 +320,18 @@ class _LayoutPageState extends State<LayoutPage> {
                     // right: !isTopLeft ? 23 : 0,
                     // top: isTopLeft ? 23 : 0,
                     // bottom: !isTopLeft ? 23 : 0,
-                    child: Container(
-                      height: puzzleHeight + buttonHeight,
+                    child: AnimatedContainer(
+                      duration: duration,
+                      curve: curve,
+                      height: puzzleHeight + (aiSolving ? 0 : buttonHeight),
                       width: puzzleWidth,
                       color: Colors.white,
                       child: MyTransform(
                         child: BorderedContainer(
                           label: "puzzle",
-                          child: AnimatedContainer(
-                            duration: duration,
-                            curve: curve,
+                          child: Container(
+                            // duration: duration,
+                            // curve: curve,
                             padding: const EdgeInsets.all(4),
                             color: secondaryColor,
                             child: Puzzle(),
@@ -305,12 +346,8 @@ class _LayoutPageState extends State<LayoutPage> {
                     duration: duration,
                     curve: curve,
                     alignment: isTall
-                        ? imageListVisibile
-                            ? Alignment.bottomCenter
-                            : Alignment(0, imageListCrossOffset)
-                        : imageListVisibile
-                            ? Alignment.centerRight
-                            : Alignment(imageListCrossOffset, 0),
+                        ? Alignment(0, toolAlign)
+                        : Alignment(toolAlign, 0),
                     // right: isTall ? imageListMainGap : imageListCrossGap,
                     // top: isTall ? null : imageListMainGap,
                     // left: isTall ? imageListMainGap : null,
@@ -332,8 +369,9 @@ class _LayoutPageState extends State<LayoutPage> {
                   AnimatedAlign(
                     duration: duration,
                     curve: curve,
-                    alignment:
-                        isTall ? Alignment.topCenter : Alignment.centerLeft,
+                    alignment: isTall
+                        ? Alignment(0, -toolAlign)
+                        : Alignment(-toolAlign, 0),
                     // left: isTall ? toolbarGap : 0,
                     // top: isTall ? topPad : toolbarGap,
                     // right: isTall ? toolbarGap : null,

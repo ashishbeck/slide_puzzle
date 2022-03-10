@@ -119,6 +119,8 @@ class ConfigProvider extends ChangeNotifier {
   bool get vibrationsOff => _vibrationsOff;
   bool _solvedByAI = false;
   bool get solvedByAI => _solvedByAI;
+  bool _processing = false;
+  bool get processing => _processing;
 
   void setDuration(Duration duration, {Curve? curve}) {
     _duration = duration;
@@ -149,7 +151,7 @@ class ConfigProvider extends ChangeNotifier {
   void finish({bool solvedByAI = false}) {
     _gameState = GameState.finished;
     _solvedByAI = solvedByAI;
-    // notifyListeners();
+    notifyListeners();
   }
 
   void wait() {
@@ -160,6 +162,12 @@ class ConfigProvider extends ChangeNotifier {
 
   void aiSolving() {
     _gameState = GameState.aiSolving;
+    _processing = true;
+    notifyListeners();
+  }
+
+  void doneProcessing() {
+    _processing = false;
     notifyListeners();
   }
 
@@ -189,10 +197,10 @@ class ScoreProvider extends ChangeNotifier {
   bool get beginState => _beginState;
   Timer? thisTimer;
 
-  void beginTimer() {
+  void beginTimer({bool isResuming = false}) {
     _isRunning = true;
     _beginState = false;
-    resetScores();
+    if (!isResuming) resetScores();
     // RiveIcons.instance.startTheTimer();
     thisTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!_isRunning) {

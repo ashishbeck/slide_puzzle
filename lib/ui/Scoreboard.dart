@@ -544,7 +544,8 @@ class _ScoreBoardState extends State<ScoreBoard>
                         bottom: 0,
                         right: 0,
                         child: MyButton(
-                          label: "Share",
+                          label: "Tweet",
+                          icon: Image.asset("assets/icons/twitter.png"),
                           tooltip: "Share to your Twitter",
                           expanded: false,
                           shouldAnimateEntry: false,

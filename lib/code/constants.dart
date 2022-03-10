@@ -41,3 +41,20 @@ void changeColor(int index) {
 }
 
 String appLink = "https://n-puzzle-solver-1.web.app/";
+
+MySnackbar(String text, BuildContext context) => SnackBar(
+      content: Text(
+        text,
+        style: const TextStyle(
+            fontSize: 24, color: Colors.white, fontFamily: "Arcade"),
+        textAlign: TextAlign.center,
+      ),
+      backgroundColor: secondaryColor,
+      duration: const Duration(milliseconds: 1000),
+      margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height * 0.5,
+          left: 24,
+          right: 24),
+      behavior: SnackBarBehavior.floating,
+      dismissDirection: DismissDirection.horizontal,
+    );

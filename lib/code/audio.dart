@@ -22,6 +22,7 @@ class AudioService {
   int buttonDownId = 0;
   int buttonUpId = 0;
   int bubbleId = 0;
+  int successId = 0;
   AudioStreamControl? dragStream;
   bool isMuted = !Storage.instance.sounds;
   bool shouldVibrate = Storage.instance.vibrations;
@@ -84,6 +85,11 @@ class AudioService {
     });
     bubbleId = await rootBundle
         .load("assets/audio/bubbles.wav")
+        .then((ByteData soundData) {
+      return pool.load(soundData);
+    });
+    successId = await rootBundle
+        .load("assets/audio/success.wav")
         .then((ByteData soundData) {
       return pool.load(soundData);
     });
@@ -156,6 +162,11 @@ class AudioService {
     if (isMuted) return;
     var stream = await pool.playWithControls(bubbleId);
     stream.setVolume(volume: 0.6);
+  }
+
+  success() async {
+    if (isMuted) return;
+    pool.play(successId);
   }
 
   vibrate() async {

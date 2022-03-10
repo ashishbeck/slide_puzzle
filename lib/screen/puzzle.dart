@@ -109,9 +109,10 @@ class _PuzzleState extends State<Puzzle> {
           tooltip: gameState == GameState.started
               ? "Reset puzzle"
               : "Shuffle the tile pieces",
-          icon: const RiveAnimation.asset(
+          icon: RiveAnimation.asset(
             'assets/rive/icons.riv',
-            animations: ["shuffle"],
+            animations:
+                (gameState == GameState.started ? ["reset"] : ["shuffle"]),
           ),
           expanded: expanded,
           shouldAnimateEntry: gameState != GameState.started,
@@ -135,6 +136,7 @@ class _PuzzleState extends State<Puzzle> {
             animations: ["solve"],
           ),
           expanded: expanded,
+          isDisabled: gameState == GameState.aiSolving,
           onPressed: homeKey.currentState!.solve,
         ),
       ];
@@ -148,23 +150,26 @@ class _PuzzleState extends State<Puzzle> {
         tileList.isNotEmpty &&
         (gameState == GameState.started || aiSolved)) {
       if (configProvider.showNumbers) {
+        await Future.delayed(const Duration(milliseconds: 200));
         scoreProvider.stopTimer();
         configProvider.finish(solvedByAI: aiSolved);
-        setState(() {
-          gameState = GameState.finished;
-        });
+        // setState(() {
+        //   gameState = GameState.finished;
+        // });
         return;
       }
       UserData? newData;
       if (!aiSolved) {
         newData = await _calculateAndSubmitScore(gridSize, scoreProvider);
+        AudioService.instance.success();
         launchScoreBoard(scoreProvider, newData, configProvider);
       }
+      await Future.delayed(const Duration(milliseconds: 200));
       scoreProvider.stopTimer();
       configProvider.finish(solvedByAI: aiSolved);
-      setState(() {
-        gameState = GameState.finished;
-      });
+      // setState(() {
+      //   gameState = GameState.finished;
+      // });
     }
   }
 
@@ -271,6 +276,7 @@ class _PuzzleState extends State<Puzzle> {
     List<TilesModel> tileList = tileProvider.getTileList;
     gridSize = sqrt(tileList.length).toInt();
     gameState = configProvider.gamestate;
+    bool aiSolving = gameState == GameState.aiSolving;
     _checkIfSolved(tileList, scoreProvider, configProvider);
     // list.forEach((e) {
     //   bool solved = true;
@@ -323,7 +329,7 @@ class _PuzzleState extends State<Puzzle> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           var thisConstraints = BoxConstraints(
-              maxHeight: constraints.maxHeight - buttonHeight,
+              maxHeight: constraints.maxHeight - (aiSolving ? 0 : buttonHeight),
               maxWidth: constraints.maxWidth);
           return Stack(
             children: [
@@ -348,17 +354,56 @@ class _PuzzleState extends State<Puzzle> {
                   },
                 ),
               },
-              DelayedLoader(
-                configProvider: configProvider,
-                label: "Buttons",
-                duration: const Duration(milliseconds: 2000),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Row(
-                    children: buttons(expanded: true),
-                  ),
-                ),
+              AnimatedSwitcher(
+                duration: configProvider.duration,
+                switchInCurve: configProvider.curve,
+                child: aiSolving
+                    ? Container()
+                    : DelayedLoader(
+                        configProvider: configProvider,
+                        label: "Buttons",
+                        duration: const Duration(milliseconds: 2000),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Row(
+                            children: buttons(expanded: true),
+                          ),
+                        ),
+                      ),
               ),
+              AnimatedSwitcher(
+                duration: configProvider.duration,
+                switchInCurve: configProvider.curve,
+                child: configProvider.processing
+                    ? SizedBox.expand(
+                        child: Container(
+                          color: Colors.black.withOpacity(0.9),
+                          child: Center(
+                              child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AutoSizeText(
+                                "Processing",
+                                maxLines: 1,
+                                minFontSize: 8,
+                              ),
+                              MyButton(
+                                label: "Cancel",
+                                labelStyle: TextStyle(fontSize: 12),
+                                onPressed: () {
+                                  homeKey.currentState!.cancelableOperation
+                                      .cancel();
+                                },
+                                expanded: false,
+                                tooltip: "Abort solving the puzzle",
+                                shouldAnimateEntry: false,
+                              )
+                            ],
+                          )),
+                        ),
+                      )
+                    : Container(),
+              )
               // ElevatedButton(
               //     onPressed: () {
               //       tileProvider.changeImage(Random().nextInt(6) + 1);
@@ -642,8 +687,8 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Container(
-              // duration: Duration(milliseconds: defaultTime),
+            AnimatedContainer(
+              duration: Duration(milliseconds: 100),
               // alignment: Alignment.center,
               height: height,
               width: height,

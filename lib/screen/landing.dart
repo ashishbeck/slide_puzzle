@@ -154,17 +154,19 @@ class _LandingPageState extends State<LandingPage>
   }
 
   _showNameChange() async {
-    await Future.delayed(const Duration(milliseconds: 7000));
-    if (mounted) {
-      setState(() {
-        showUsernameChangeHint = true;
-      });
-      Storage.instance.seenNameChange();
-      await Future.delayed(const Duration(milliseconds: 5000));
+    if (Storage.instance.showNameChange) {
+      await Future.delayed(const Duration(milliseconds: 7000));
       if (mounted) {
         setState(() {
-          showUsernameChangeHint = false;
+          showUsernameChangeHint = true;
         });
+        Storage.instance.seenNameChange();
+        await Future.delayed(const Duration(milliseconds: 5000));
+        if (mounted) {
+          setState(() {
+            showUsernameChangeHint = false;
+          });
+        }
       }
     }
   }
@@ -174,7 +176,7 @@ class _LandingPageState extends State<LandingPage>
     super.initState();
     _getPackageInfo();
     animationController = AnimationController(
-        duration: const Duration(milliseconds: 2500),
+        duration: const Duration(milliseconds: 2400),
         vsync: this,
         value: 0,
         lowerBound: 0,
@@ -187,7 +189,6 @@ class _LandingPageState extends State<LandingPage>
       tileProvider.updateImages(context);
     });
     usernames = _generateUserName();
-    if (Storage.instance.showNameChange) _showNameChange();
 
     AudioService.instance.init().then((value) {
       setState(() {
@@ -219,10 +220,8 @@ class _LandingPageState extends State<LandingPage>
   @override
   Widget build(BuildContext context) {
     UserData? userData = context.watch<UserData?>();
-    if (userData != null) {
-      print("user found: ${userData.toMap()}");
-    } else {
-      print("no user found");
+    if (userData != null && isLoaded) {
+      _showNameChange();
     }
 
     Widget button() => MyButton(
@@ -472,7 +471,7 @@ class _LandingPageState extends State<LandingPage>
         onKey: _handleKeyEvent,
         child: Scaffold(
           backgroundColor: secondaryColor,
-          body: (userData == null && !isLoaded)
+          body: (userData == null || !isLoaded)
               ? const Spinner(
                   text: "Loading",
                 )
@@ -497,7 +496,7 @@ class _LandingPageState extends State<LandingPage>
                             colors: [
                               // secondaryColor[400]!,
                               secondaryColor,
-                              secondaryColor,
+                              secondaryColor.withOpacity(0.98),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,

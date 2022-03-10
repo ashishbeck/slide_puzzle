@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> {
         ),
       ],
       child: MaterialApp(
-        title: 'Slide Puzzle',
+        title: 'Retro Slide Puzzle',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: "Arcade",

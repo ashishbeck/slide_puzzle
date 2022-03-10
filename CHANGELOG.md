@@ -1,3 +1,10 @@
+## 0.7.4
+
+ - Background fully implemented
+ - Solving visuals are how I wanted it to be
+ - Better background gradient
+ - Fixed some audio glitches and added new sound for completion
+
 ## 0.7.3
 
  - Bug fixes

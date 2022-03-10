@@ -123,17 +123,7 @@ class _VisibleLeaderboardToolState extends State<VisibleLeaderboardTool> {
               );
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(
-                  content: text,
-                  backgroundColor: secondaryColor,
-                  duration: const Duration(milliseconds: 1000),
-                  margin: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).size.height * 0.5,
-                      left: 24,
-                      right: 24),
-                  behavior: SnackBarBehavior.floating,
-                  dismissDirection: DismissDirection.horizontal,
-                ));
+                ..showSnackBar(MySnackbar("Practice Mode Activated", context));
             }
             AudioService.instance.button();
             AudioService.instance.vibrate();

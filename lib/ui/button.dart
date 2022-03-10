@@ -186,7 +186,7 @@ class _MyButtonState extends State<MyButton> {
                     if (!widget.isDisabled) setState(() => isHovering = true);
                   },
                   onExit: (event) {
-                    if (!widget.isDisabled) setState(() => isHovering = false);
+                    setState(() => isHovering = false);
                   },
                   cursor: widget.isDisabled
                       ? SystemMouseCursors.basic

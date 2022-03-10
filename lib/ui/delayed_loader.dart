@@ -8,6 +8,7 @@ class DelayedLoader extends StatefulWidget {
   final String label;
   final ConfigProvider configProvider;
   final bool preload;
+  final Function()? onLoaded;
   const DelayedLoader({
     Key? key,
     required this.child,
@@ -15,6 +16,7 @@ class DelayedLoader extends StatefulWidget {
     required this.label,
     required this.configProvider,
     this.preload = false,
+    this.onLoaded,
   }) : super(key: key);
 
   @override
@@ -26,6 +28,7 @@ class _DelayedLoaderState extends State<DelayedLoader> {
     String name = widget.label;
     if (widget.configProvider.entryAnimationDone[name] != null &&
         widget.configProvider.entryAnimationDone[name]!) {
+      if (widget.onLoaded != null) widget.onLoaded!();
       return true;
     }
     return false;
@@ -41,6 +44,7 @@ class _DelayedLoaderState extends State<DelayedLoader> {
               bool isDone = snapshot.connectionState == ConnectionState.done;
               if (isDone) {
                 widget.configProvider.seenEntryAnimation(widget.label);
+                if (widget.onLoaded != null) widget.onLoaded!();
               }
               return widget.preload
                   ? Opacity(

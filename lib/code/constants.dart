@@ -24,8 +24,8 @@ List<ColorTheme> themes = [
     Color.fromARGB(255, 41, 100, 43),
   ),
   const ColorTheme(
-    Color.fromARGB(255, 33, 150, 243),
-    Color.fromARGB(255, 233, 59, 117),
+    Color.fromARGB(255, 30, 131, 214),
+    Color.fromARGB(255, 228, 101, 143),
     Color.fromARGB(255, 24, 109, 179),
   ),
   const ColorTheme(

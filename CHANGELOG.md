@@ -1,3 +1,11 @@
+## 1.0.0
+
+ - Stable release
+ - Bug fixes
+ - Dynamic background radial gradient
+ - Info panel added in the landing screen
+ - Color theme adjusted for pink and blue
+
 ## 0.7.4
 
  - Background fully implemented

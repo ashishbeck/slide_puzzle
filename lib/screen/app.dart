@@ -267,7 +267,7 @@ class _LayoutPageState extends State<LayoutPage> {
               puzzleHeight -=
                   maxHeight * ((isWebMobile || isMobileOnly) ? 0.1 : 0.25);
               toolAlign = 1.5;
-              duration = const Duration(milliseconds: 2000);
+              duration = const Duration(milliseconds: 1000);
               curve = Curves.easeOutBack;
             } else {
               toolAlign = 1;

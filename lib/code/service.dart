@@ -167,7 +167,7 @@ class Service {
       // print(body);
       return body.split(", ");
     } catch (e) {
-      print(e);
+      // print(e);
     }
     return [];
   }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:html';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -46,7 +45,7 @@ class _BackgroundBoxState extends State<BackgroundBox>
 
   _animate() {
     timer = Timer.periodic(
-        _aiSolving ? controller.duration! : const Duration(seconds: 2),
+        _aiSolving ? (controller.duration! * 1.1) : const Duration(seconds: 2),
         (timer) {
       bool random = rand.nextDouble() < 0.5;
       if ((random || _aiSolving) && mounted) {
@@ -60,8 +59,9 @@ class _BackgroundBoxState extends State<BackgroundBox>
               yAnim = !xAnim;
             }
           }
+          // controller.duration = duration * (1 - 0.5 * random);
+          controller.forward(from: 0).then((value) {});
         }
-        controller.forward(from: 0).then((value) {});
       }
     });
   }

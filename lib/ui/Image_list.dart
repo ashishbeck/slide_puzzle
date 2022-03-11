@@ -41,7 +41,7 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
     // double offset = scrollController.hasClients ? scrollController.offset : 0;
     double max = scrollController.position.maxScrollExtent;
     double offset = scrollController.offset;
-    double area = 30;
+    double area = 50;
     return IgnorePointer(
       child: Align(
         alignment: widget.isTall

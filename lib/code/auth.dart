@@ -15,7 +15,7 @@ class AuthService {
   }
 
   signInAnonymously() async {
-    print("signing in");
+    // print("signing in");
     UserCredential userCredential = await _auth.signInAnonymously();
     if (userCredential.additionalUserInfo!.isNewUser) {
       DatabaseService.instance.createUser(userCredential.user!.uid);
@@ -32,7 +32,7 @@ class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   createUser(String uid) {
-    print("creating user");
+    // print("creating user");
     final userData = UserData.newUser(
         uid, generateWordPairs(maxSyllables: 4).first.asPascalCase);
     // UserData(uid: uid, move3: 0, time3: 0, lastSeen: Timestamp.now());

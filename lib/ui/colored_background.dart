@@ -105,7 +105,7 @@ class _ColoredBackgroundState extends State<ColoredBackground>
                 //   0.2,
                 //   0.9,
                 // ],
-                // radius: 0.9,
+                radius: 1 - perc,
               ),
             ),
             // child: ExampleFunvasWidget(),

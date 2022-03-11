@@ -422,7 +422,7 @@ class _ScoreBoardState extends State<ScoreBoard>
                   separatorBuilder: (context, index) => const Divider(
                     indent: 24,
                     endIndent: 24,
-                    color: Colors.black,
+                    // color: Colors.black,
                   ),
                   itemCount: data.length + (!myPosition.isNegative ? 0 : 1),
                   // physics: const BouncingScrollPhysics(),

@@ -18,6 +18,7 @@ import 'package:slide_puzzle/ui/3d_transform.dart';
 import 'package:slide_puzzle/ui/Scoreboard.dart';
 import 'package:slide_puzzle/ui/bordered_container.dart';
 import 'package:slide_puzzle/ui/dialog.dart';
+import 'package:slide_puzzle/ui/info.dart';
 import 'package:slide_puzzle/ui/rive_icons.dart';
 import 'package:slide_puzzle/ui/sound_vibration.dart';
 import 'package:slide_puzzle/ui/spinner.dart';
@@ -294,7 +295,7 @@ class _LandingPageState extends State<LandingPage>
                                 child: ListView(
                                   children: [
                                     const Text(
-                                      "Made with 💙 by Ashish Beck in 🇮🇳",
+                                      "Made with 💙 in 🇮🇳",
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -560,6 +561,10 @@ class _LandingPageState extends State<LandingPage>
                                   setState(() {});
                                 },
                               ),
+                            ),
+                            const Align(
+                              alignment: Alignment(-0.95, 0.98),
+                              child: InfoDialog(),
                             ),
                             Align(
                               alignment: Alignment(0, 0.8),

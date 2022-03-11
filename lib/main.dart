@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +8,6 @@ import 'package:slide_puzzle/code/models.dart';
 import 'package:slide_puzzle/code/providers.dart';
 import 'package:slide_puzzle/code/store.dart';
 import 'package:slide_puzzle/firebase_options.dart';
-import 'package:slide_puzzle/screen/app.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_puzzle/screen/landing.dart';
 import 'package:rxdart/rxdart.dart';
@@ -64,7 +61,7 @@ class _MyAppState extends State<MyApp> {
         StreamProvider<UserData?>.value(
           initialData: null,
           catchError: (_, __) {
-            print("error at $__");
+            // print("error at $__");
           },
           value: AuthService().user!.transform(
                 FlatMapStreamTransformer<User?, UserData?>(

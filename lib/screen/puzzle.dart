@@ -166,6 +166,7 @@ class _PuzzleState extends State<Puzzle> {
       }
       await Future.delayed(const Duration(milliseconds: 200));
       scoreProvider.stopTimer();
+      scoreProvider.restart();
       configProvider.finish(solvedByAI: aiSolved);
       // setState(() {
       //   gameState = GameState.finished;
@@ -269,7 +270,7 @@ class _PuzzleState extends State<Puzzle> {
 
   @override
   Widget build(BuildContext context) {
-    print("building puzzle");
+    // print("building puzzle");
     TileProvider tileProvider = context.watch<TileProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
     ConfigProvider configProvider = context.watch<ConfigProvider>();
@@ -597,7 +598,7 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
     if (tileProvider.reverse) {
       reverseAnim(tileProvider);
     }
-    TweenProvider tweenProvider = context.read<TweenProvider>();
+    TweenProvider tweenProvider = context.watch<TweenProvider>();
     ConfigProvider configProvider = context.read<ConfigProvider>();
     ScoreProvider scoreProvider = context.read<ScoreProvider>();
 
@@ -687,8 +688,8 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            AnimatedContainer(
-              duration: Duration(milliseconds: 100),
+            Container(
+              // duration: const Duration(milliseconds: 250),
               // alignment: Alignment.center,
               height: height,
               width: height,

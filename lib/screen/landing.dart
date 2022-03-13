@@ -227,7 +227,7 @@ class _LandingPageState extends State<LandingPage>
 
     Widget button() => MyButton(
           label: "Enter",
-          tooltip: "",
+          tooltip: "Play the game",
           // labelStyle: TextStyle(color: secondaryColor),
           shouldAnimateEntry: false,
           onPressed: _onPressed,

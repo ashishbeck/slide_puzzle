@@ -42,11 +42,12 @@ class _MyDialogState extends State<MyDialog>
   Widget build(BuildContext context) {
     double maxHeight = MediaQuery.of(context).size.height;
     double maxWidth = MediaQuery.of(context).size.width;
-    bool isTall = maxHeight > maxWidth;
+    bool isTall = maxHeight > maxWidth * 0.85;
     double area = 0.8;
     double height = widget.height ?? maxHeight * area;
     // widget.height ?? (isTall ? maxWidth * area : maxHeight * area);
     double width = widget.width ?? maxWidth * area;
+    width = isTall ? width : width * 0.5;
     return AlertDialog(
       contentPadding: EdgeInsets.zero,
       backgroundColor: Colors.transparent,

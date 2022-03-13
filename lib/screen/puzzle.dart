@@ -688,23 +688,20 @@ class _PuzzleTileState extends State<PuzzleTile> with TickerProviderStateMixin {
           alignment: Alignment.center,
           children: [
             Container(
-              // duration: const Duration(milliseconds: 250),
-              // alignment: Alignment.center,
               height: height,
               width: height,
-              // decoration: isHovering
-              //     ? BoxDecoration(border: Border.all(color: primaryColor))
-              //     : const BoxDecoration(),
               child: ClipRect(
                 child: OverflowBox(
                   maxWidth: double.infinity,
                   maxHeight: double.infinity,
-                  // alignment: Alignment.topLeft,
                   child: Transform.scale(
                     scale: widget.gridSize.toDouble().toDouble(),
                     origin: finalImageOffset,
-                    // alignment: Alignment(imageLeft, imageTop),
-                    child: widget.image,
+                    child: Container(
+                      height: double.minPositive,
+                      width: double.minPositive,
+                      child: widget.image,
+                    ),
                   ),
                 ),
               ),

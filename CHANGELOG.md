@@ -1,3 +1,9 @@
+## 1.0.3
+
+ - Bug fixes
+ - Web app updated
+ - README updated
+
 ## 1.0.2
 
  - Code cleanup

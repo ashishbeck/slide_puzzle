@@ -40,7 +40,7 @@ void changeColor(int index) {
   buttonShadowColor = themes[index].buttonShadowColor;
 }
 
-String appLink = "https://n-puzzle-solver-1.web.app/";
+String appLink = "https://ashishbeck.github.io/slide_puzzle/";
 
 MySnackbar(String text, BuildContext context) => SnackBar(
       content: Text(

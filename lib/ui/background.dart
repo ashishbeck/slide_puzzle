@@ -49,23 +49,21 @@ class _BackgroundBoxState extends State<BackgroundBox>
         (timer) {
       bool random = rand.nextDouble() < 0.5;
       if ((random || _aiSolving) && mounted) {
-        if (mounted) {
-          if (!_aiSolving) {
+        if (!_aiSolving) {
+          xAnim = !xAnim;
+          yAnim = !xAnim;
+        } else {
+          if (random) {
             xAnim = !xAnim;
             yAnim = !xAnim;
-          } else {
-            if (random) {
-              xAnim = !xAnim;
-              yAnim = !xAnim;
-            }
           }
-          // controller.duration = duration * (1 - 0.5 * random);
-          controller.forward().then((value) {
-            if (mounted) {
-              controller.value = 0;
-            }
-          });
         }
+        // controller.duration = duration * (1 - 0.5 * random);
+        controller.forward().then((value) {
+          if (mounted) {
+            controller.value = 0;
+          }
+        });
       }
     });
   }
@@ -105,8 +103,16 @@ class _BackgroundBoxState extends State<BackgroundBox>
     if (aiSolving != _aiSolving) {
       _aiSolving = aiSolving;
       if (timer != null) {
-        timer!.cancel();
-        _animate();
+        if (_aiSolving) {
+          timer!.cancel();
+          controller.repeat();
+        } else {
+          controller.stop();
+          controller.forward().then((value) {
+            if (mounted) controller.value = 0;
+          });
+          _animate();
+        }
       }
     }
     // if (!aiSolving) {

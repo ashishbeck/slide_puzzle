@@ -1,3 +1,8 @@
+## 1.0.2
+
+ - Code cleanup
+ - Docs (website) updated
+
 ## 1.0.1
 
  - Bug fixes

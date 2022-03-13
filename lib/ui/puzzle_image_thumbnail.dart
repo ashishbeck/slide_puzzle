@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+// import 'package:lottie/lottie.dart';
 import 'package:slide_puzzle/code/audio.dart';
 
 import 'package:slide_puzzle/code/constants.dart';

@@ -35,13 +35,20 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
   bool arrowEntered = false;
 
   Widget excessScrollIndicator(double size, {required bool isLeft}) {
-    // double max = scrollController.hasClients
-    //     ? scrollController.position.maxScrollExtent
-    //     : 100;
-    // double offset = scrollController.hasClients ? scrollController.offset : 0;
     double max = scrollController.position.maxScrollExtent;
     double offset = scrollController.offset;
     double area = 50;
+    double adjustedOffset = isLeft
+        ? offset < 0
+            ? 0
+            : offset > area
+                ? area
+                : offset
+        : offset > max
+            ? 0
+            : offset < max - area
+                ? area
+                : max - offset;
     return IgnorePointer(
       child: Align(
         alignment: widget.isTall
@@ -54,32 +61,8 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
         child: FadeTransition(
           opacity: gradController,
           child: Container(
-            height: widget.isTall
-                ? size
-                : isLeft
-                    ? offset < 0
-                        ? 0
-                        : offset > area
-                            ? area
-                            : offset
-                    : offset > max
-                        ? 0
-                        : offset < max - area
-                            ? area
-                            : max - offset,
-            width: widget.isTall
-                ? isLeft
-                    ? offset < 0
-                        ? 0
-                        : offset > area
-                            ? area
-                            : offset
-                    : offset > max
-                        ? 0
-                        : offset < max - area
-                            ? area
-                            : max - offset
-                : size,
+            height: widget.isTall ? size : adjustedOffset,
+            width: widget.isTall ? adjustedOffset : size,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -110,11 +93,6 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
   _animateArrowEntry() async {
     ConfigProvider configProvider = context.read<ConfigProvider>();
     String name = "sidearrow";
-    // if (configProvider.entryAnimationDone[name] != null &&
-    //     configProvider.entryAnimationDone[name]!) {
-    //   isAnimating = false;
-    //   return;
-    // }
     if (!_ifAnimated()) {
       configProvider.seenEntryAnimation(name);
       await Future.delayed(Duration(
@@ -144,16 +122,6 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
     }
     return false;
   }
-
-  // _refreshAfterLoaded() async {
-  //   await Future.delayed(Duration(
-  //       milliseconds: defaultSidebarTime + defaultEntryTime * 2 + 1000));
-  //   if (mounted) {
-  //     setState(() {});
-  //     gradController.forward();
-  //     arrowController.forward().then((value) => arrowEntered = true);
-  //   }
-  // }
 
   @override
   void initState() {
@@ -231,17 +199,6 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
                 padding: EdgeInsets.all(padding),
                 decoration: BoxDecoration(
                   color: secondaryColor,
-                  // borderRadius: BorderRadius.only(
-                  //   topLeft: const Radius.circular(0),
-                  //   bottomLeft:
-                  //       widget.isTall ? Radius.zero : const Radius.circular(0),
-                  //   topRight:
-                  //       widget.isTall ? const Radius.circular(0) : Radius.zero,
-                  //   bottomRight: Radius.zero,
-                  // ),
-                  // border: Border.all(
-                  //   color: Colors.red,
-                  // ),
                 ),
                 child: ScrollConfiguration(
                   behavior: MyCustomScrollBehavior(),
@@ -289,73 +246,6 @@ class _ImageListState extends State<ImageList> with TickerProviderStateMixin {
               ),
             ),
           ),
-          // Positioned(
-          //   left: widget.isTall ? null : 1,
-          //   right: null,
-          //   top: widget.isTall ? 1 : null,
-          //   bottom: null,
-          //   child: Tooltip(
-          //     message: widget.isVisible
-          //         ? "Hide the image list"
-          //         : "Show the image list",
-          //     child: Container(
-          //       height: buttonSize,
-          //       width: buttonSize,
-          //       child: Opacity(
-          //         opacity:
-          //             (arrowController.isAnimating || arrowEntered) ? 1 : 0,
-          //         child: ClipPath(
-          //           clipper: ArrowClipperShape(
-          //               isBottom: !widget.isTall,
-          //               isRight: widget.isTall,
-          //               spacing: 4),
-          //           child: SlideTransition(
-          //             position: Tween<Offset>(
-          //                     begin:
-          //                         widget.isTall ? Offset(0, 1) : Offset(1, 0),
-          //                     end: Offset(0, 0))
-          //                 .animate(arrowController),
-          //             child: BorderedContainer(
-          //               label: "collapseButton",
-          //               spacing: 4,
-          //               shouldAnimateEntry: false,
-          //               isBottom: !widget.isTall,
-          //               isRight: widget.isTall,
-          //               child: MouseRegion(
-          //                 cursor: SystemMouseCursors.click,
-          //                 child: GestureDetector(
-          //                   onTap: () {
-          //                     widget.toggleImageList(!widget.isVisible);
-          //                     AudioService.instance.vibrate();
-          //                   },
-          //                   behavior: HitTestBehavior.opaque,
-          //                   child: Container(
-          //                     // height: buttonSize,
-          //                     // width: buttonSize,
-          //                     decoration: BoxDecoration(
-          //                         borderRadius: const BorderRadius.all(
-          //                           Radius.circular(0),
-          //                         ),
-          //                         color: secondaryColor),
-          //                     child: RotationTransition(
-          //                       turns: animation,
-          //                       child: Icon(
-          //                         widget.isTall
-          //                             ? Icons.keyboard_arrow_down
-          //                             : Icons.keyboard_arrow_right,
-          //                         color: Colors.white,
-          //                       ),
-          //                     ),
-          //                   ),
-          //                 ),
-          //               ),
-          //             ),
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // )
         ],
       ),
     );

@@ -166,7 +166,6 @@ class _PuzzleState extends State<Puzzle> {
       }
       await Future.delayed(const Duration(milliseconds: 200));
       scoreProvider.stopTimer();
-      scoreProvider.restart();
       configProvider.finish(solvedByAI: aiSolved);
       // setState(() {
       //   gameState = GameState.finished;

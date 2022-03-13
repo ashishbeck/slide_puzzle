@@ -60,7 +60,11 @@ class _BackgroundBoxState extends State<BackgroundBox>
             }
           }
           // controller.duration = duration * (1 - 0.5 * random);
-          controller.forward(from: 0).then((value) {});
+          controller.forward().then((value) {
+            if (mounted) {
+              controller.value = 0;
+            }
+          });
         }
       }
     });

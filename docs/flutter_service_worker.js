@@ -68,8 +68,8 @@ const RESOURCES = {
 "icons/ms-icon-150x150.png": "38aceed2c86fd825d9638bf004a3580b",
 "icons/ms-icon-310x310.png": "345ecd66e502447fd6f0ba67d326d022",
 "icons/ms-icon-70x70.png": "50575ccdc19ea7ea6e2613dc49414f8d",
-"index.html": "5e19442c14c179190bb27484d0d7bf58",
-"/": "5e19442c14c179190bb27484d0d7bf58",
+"index.html": "1d85c5b833008d93e67ab3d601a30d26",
+"/": "1d85c5b833008d93e67ab3d601a30d26",
 "main.dart.js": "9216d31f99b7a722df6319fe2f154b0c",
 "manifest.json": "1473b545e95ca2624db24c6e87c6c80a",
 "version.json": "926859e2b5c4be6f4747fc5862c07050"
@@ -78,7 +78,7 @@ const RESOURCES = {
 // The application shell files that are downloaded before a service worker can
 // start.
 const CORE = [
-  "/",
+//  "/",
 "main.dart.js",
 "index.html",
 "assets/NOTICES",

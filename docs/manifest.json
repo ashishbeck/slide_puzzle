@@ -1,11 +1,11 @@
 {
-    "name": "Slide Puzzle",
-    "short_name": "Slide Puzzle",
+    "name": "Retro Slide Puzzle",
+    "short_name": "Retro Slide Puzzle",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFFFFF",
     "theme_color": "#FFFFFF",
-    "description": "A slide puzzle made for flutter puzzle hack challenge",
+    "description": "A retro-themed slide puzzle made for flutter puzzle hack challenge",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -6,7 +6,7 @@ The live build is available to try [here](https://ashishbeck.github.io/slide_puz
 - 【﻿ａｅｓｔｈｅｔｉｃ】🌆
 - Responsive design that can fit any screen dynamically 📱💻
 - Two different difficulties to test your skills- Easy (3x3) and Hard (4x4)
-- Tiles can be moved with a mouse click, mouse drag (flick or drag n drop), and keyboard arrow keys 🦾
+- Tiles can be moved with a mouse click or taps, drags (flick or drag n drop), and keyboard arrow keys 🦾
 - Can also click/drag multiple tiles at once if the space permits 👀
 - Auto solves the puzzle for you in case you get tired 🤖
 

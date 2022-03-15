@@ -47,7 +47,7 @@ class _MyDialogState extends State<MyDialog>
     double height = widget.height ?? maxHeight * area;
     // widget.height ?? (isTall ? maxWidth * area : maxHeight * area);
     double width = widget.width ?? maxWidth * area;
-    width = isTall ? width : width * 0.5;
+    width = isTall ? width : width * 0.75;
     return AlertDialog(
       contentPadding: EdgeInsets.zero,
       backgroundColor: Colors.transparent,

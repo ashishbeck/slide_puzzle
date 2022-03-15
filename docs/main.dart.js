@@ -70509,7 +70509,7 @@ s=m.d
 if(s==null)s=l*0.8
 r=m.e
 if(r==null)r=k*0.8
-r=j?r:r*0.5
+r=j?r:r*0.75
 m=j?k:l
 q=t.Ni
 p=A.b(this.e,"animation")
